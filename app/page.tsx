@@ -388,24 +388,20 @@ export default function Page() {
   };
 
   return (
-    <div style={styles.page}>
-      <div style={styles.header}>
+    <div style={styles.page} className="ath-page">
+      <div style={styles.header} className="ath-header">
         <div>
           <h1 style={styles.title}>Generate a Post</h1>
           <p style={styles.subtitle}>
             Generate a post image + caption + hashtags fast (V1).
           </p>
         </div>
-        <div style={{ ...styles.pill, opacity: 0.9 }}>
+        <div style={{ ...styles.pill, opacity: 0.9 }} className="ath-localPill">
           Local: http://localhost:3000
         </div>
       </div>
 
-      <div
-        style={{
-          ...styles.grid,
-        }}
-      >
+      <div style={{ ...styles.grid }} className="ath-grid">
         {/* LEFT: FORM */}
         <div style={styles.card}>
           <h2 style={styles.cardTitle}>Post generator</h2>
@@ -439,7 +435,7 @@ export default function Page() {
             />
           </div>
 
-          <div style={styles.row2}>
+          <div style={styles.row2} className="ath-row2">
             <div style={styles.field}>
               <div style={styles.labelRow}>
                 <div style={styles.label}>Tone</div>
@@ -465,7 +461,7 @@ export default function Page() {
             </div>
           </div>
 
-          <div style={styles.row2}>
+          <div style={styles.row2} className="ath-row2">
             <div style={styles.field}>
               <div style={styles.labelRow}>
                 <div style={styles.label}>Caption length</div>
@@ -523,7 +519,7 @@ export default function Page() {
             </div>
           </div>
 
-          <div style={styles.buttonRow}>
+          <div style={styles.buttonRow} className="ath-buttonRow">
             <button
               style={{
                 ...styles.primaryBtn,
@@ -556,7 +552,7 @@ export default function Page() {
           </p>
 
           <div style={styles.outputWrap}>
-            <div style={styles.imageFrame}>
+            <div style={styles.imageFrame} className="ath-imageFrame">
               {post?.imageBase64 ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -573,7 +569,7 @@ export default function Page() {
               )}
             </div>
 
-            <div style={styles.buttonRow}>
+            <div style={styles.buttonRow} className="ath-buttonRow">
               <button
                 style={{
                   ...styles.secondaryBtn,
@@ -639,16 +635,21 @@ export default function Page() {
         </div>
       </div>
 
-      {/* Small responsive adjustment without CSS file:
-          If you want, later we can convert to Tailwind/Shadcn.
-      */}
+      {/* Responsive overrides (ONLY layout responsiveness) */}
       <style>{`
         @media (max-width: 920px) {
           body { margin: 0; }
+          .ath-page { padding: 12px !important; }
+          .ath-grid { grid-template-columns: 1fr !important; }
+          .ath-localPill { width: 100% !important; text-align: left !important; }
+          .ath-row2 { grid-template-columns: 1fr !important; }
+          .ath-buttonRow button { flex: 1 1 100% !important; }
+          .ath-imageFrame { min-height: 220px !important; }
         }
-              @media (max-width: 920px) {
-          ._gridFix { grid-template-columns: 1fr !important; }
-           }
+
+        @media (max-width: 420px) {
+          .ath-imageFrame { min-height: 180px !important; }
+        }
       `}</style>
     </div>
   );
