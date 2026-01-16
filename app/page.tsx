@@ -536,6 +536,25 @@ export default function Page() {
               {isLoading ? "Generating…" : "Generate"}
             </button>
           </div>
+          <a
+            href="/calendar"
+            style={{
+              display: "block",
+              textAlign: "center",
+              marginTop: 10,
+              borderRadius: 12,
+              border: "1px solid rgba(255,255,255,0.16)",
+              background: "rgba(255,255,255,0.06)",
+              color: "#e6edf7",
+              padding: "10px 14px",
+              fontWeight: 800,
+              textDecoration: "none",
+              textTransform: "uppercase",
+              fontSize: 13,
+            }}
+          >
+            Plan Your Month
+          </a>
 
           {statusMsg ? <div style={styles.status}>{statusMsg}</div> : null}
           {errorMsg ? <div style={styles.danger}>{errorMsg}</div> : null}
