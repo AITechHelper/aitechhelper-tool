@@ -537,11 +537,6 @@ export default function Page() {
 
           {statusMsg ? <div style={styles.status}>{statusMsg}</div> : null}
           {errorMsg ? <div style={styles.danger}>{errorMsg}</div> : null}
-
-          <div style={styles.footerNote}>
-            Tip: If the API ever returns HTML/empty output, the error box will
-            show the raw response snippet.
-          </div>
         </div>
 
         {/* RIGHT: OUTPUT PANEL */}
