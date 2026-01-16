@@ -396,9 +396,6 @@ export default function Page() {
             Generate a post image + caption + hashtags fast (V1).
           </p>
         </div>
-        <div style={{ ...styles.pill, opacity: 0.9 }} className="ath-localPill">
-          Local: http://localhost:3000
-        </div>
       </div>
 
       <div style={{ ...styles.grid }} className="ath-grid">
