@@ -147,8 +147,7 @@ export default function Page() {
       color: "#e6edf7",
       padding: 20,
       boxSizing: "border-box",
-      fontFamily:
-        'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"',
+      fontFamily: 'fontFamily: "Verdana, Geneva, sans-serif"',
     },
     header: {
       maxWidth: 1100,
@@ -160,16 +159,20 @@ export default function Page() {
       flexWrap: "wrap",
     },
     title: {
-      fontSize: 22,
-      fontWeight: 800,
-      letterSpacing: 0.2,
+      fontSize: 35,
+      fontWeight: 600,
+      letterSpacing: 1,
       margin: 0,
+      textTransform: "uppercase",
     },
+
     subtitle: {
       margin: 0,
       opacity: 0.75,
-      fontSize: 13,
+      fontSize: 15,
+      fontWeight: 400,
     },
+
     grid: {
       maxWidth: 1100,
       margin: "0 auto",
@@ -186,15 +189,17 @@ export default function Page() {
     },
     cardTitle: {
       margin: 0,
-      fontSize: 14,
-      fontWeight: 800,
-      letterSpacing: 0.2,
+      fontSize: 18,
+      fontWeight: 700,
+      letterSpacing: 0.8,
+      textTransform: "uppercase",
     },
+
     cardHint: {
       marginTop: 6,
       marginBottom: 12,
       opacity: 0.7,
-      fontSize: 12,
+      fontSize: 14,
       lineHeight: 1.4,
     },
     field: {
@@ -210,7 +215,7 @@ export default function Page() {
       gap: 8,
     },
     label: {
-      fontSize: 12,
+      fontSize: 16,
       fontWeight: 700,
       opacity: 0.9,
     },
@@ -256,7 +261,7 @@ export default function Page() {
       width: "100%",
     },
     pill: {
-      fontSize: 12,
+      fontSize: 14,
       padding: "4px 8px",
       borderRadius: 999,
       border: "1px solid rgba(255,255,255,0.14)",
@@ -353,7 +358,7 @@ export default function Page() {
     },
     textTitle: {
       margin: 0,
-      fontSize: 12,
+      fontSize: 14,
       fontWeight: 800,
       opacity: 0.95,
     },
