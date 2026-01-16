@@ -391,7 +391,9 @@ export default function Page() {
     <div style={styles.page}>
       <div style={styles.header}>
         <div>
-          <h1 style={styles.title}>AI Tech Helper</h1>
+          <h1 style={styles.title}>
+            Generate a post image + caption + hashtags fast
+          </h1>
           <p style={styles.subtitle}>
             Generate a post image + caption + hashtags fast (V1).
           </p>
