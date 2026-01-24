@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 
 type DayPlan = {
   day: number;
@@ -11,6 +11,21 @@ type DayPlan = {
 
 function daysInMonth(year: number, monthIndex0: number) {
   return new Date(year, monthIndex0 + 1, 0).getDate();
+}
+const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+function getWeekdayLabel(year: number, monthIndex: number, day: number) {
+  const d = new Date(year, monthIndex, day);
+  return WEEKDAYS[d.getDay()];
+}
+
+function formatDayNumber(day: number) {
+  if (day >= 11 && day <= 13) return `${day}th`;
+  const last = day % 10;
+  if (last === 1) return `${day}st`;
+  if (last === 2) return `${day}nd`;
+  if (last === 3) return `${day}rd`;
+  return `${day}th`;
 }
 
 function startDayOfWeek(year: number, monthIndex0: number) {
@@ -69,9 +84,13 @@ function buildGenericPlan(totalDays: number): DayPlan[] {
 }
 
 export default function CalendarPage() {
+  const [qs, setQs] = useState("");
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [monthIndex0, setMonthIndex0] = useState(today.getMonth());
+  useEffect(() => {
+    setQs(window.location.search ? window.location.search.slice(1) : "");
+  }, []);
 
   const totalDays = useMemo(
     () => daysInMonth(year, monthIndex0),
@@ -330,16 +349,37 @@ export default function CalendarPage() {
             {cells.map((c, idx) => {
               if (c.kind === "blank") {
                 return (
-                  <div key={idx} style={{ ...styles.cell, opacity: 0.25 }} />
+                  <div
+                    key={idx}
+                    style={{ ...styles.cell, opacity: 0.25 }}
+                    className="ath-blank"
+                  />
                 );
               }
-
               const p = c.plan;
               return (
-                <div key={idx} style={styles.cell}>
+                <a
+                  key={idx}
+                  href={`/?day=${p.day}&title=${encodeURIComponent(
+                    p.title
+                  )}&detail=${encodeURIComponent(p.detail)}&autogen=1${
+                    qs ? `&${qs}` : ""
+                  }
+                    typeof window !== "undefined"
+                      ? window.location.search.slice(1)
+                      : ""
+                  }`}
+                  style={{
+                    ...styles.cell,
+                    color: "inherit",
+                    textDecoration: "none",
+                  }}
+                >
                   <div style={styles.dayNum}>
-                    <div style={styles.day}>{p.day}</div>
-                    <div style={styles.tag}>{p.tag}</div>
+                    <div style={styles.day}>{formatDayNumber(p.day)}</div>
+                    <div style={styles.tag}>
+                      {getWeekdayLabel(year, monthIndex0, p.day)}
+                    </div>
                   </div>
 
                   <p style={styles.title}>{p.title}</p>
@@ -350,7 +390,7 @@ export default function CalendarPage() {
                       Generate now
                     </span>
                   </div>
-                </div>
+                </a>
               );
             })}
           </div>
@@ -366,7 +406,7 @@ export default function CalendarPage() {
         /* ✅ Clean, predictable responsiveness */
         @media (max-width: 980px) {
           .ath-cal-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
-          .ath-dow { display: none !important; }
+          .ath-dow { display: none !important; } .ath-blank { display: none !important; }
         }
         @media (max-width: 700px) {
           .ath-cal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
