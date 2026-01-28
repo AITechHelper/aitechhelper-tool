@@ -2,11 +2,17 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 
+type ImageStyle =
+  | "lifestyle_photo"
+  | "branding_photo"
+  | "branding_text_photo"
+  | "branding_text_only";
+
 type DayPlan = {
   day: number;
-  title: string;
-  detail: string;
-  tag: "Value" | "Proof" | "Promo" | "Community";
+  postType: string; // ✅ shown as the big title in the cell
+  detail: string; // ✅ short subtext
+  imageStyle: ImageStyle; // ✅ chosen automatically (NOT shown)
 };
 
 function daysInMonth(year: number, monthIndex0: number) {
@@ -38,56 +44,165 @@ function monthName(monthIndex0: number) {
   });
 }
 
-function buildGenericPlan(totalDays: number): DayPlan[] {
-  const cycle: Omit<DayPlan, "day">[] = [
-    {
-      tag: "Value",
-      title: "Quick tip",
-      detail: "Teach a simple tip your audience can use today.",
-    },
-    {
-      tag: "Proof",
-      title: "Testimonial",
-      detail: "Share a customer win or a short social proof story.",
-    },
-    {
-      tag: "Value",
-      title: "How it works",
-      detail: "Explain your process or what makes your offer different.",
-    },
-    {
-      tag: "Community",
-      title: "Behind the scenes",
-      detail: "Show your work, tools, or a day-in-the-life snapshot.",
-    },
-    {
-      tag: "Promo",
-      title: "Offer highlight",
-      detail: "Soft promo: explain what you sell + who it’s for.",
-    },
-    {
-      tag: "Value",
-      title: "FAQ",
-      detail: "Answer one common question your customers ask.",
-    },
-    {
-      tag: "Community",
-      title: "Engagement post",
-      detail: "Ask a question or run a quick poll to spark comments.",
-    },
-  ];
+/* ---------------- Deterministic “random” (NO hydration issues) ---------------- */
 
+function hashSeed(input: string) {
+  let h = 2166136261;
+  for (let i = 0; i < input.length; i++) {
+    h ^= input.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function seededPick<T>(arr: readonly T[], seed: number) {
+  return arr[seed % arr.length];
+}
+
+function pickImageStyleForDay(
+  postType: string,
+  year: number,
+  monthIndex0: number,
+  day: number
+): ImageStyle {
+  const t = postType.toLowerCase();
+  const seed = hashSeed(`${year}-${monthIndex0}-${day}-${postType}`);
+
+  // Text-first formats
+  if (
+    t.includes("educational") ||
+    t.includes("tips") ||
+    t.includes("authority")
+  ) {
+    return seededPick(
+      ["branding_text_only", "branding_text_photo"] as const,
+      seed
+    );
+  }
+
+  // Promo / announcement
+  if (
+    t.includes("promotion") ||
+    t.includes("offer") ||
+    t.includes("announcement")
+  ) {
+    return seededPick(["branding_text_photo", "branding_photo"] as const, seed);
+  }
+
+  // Social proof
+  if (t.includes("testimonial") || t.includes("social proof")) {
+    return seededPick(
+      ["branding_text_only", "branding_text_photo"] as const,
+      seed
+    );
+  }
+
+  // BTS
+  if (t.includes("behind")) return "lifestyle_photo";
+
+  // Engagement
+  if (t.includes("engagement") || t.includes("conversation")) {
+    return seededPick(["lifestyle_photo", "branding_photo"] as const, seed);
+  }
+
+  // Transformations
+  if (
+    t.includes("before") ||
+    t.includes("after") ||
+    t.includes("transformation")
+  ) {
+    return "lifestyle_photo";
+  }
+
+  // Default
+  return seededPick(["lifestyle_photo", "branding_photo"] as const, seed);
+}
+
+/* ---------------- Plan builder (post types) ---------------- */
+
+const POST_TYPES: Array<{ postType: string; detail: string }> = [
+  {
+    postType: "Basic Post",
+    detail: "A safe, general post that fits your niche.",
+  },
+  {
+    postType: "Promotion / Offer",
+    detail: "Highlight a deal, discount, or special offer.",
+  },
+  {
+    postType: "Service or Product Highlight",
+    detail:
+      "Show what you offer and who it helps (keep visuals generic if needed).",
+  },
+  {
+    postType: "Educational / Tips",
+    detail: "Share a helpful tip your audience can use today.",
+  },
+  {
+    postType: "Problem → Solution",
+    detail: "Call out a pain point and give a simple solution.",
+  },
+  {
+    postType: "Before & After / Transformation",
+    detail: "Show a transformation or progress (visual-only, no labels).",
+  },
+  {
+    postType: "Testimonial / Social Proof",
+    detail: "Build trust with a quick customer win or review.",
+  },
+  {
+    postType: "Behind the Scenes",
+    detail: "Show a real moment from your day or process.",
+  },
+  {
+    postType: "Announcement / Update",
+    detail: "Share news, updates, milestones, or changes.",
+  },
+  {
+    postType: "Engagement / Conversation Starter",
+    detail: "Ask a question that encourages comments and replies.",
+  },
+  {
+    postType: "Seasonal / Timely",
+    detail: "Tie your post to a season, holiday, or current moment.",
+  },
+  {
+    postType: "Authority / Credibility",
+    detail: "Position yourself as the expert with a strong takeaway.",
+  },
+];
+
+function buildPostTypePlan(
+  totalDays: number,
+  year: number,
+  monthIndex0: number
+): DayPlan[] {
   return Array.from({ length: totalDays }, (_, i) => {
-    const base = cycle[i % cycle.length];
-    return { day: i + 1, ...base };
+    const base = POST_TYPES[i % POST_TYPES.length];
+    const day = i + 1;
+    const imageStyle = pickImageStyleForDay(
+      base.postType,
+      year,
+      monthIndex0,
+      day
+    );
+    return {
+      day,
+      postType: base.postType,
+      detail: base.detail,
+      imageStyle,
+    };
   });
 }
 
+/* ----------------------------- Page ----------------------------- */
+
 export default function CalendarPage() {
-  const [qs, setQs] = useState("");
+  const [qs, setQs] = useState(""); // existing form params from generator
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [monthIndex0, setMonthIndex0] = useState(today.getMonth());
+
   useEffect(() => {
     setQs(window.location.search ? window.location.search.slice(1) : "");
   }, []);
@@ -100,9 +215,29 @@ export default function CalendarPage() {
     () => startDayOfWeek(year, monthIndex0),
     [year, monthIndex0]
   );
-  const plan = useMemo(() => buildGenericPlan(totalDays), [totalDays]);
+  const plan = useMemo(
+    () => buildPostTypePlan(totalDays, year, monthIndex0),
+    [totalDays, year, monthIndex0]
+  );
 
   const monthLabel = `${monthName(monthIndex0)} ${year}`;
+
+  // ✅ remove keys that we override from the calendar (prevents duplicates)
+  const forwardedQs = useMemo(() => {
+    if (!qs) return "";
+    const sp = new URLSearchParams(qs);
+
+    // we set these ourselves
+    sp.delete("day");
+    sp.delete("title");
+    sp.delete("detail");
+    sp.delete("autogen");
+    sp.delete("goal");
+    sp.delete("imageStyle");
+
+    const out = sp.toString();
+    return out ? `&${out}` : "";
+  }, [qs]);
 
   const styles: Record<string, React.CSSProperties> = {
     page: {
@@ -192,7 +327,6 @@ export default function CalendarPage() {
       letterSpacing: 0.6,
     },
 
-    // ✅ one reliable grid that changes columns by breakpoint
     grid: {
       display: "grid",
       gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
@@ -233,7 +367,6 @@ export default function CalendarPage() {
       minWidth: 0,
     },
 
-    // ✅ removed "Day" prefix — now just the number
     day: {
       fontSize: 12,
       fontWeight: 800,
@@ -313,8 +446,7 @@ export default function CalendarPage() {
           <div>
             <h1 style={styles.h1}>{monthLabel}</h1>
             <p style={styles.sub}>
-              A simple monthly plan. Next step: click a day to generate that
-              day’s post.
+              A simple monthly plan. Click a day to generate that day’s post.
             </p>
           </div>
           <div style={styles.monthPill}>Monthly Calendar</div>
@@ -336,7 +468,6 @@ export default function CalendarPage() {
             </a>
           </div>
 
-          {/* Desktop day-of-week labels */}
           <div style={{ ...styles.grid, marginBottom: 8 }} className="ath-dow">
             {dows.map((d) => (
               <div key={d} style={styles.dow}>
@@ -356,19 +487,26 @@ export default function CalendarPage() {
                   />
                 );
               }
+
               const p = c.plan;
+
+              // ✅ What generator receives:
+              // - dayContext uses title/detail
+              // - goal = post type
+              // - imageStyle = chosen automatically (not shown)
+              const href =
+                `/?day=${p.day}` +
+                `&title=${encodeURIComponent(p.postType)}` +
+                `&detail=${encodeURIComponent(p.detail)}` +
+                `&autogen=1` +
+                `&goal=${encodeURIComponent(p.postType)}` +
+                `&imageStyle=${encodeURIComponent(p.imageStyle)}` +
+                `${forwardedQs}`;
+
               return (
                 <a
                   key={idx}
-                  href={`/?day=${p.day}&title=${encodeURIComponent(
-                    p.title
-                  )}&detail=${encodeURIComponent(p.detail)}&autogen=1${
-                    qs ? `&${qs}` : ""
-                  }
-                    typeof window !== "undefined"
-                      ? window.location.search.slice(1)
-                      : ""
-                  }`}
+                  href={href}
                   style={{
                     ...styles.cell,
                     color: "inherit",
@@ -382,7 +520,9 @@ export default function CalendarPage() {
                     </div>
                   </div>
 
-                  <p style={styles.title}>{p.title}</p>
+                  {/* ✅ title now shows the POST TYPE */}
+                  <p style={styles.title}>{p.postType}</p>
+                  {/* ✅ short subtext */}
                   <p style={styles.detail}>{p.detail}</p>
 
                   <div style={{ marginTop: "auto" }}>
@@ -396,17 +536,17 @@ export default function CalendarPage() {
           </div>
 
           <div style={styles.note}>
-            This is a generic strategy calendar. Next we’ll make each day
-            clickable and generate that day’s image + caption.
+            This calendar rotates through your post types. The image style is
+            chosen automatically per day.
           </div>
         </div>
       </div>
 
       <style>{`
-        /* ✅ Clean, predictable responsiveness */
         @media (max-width: 980px) {
           .ath-cal-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
-          .ath-dow { display: none !important; } .ath-blank { display: none !important; }
+          .ath-dow { display: none !important; }
+          .ath-blank { display: none !important; }
         }
         @media (max-width: 700px) {
           .ath-cal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }

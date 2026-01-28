@@ -13,37 +13,36 @@ type DayContext = {
 };
 
 type Body = {
-  // required-ish
   niche?: string;
   audience?: string;
 
-  // form fields (USE ALL)
-  platform?: string;
-  postType?: string;
-  callToAction?: string;
-  visualFocus?: string;
-
+  // Page.tsx
   tone?: string;
-  goal?: string;
+  goal?: string; // post type label
+  specificRequest?: string; // unlocked textbox under post type
+
   captionLength?: "Short" | "Medium" | "Long";
   hashtagCount?: number;
+
+  // NEW image styles:
+  // "lifestyle_photo" | "branding_photo" | "branding_text_photo" | "branding_text_only"
   imageStyle?: string;
 
-  // brand colors
   primaryColor?: string;
   secondaryColor?: string;
 
-  // extra context
   dayContext?: DayContext | null;
 
-  // reference image (data URL)
   referenceImageDataUrl?: string | null;
 
-  // refinement (one-time)
   refinementText?: string;
 
-  // NOTE: you can add this to your form later if you want
-  specificRequest?: string;
+  callToAction?: string;
+};
+
+type PostTypeGuidance = {
+  caption: string;
+  image: string;
 };
 
 /* ------------------------- Helpers ------------------------- */
@@ -56,84 +55,16 @@ function clampInt(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
-function captionMax(len?: Body["captionLength"]) {
-  // tighter than before
-  if (len === "Short") return 140;
-  if (len === "Long") return 360;
-  return 240; // Medium default
-}
-
-function styleToPrompt(style?: string) {
-  switch (style) {
-    case "cinematic_photo":
-      return "cinematic realistic photo, shallow depth of field, dramatic but natural lighting, high detail";
-    case "product_photo":
-      return "clean product photo, studio lighting, crisp details, minimal background, premium ecommerce look";
-    case "minimal_illustration":
-      return "minimal modern illustration, simple shapes, clean composition, soft gradients";
-    case "3d_render":
-      return "high quality 3D render, realistic materials, studio lighting, clean composition";
-    case "flat_vector":
-      return "flat vector illustration, bold shapes, minimal shading, modern design";
-    case "realistic_photo":
-    default:
-      return "realistic photo, natural lighting, high detail, not cartoon";
-  }
-}
-
-function platformToFraming(platform?: string) {
-  // we generate 1024x1024, but composition guidance still helps
-  const p = (platform || "").toLowerCase();
-  if (p.includes("tiktok") || p.includes("short")) {
-    return "composition suitable for vertical short-form (subject centered with safe margins for cropping)";
-  }
-  if (p.includes("linkedin")) {
-    return "professional, clean composition suitable for LinkedIn feed";
-  }
-  if (p.includes("x") || p.includes("twitter")) {
-    return "bold, simple composition readable at small sizes";
-  }
-  if (p.includes("facebook")) {
-    return "friendly, warm, broad-audience composition";
-  }
-  return "composition suitable for Instagram feed";
-}
-
-function visualFocusToImageRule(visualFocus?: string) {
-  const v = (visualFocus || "").toLowerCase();
-  if (v.includes("product"))
-    return "focus strongly on the product as the hero subject";
-  if (v.includes("person"))
-    return "include a person interacting naturally with the product";
-  if (v.includes("lifestyle"))
-    return "lifestyle scene that shows the product in use";
-  if (v.includes("before/after"))
-    return "before/after style layout using props and staging (no text labels)";
-  if (v.includes("close-up"))
-    return "close-up detail shot emphasizing texture and materials";
-  if (v.includes("text overlay"))
-    return "leave clean negative space for a minimal text overlay (DO NOT render any text)";
-  return "";
-}
-
-function postTypeToCreativeDirection(postType?: string) {
-  const t = (postType || "").toLowerCase();
-  if (t.includes("educ")) return "educational vibe: helpful and specific";
-  if (t.includes("promo")) return "promotional vibe: offer-forward and clear";
-  if (t.includes("testimonial"))
-    return "testimonial vibe: social proof, trustworthy";
-  if (t.includes("behind"))
-    return "behind-the-scenes vibe: authentic and candid";
-  if (t.includes("tip")) return "tip-list vibe: practical and useful";
-  if (t.includes("story")) return "story vibe: narrative, warm, relatable";
-  if (t.includes("announce")) return "announcement vibe: crisp, direct, newsy";
-  return "general vibe: high quality and engaging";
-}
-
 function normalizeHex(hex?: string) {
   const h = String(hex || "").trim();
   if (!h) return "";
   return h.startsWith("#") ? h : `#${h}`;
+}
+
+function captionMax(len?: Body["captionLength"]) {
+  if (len === "Short") return 120;
+  if (len === "Long") return 280;
+  return 180;
 }
 
 function looksLikeSafetyRejection(err: any) {
@@ -158,7 +89,7 @@ async function rewriteImagePromptToBeSafe(
 
 Rules:
 - Remove/replace anything unsafe.
-- Avoid logos/brand names/readable text.
+- Avoid logos/brand names/readable text unless explicitly allowed by the style.
 - Keep it PG.
 Return ONLY JSON: {"safe_prompt":"..."}
 
@@ -175,7 +106,7 @@ ${originalPrompt}`,
   return String(parsed.safe_prompt || "").trim();
 }
 
-/* ---------- dataURL -> Blob (SDK accepts Blob; avoid TS "File" errors) ---------- */
+/* ---------- dataURL -> Blob ---------- */
 function dataUrlToBlob(dataUrl: string, filename: string) {
   const match = dataUrl.match(/^data:(.+);base64,(.+)$/);
   if (!match)
@@ -184,9 +115,346 @@ function dataUrlToBlob(dataUrl: string, filename: string) {
   const b64 = match[2];
   const bytes = Buffer.from(b64, "base64");
   const blob = new Blob([bytes], { type: mime });
-  // give it a name for multipart upload
   (blob as any).name = filename;
   return blob as any;
+}
+
+/* ----------------- Image Style Specs (your 4 examples) ----------------- */
+
+type StyleSpec = {
+  allowText: boolean;
+  photoRequired: boolean;
+  brandingStrength: "none" | "light" | "heavy";
+  banProducts: boolean; // ban product packaging, labels, bags, bottles, boxes, etc.
+  basePrompt: string;
+  layoutHint: string;
+};
+
+function getStyleSpec(styleRaw?: string): StyleSpec {
+  const style = String(styleRaw || "").trim();
+
+  // 1) Lifestyle photo — NO text, NO products, very light branding
+  if (style === "lifestyle_photo") {
+    return {
+      allowText: false,
+      photoRequired: true,
+      brandingStrength: "light",
+      banProducts: true,
+      basePrompt: `
+REALISTIC lifestyle photography.
+Authentic candid moment or environment scene.
+Fits the niche through context (setting / activity), NOT products.
+NO readable text. NO logos. NO packaging. NO close-ups of branded items.
+Natural lighting, shallow depth of field, high-end commercial photo.
+Looks organic and unposed (not stock-photo cheesy).
+`,
+      layoutHint: `
+Lifestyle framing, natural composition.
+Keep branding minimal: tiny accent colors only (if any).
+`,
+    };
+  }
+
+  // 2) Branding + photo — NO text, heavy brand design
+  if (style === "branding_photo") {
+    return {
+      allowText: false,
+      photoRequired: true,
+      brandingStrength: "heavy",
+      banProducts: true,
+      basePrompt: `
+REALISTIC photo used as the base layer.
+Strong branded graphic design elements layered on top.
+Use brand colors via frames, shapes, borders, gradients, and overlays.
+NO readable text. NO logos. NO packaging. NO labels.
+Photo must remain visible and realistic.
+Modern Instagram feed composition, premium brand aesthetic.
+`,
+      layoutHint: `
+Use bold brand color blocks/shapes with a clean grid.
+Leave negative space like a designed post, but DO NOT render text.
+`,
+    };
+  }
+
+  // 3) Branding + text + photo — text allowed
+  if (style === "branding_text_photo") {
+    return {
+      allowText: true,
+      photoRequired: true,
+      brandingStrength: "heavy",
+      banProducts: true,
+      basePrompt: `
+REALISTIC photo as the base layer.
+Branded layout with intentional areas for headline text.
+Brand colors dominate the design; high contrast, premium look.
+Typography is EXPECTED and intentional (clean, modern, readable).
+NO logos. Avoid brand names. Avoid packaging and labels.
+Photo supports the message.
+`,
+      layoutHint: `
+Headline + subhead style layout (like a real IG post).
+Bold but clean typography hierarchy.
+`,
+    };
+  }
+
+  // 4) Branding + text only — no photo
+  if (style === "branding_text_only") {
+    return {
+      allowText: true,
+      photoRequired: false,
+      brandingStrength: "heavy",
+      banProducts: true,
+      basePrompt: `
+GRAPHIC DESIGN ONLY (NO photo, NO photorealism).
+Typography-driven layout with brand colors dominating.
+Modern, premium, high-contrast design.
+Clear hierarchy; looks custom-designed (not templated).
+NO logos. Avoid brand names.
+`,
+      layoutHint: `
+Use a strong grid, spacing, and typographic hierarchy.
+Add subtle pattern texture / dots / lines for depth.
+`,
+    };
+  }
+
+  // Default fallback: treat like lifestyle_photo (safe)
+  return {
+    allowText: false,
+    photoRequired: true,
+    brandingStrength: "light",
+    banProducts: true,
+    basePrompt: `
+REALISTIC lifestyle/commercial photography.
+Natural lighting, high quality, no illustration/cartoon.
+NO readable text. NO logos. NO packaging.
+`,
+    layoutHint: `
+Clean commercial composition.
+`,
+  };
+}
+
+/* ----------------- Post type (goal) guidance ----------------- */
+
+function postTypeToGuidance(postType?: string): PostTypeGuidance {
+  const t = String(postType || "").toLowerCase();
+
+  if (t.includes("basic")) {
+    return {
+      caption: "General brand post within the niche. Do not invent specifics.",
+      image:
+        "Simple, high-quality visual fitting the niche. Do not invent products/packaging.",
+    };
+  }
+
+  if (t.includes("promotion") || t.includes("offer")) {
+    return {
+      caption:
+        "Promotion/offer. If specificRequest is provided, include it exactly. If blank, do NOT invent a discount or date; keep it generic.",
+      image:
+        "Promotional energy without inventing product packaging. Show service-in-action or lifestyle cues (hands holding a cup, café scene, person enjoying the niche).",
+    };
+  }
+
+  if (t.includes("educational") || t.includes("tips")) {
+    return {
+      caption:
+        "Educational tip. If specificRequest is provided, use it. If blank, choose a safe generic tip relevant to niche.",
+      image:
+        "Helpful, clean visual consistent with niche; avoid products/packaging unless a reference image is provided.",
+    };
+  }
+
+  if (t.includes("problem") && t.includes("solution")) {
+    return {
+      caption:
+        "Problem → solution. Describe a common pain point and a simple solution. If blank specifics, keep it general.",
+      image:
+        "Visual hinting at problem/solution concept without text unless style allows it. Do not invent products.",
+    };
+  }
+
+  if (t.includes("before") && t.includes("after")) {
+    return {
+      caption:
+        "Before/After transformation. Keep it believable and niche-relevant. If blank specifics, generic transformation.",
+      image:
+        "Split composition before/after using visuals (no text labels unless style allows). No products/packaging.",
+    };
+  }
+
+  if (t.includes("testimonial") || t.includes("social proof")) {
+    return {
+      caption:
+        "Testimonial/social proof. If specificRequest contains the testimonial, include it or a short excerpt.",
+      image:
+        "Trustworthy, warm, credible visual. Avoid products/packaging; lean people/service/process.",
+    };
+  }
+
+  if (t.includes("behind")) {
+    return {
+      caption:
+        "Behind-the-scenes. Authentic process/day-in-the-life. No fake claims.",
+      image:
+        "Candid behind-the-scenes scene aligned to niche. No packaging/labels.",
+    };
+  }
+
+  if (t.includes("announcement") || t.includes("update")) {
+    return {
+      caption:
+        "Announcement/update. If specifics provided, include them. If blank, keep it generic and safe.",
+      image:
+        "On-brand supportive visual. The announcement mostly lives in caption unless style allows text.",
+    };
+  }
+
+  if (t.includes("engagement") || t.includes("conversation")) {
+    return {
+      caption:
+        "Engagement starter. Ask a niche-relevant question. If blank specifics, keep it broad and safe.",
+      image: "Friendly niche photo or branded layout depending on style.",
+    };
+  }
+
+  if (t.includes("seasonal") || t.includes("timely")) {
+    return {
+      caption:
+        "Seasonal/timely. Only be seasonal if user gave specifics; otherwise generic.",
+      image: "Seasonal vibe only if specified; otherwise generic niche visual.",
+    };
+  }
+
+  if (t.includes("authority") || t.includes("credibility")) {
+    return {
+      caption:
+        "Authority/credibility. Competent, trustworthy. No unverifiable claims.",
+      image: "Premium credible visual consistent with niche and style.",
+    };
+  }
+
+  if (t.includes("custom")) {
+    return {
+      caption:
+        "Custom. Follow specificRequest as primary instruction. If blank, keep it generic and safe.",
+      image:
+        "Follow specificRequest visually, but stay safe and avoid brands/logos unless style requires generic text.",
+    };
+  }
+
+  return {
+    caption: "General post type. Stay in niche. Do not invent specifics.",
+    image: "High-quality niche visual. No invented products/packaging.",
+  };
+}
+
+/* ----------------- Priority System (THIS is the fix) ----------------- */
+
+function buildPriorityRules(params: {
+  niche: string;
+  postType: string;
+  specific: string;
+  styleSpec: StyleSpec;
+  hasRefImage: boolean;
+  primaryColor: string;
+  secondaryColor: string;
+  tone: string;
+  audience: string;
+}) {
+  const {
+    niche,
+    postType,
+    specific,
+    styleSpec,
+    hasRefImage,
+    primaryColor,
+    secondaryColor,
+    tone,
+    audience,
+  } = params;
+
+  // You said:
+  // TOP priority: niche, post type (+ unlocked textbox), image style
+  // Lower priority: brand colors, tone, audience, reference image
+  //
+  // We encode that explicitly for BOTH prompts.
+
+  const brandUsage =
+    styleSpec.brandingStrength === "none"
+      ? "Brand colors should NOT be forced."
+      : styleSpec.brandingStrength === "light"
+        ? "Brand colors are allowed as tiny accents only (subtle)."
+        : "Brand colors should be strong and obvious in the design elements.";
+
+  const colorGuidance =
+    primaryColor || secondaryColor
+      ? [
+          brandUsage,
+          primaryColor ? `Primary brand color: ${primaryColor}.` : "",
+          secondaryColor ? `Secondary brand color: ${secondaryColor}.` : "",
+          styleSpec.brandingStrength === "heavy"
+            ? "Use neutrals only beyond the brand colors."
+            : "Do not let colors overpower the lifestyle realism.",
+        ]
+          .filter(Boolean)
+          .join(" ")
+      : "No brand colors provided; keep it clean and premium.";
+
+  const productRule = styleSpec.banProducts
+    ? hasRefImage
+      ? "Reference image exists: you may preserve its vibe, but still avoid readable labels/logos."
+      : "CRITICAL: Do NOT invent products/packaging (no bags, bottles, boxes, labels). Represent the niche using people, environment, or service/action scenes."
+    : "Avoid inventing product packaging unless user provided a reference image.";
+
+  const textRule = styleSpec.allowText
+    ? "Text is ALLOWED in the image. Keep it short, high-contrast, clean typography. No logos. Avoid brand names."
+    : "CRITICAL: NO readable text in the image. Do not render words/letters/numbers.";
+
+  const styleMustDifferentiate = `
+CRITICAL DIFFERENTIATOR (do not ignore):
+- ImageStyle="${styleSpec.photoRequired ? "photo-based" : "no-photo graphic"}"
+- BrandingStrength="${styleSpec.brandingStrength}"
+- TextInImage="${styleSpec.allowText ? "allowed" : "not allowed"}"
+You MUST produce outputs that clearly look different across styles.
+`;
+
+  const topicLock = specific
+    ? `SpecificRequest provided: "${specific}". You MUST follow it and not replace it with something else.`
+    : `SpecificRequest is blank. You MUST NOT invent concrete offers, dates, discounts, or claims. Keep it generic within the post type.`;
+
+  const coreLock = `
+TOP PRIORITIES (must win over everything):
+1) Niche: "${niche}"
+2) PostType: "${postType}"
+3) ImageStyle rules above
+4) SpecificRequest (if present)
+
+LOWER PRIORITY (do not let these override top priorities):
+- Brand colors
+- Tone
+- Audience
+- Reference image
+`;
+
+  const softContext = `
+Lower-priority context:
+Tone="${tone}"
+Audience="${audience}"
+`;
+
+  return {
+    coreLock,
+    topicLock,
+    styleMustDifferentiate,
+    colorGuidance,
+    productRule,
+    textRule,
+    softContext,
+  };
 }
 
 /* ----------------------------- POST ----------------------------- */
@@ -204,101 +472,115 @@ export async function POST(req: Request) {
 
     const client = new OpenAI({ apiKey });
 
-    // Required-ish
     const niche = body.niche?.trim() || "business";
     const audience = body.audience?.trim() || "customers";
-
-    // Form fields (USE ALL)
-    const platform = body.platform?.trim() || "Instagram";
-    const postType = body.postType?.trim() || "Educational";
-    const callToAction = body.callToAction?.trim() || "Comment";
-    const visualFocus = body.visualFocus?.trim() || "Product";
-
     const tone = body.tone?.trim() || "Confident";
-    const goal = body.goal?.trim() || "Get more engagement";
+
+    // Page.tsx uses `goal` as post type label
+    const postType = body.goal?.trim() || "Basic post";
+    const specific = String(body.specificRequest || "").trim();
 
     const maxCaptionChars = captionMax(body.captionLength);
-    const hashtagCount = clampInt(Number(body.hashtagCount ?? 8), 0, 30);
-
-    const stylePrompt = styleToPrompt(body.imageStyle);
-    const framing = platformToFraming(platform);
-    const focusRule = visualFocusToImageRule(visualFocus);
-    const typeDirection = postTypeToCreativeDirection(postType);
+    const hashtagCount = clampInt(Number(body.hashtagCount ?? 12), 0, 30);
 
     const primaryColor = normalizeHex(body.primaryColor);
     const secondaryColor = normalizeHex(body.secondaryColor);
 
-    const colorLock =
-      primaryColor || secondaryColor
-        ? [
-            "IMPORTANT: Brand colors are TOP priority and must dominate the image.",
-            primaryColor
-              ? `Primary brand color: ${primaryColor} must be dominant.`
-              : "",
-            secondaryColor
-              ? `Secondary brand color: ${secondaryColor} must be a clear accent.`
-              : "",
-            "Use mostly neutrals (black/white/gray/cream) beyond brand colors. Avoid other strong colors.",
-          ]
-            .filter(Boolean)
-            .join(" ")
-        : "";
+    const callToAction =
+      String(body.callToAction || "").trim() ||
+      "Comment, Share, Like, Follow, DM us";
 
     const dayContext = body.dayContext
       ? `Calendar context: Day ${body.dayContext.day}. Title: ${body.dayContext.title}. Detail: ${body.dayContext.detail}.`
       : "";
 
-    const specificRequest = String(body.specificRequest || "").trim();
     const refinement = String(body.refinementText || "").trim();
 
-    /* ---------------- Text generation (caption + hashtags + image scene) ---------------- */
+    const hasRefImage =
+      !!body.referenceImageDataUrl &&
+      body.referenceImageDataUrl.startsWith("data:image/");
 
-    const instructions = `
+    const styleSpec = getStyleSpec(body.imageStyle);
+    const postTypeGuide = postTypeToGuidance(postType);
+
+    const priority = buildPriorityRules({
+      niche,
+      postType,
+      specific,
+      styleSpec,
+      hasRefImage,
+      primaryColor,
+      secondaryColor,
+      tone,
+      audience,
+    });
+
+    /* ---------------- Text generation (caption + hashtags + image scene) ---------------- */
+    // IMPORTANT FIX: We generate a SCENE PLAN that respects style rules (no packaging, no text, etc).
+    // The scene plan is intentionally "visual-only" and style-compliant so it doesn't poison the image prompt.
+
+    const textInstructions = `
 You generate a high-quality social post package.
 
 Hard rules:
 - Return ONLY valid JSON. No markdown. No extra keys.
 - No emojis.
 - Caption MUST be <= ${maxCaptionChars} characters.
-- Caption must NOT describe the image or the scene (no "picture this", "showing", "in the photo", etc).
-- Caption MUST match platform + post type + tone + goal.
+- Caption must NOT describe the image ("in the photo", "picture this", etc).
+- Caption MUST match the post type and tone.
 - Caption MUST end with the call-to-action exactly: "${callToAction}" (case-sensitive).
-- If Specific request is provided, caption MUST include it clearly and directly (do not paraphrase away the offer).
+- If SpecificRequest is provided, caption MUST include it clearly and directly (do not change the offer wording).
+- If SpecificRequest is blank, do NOT invent discounts, dates, guarantees, or factual claims.
 - Hashtags must be ONE line of space-separated hashtags, exactly ${hashtagCount} hashtags (0 allowed if hashtagCount is 0).
-- The image_prompt must be visual-only instructions. No brand names. No readable text.
+
+- The field "scene_plan" must be visual-only instructions and MUST obey the ImageStyle rules:
+  - ${styleSpec.allowText ? "Text in image is allowed." : "NO text in image."}
+  - ${styleSpec.banProducts ? "NO products/packaging." : "Avoid product packaging unless user provided a reference."}
+  - Photo required: ${styleSpec.photoRequired ? "YES" : "NO"}
+  - Branding strength: ${styleSpec.brandingStrength.toUpperCase()}
 `;
 
-    const input = `
-Niche: ${niche}
-Audience: ${audience}
-Platform: ${platform}
-Post type: ${postType}
-Tone: ${tone}
-Goal: ${goal}
-Visual focus: ${visualFocus}
-Brand colors: primary=${primaryColor || "none"}, secondary=${secondaryColor || "none"}
-${dayContext ? dayContext : ""}
+    const textInput = `
+${priority.coreLock}
+${priority.styleMustDifferentiate}
+${priority.topicLock}
+${priority.productRule}
+${priority.textRule}
 
-Specific request (if any):
-${specificRequest || "none"}
+PostType guidance:
+- Caption intent: ${postTypeGuide.caption}
+- Image intent: ${postTypeGuide.image}
+
+Brand color guidance (LOW priority):
+${priority.colorGuidance}
+
+${dayContext ? dayContext : ""}
 
 Return JSON:
 {
   "caption": string,
   "hashtags": string,
-  "image_prompt": string
+  "scene_plan": string
 }
 
-Guidance:
-- Caption: short, specific, and human. No scene narration. End with CTA.
-- image_prompt: describe subject, setting, lighting, props, composition. Must respect Visual focus + Brand colors + Platform framing.
+Context:
+Niche="${niche}"
+PostType="${postType}"
+SpecificRequest="${specific || "BLANK"}"
+${priority.softContext}
+
+Rules for scene_plan:
+- It must be specific enough to render a strong image.
+- It must NOT contain any readable text unless ImageStyle allows text.
+- It must NOT contain product packaging or labels (unless reference image exists AND style allows).
+- If unsure, choose a generic lifestyle/service/action scene that represents the niche.
 `;
 
     const textResp = await client.responses.create({
       model: "gpt-4.1-mini",
-      instructions,
-      input,
-      temperature: 0.6,
+      instructions: textInstructions,
+      input: textInput,
+      temperature: 0.45,
       text: { format: { type: "json_object" } },
     });
 
@@ -314,17 +596,14 @@ Guidance:
 
     let caption = String(parsed.caption || "").trim();
     let hashtags = String(parsed.hashtags || "").trim();
-    const scene = String(parsed.image_prompt || "").trim();
+    let scenePlan = String(parsed.scene_plan || "").trim();
 
-    // Safety clamps: hard enforce caption length
     if (caption.length > maxCaptionChars)
       caption = caption.slice(0, maxCaptionChars).trim();
 
-    // Ensure CTA is present at the end (and prevent "prompt leaking" style text)
     if (!caption.endsWith(callToAction)) {
       caption = `${caption.replace(/\s+$/g, "")} ${callToAction}`.trim();
       if (caption.length > maxCaptionChars) {
-        // keep CTA; trim front
         const keep = ` ${callToAction}`;
         caption =
           caption.slice(0, Math.max(0, maxCaptionChars - keep.length)).trim() +
@@ -332,38 +611,96 @@ Guidance:
       }
     }
 
-    if (typeof hashtagCount === "number" && hashtagCount === 0) {
+    if (hashtagCount === 0) {
       hashtags = "";
     } else {
-      // If model returns commas/newlines, normalize
       hashtags = hashtags.replace(/\n/g, " ").replace(/\s+/g, " ").trim();
     }
 
-    if (!caption)
+    if (!caption) {
       return jsonError("Model returned empty caption.", {
         raw: raw.slice(0, 1200),
       });
+    }
 
-    /* ---------------- Image instruction (USES ALL form fields) ---------------- */
+    // Final safety clamp: if style bans products and no ref image, scrub obvious packaging keywords
+    if (styleSpec.banProducts && !hasRefImage && scenePlan) {
+      scenePlan = scenePlan.replace(
+        /\b(bag|bags|packaging|package|box|bottle|label|labels|wrapper|pouch|container)\b/gi,
+        "scene"
+      );
+    }
 
-    const imageInstructionParts = [
-      stylePrompt,
-      framing,
-      typeDirection,
-      `Create an image for niche: ${niche}. Audience: ${audience}. Goal: ${goal}. Tone: ${tone}.`,
-      focusRule ? `Visual focus rule: ${focusRule}.` : "",
-      scene ? `Scene requirements: ${scene}.` : "",
-      specificRequest
-        ? `HARD REQUIREMENTS (respect if visual): ${specificRequest}.`
+    /* ---------------- Image instruction (STYLE ENFORCED AGAIN) ---------------- */
+    // IMPORTANT FIX: We do NOT let "brand colors dominate" if the style is lifestyle/light branding.
+    // Also: we only include text-related instructions if allowText is true.
+
+    const allowTextRule = styleSpec.allowText
+      ? "Text is allowed. Add a short headline + small subhead, clean modern font, high contrast, readable. No logos. Avoid brand names."
+      : "CRITICAL: Do NOT render any readable text (no words/letters/numbers).";
+
+    const brandingRule =
+      styleSpec.brandingStrength === "none"
+        ? "Do not add any branding shapes/frames."
+        : styleSpec.brandingStrength === "light"
+          ? "Use brand colors ONLY as tiny subtle accents (very minimal)."
+          : "Use brand colors heavily via shapes/frames/blocks/overlays; premium design.";
+
+    const brandColorsRule =
+      primaryColor || secondaryColor
+        ? [
+            brandingRule,
+            primaryColor ? `Primary color: ${primaryColor}.` : "",
+            secondaryColor ? `Secondary color: ${secondaryColor}.` : "",
+            styleSpec.brandingStrength === "heavy"
+              ? "Keep other colors neutral."
+              : "Do not let colors overpower the realism.",
+          ]
+            .filter(Boolean)
+            .join(" ")
+        : brandingRule;
+
+    const productBanRule = styleSpec.banProducts
+      ? hasRefImage
+        ? "Reference image provided: preserve vibe, but avoid readable labels/logos."
+        : "CRITICAL: Do NOT generate product packaging, labels, branded items, bags, bottles, boxes."
+      : "";
+
+    const photoRequirementRule = styleSpec.photoRequired
+      ? "CRITICAL: This must look like a REALISTIC PHOTO (not illustration) unless the style explicitly says no photo."
+      : "CRITICAL: This must be graphic design only (no photo, no photorealism).";
+
+    let imageInstruction = [
+      priority.coreLock,
+      priority.styleMustDifferentiate,
+      priority.topicLock,
+
+      "IMAGE STYLE SPEC (must follow):",
+      styleSpec.basePrompt,
+      styleSpec.layoutHint,
+
+      photoRequirementRule,
+      allowTextRule,
+      productBanRule,
+      brandColorsRule,
+
+      "POST TYPE IMAGE INTENT:",
+      postTypeGuide.image,
+
+      "SCENE PLAN (style-compliant):",
+      scenePlan || "",
+
+      specific
+        ? `SpecificRequest (visual interpretation, do not invent products): ${specific}`
         : "",
-      colorLock ? colorLock : "",
-      dayContext ? `Optional seasonal/context hint: ${dayContext}` : "",
-      refinement ? `Apply ONLY this change: ${refinement}.` : "",
-      "Photorealistic, premium brand photo quality.",
-      "No readable text, no brand names, no logos, no watermarks.",
-    ];
 
-    let imageInstruction = imageInstructionParts.filter(Boolean).join(" ");
+      refinement ? `Apply ONLY this change: ${refinement}` : "",
+
+      "Quality: premium, Instagram-ready, high-end commercial look.",
+      "No logos. Avoid brand names. No watermarks.",
+    ]
+      .filter(Boolean)
+      .join("\n");
 
     /* ---------------- Image generation/edit ---------------- */
 
@@ -381,7 +718,6 @@ Guidance:
     async function doEdit(prompt: string, dataUrl: string) {
       const refBlob = dataUrlToBlob(dataUrl, "reference.png");
 
-      // keep TS happy across SDK versions
       const img = await (client.images as any).edit({
         model: "gpt-image-1",
         image: refBlob,
@@ -397,12 +733,7 @@ Guidance:
     let b64: string;
 
     try {
-      const hasRef =
-        body.referenceImageDataUrl &&
-        body.referenceImageDataUrl.startsWith("data:image/");
-
-      if (hasRef) {
-        // When a reference image exists, editing tends to preserve packaging/vibe better
+      if (hasRefImage) {
         const out = await doEdit(imageInstruction, body.referenceImageDataUrl!);
         b64 = out.b64;
         imageInstruction = out.usedPrompt;
@@ -423,11 +754,7 @@ Guidance:
           });
         }
 
-        const hasRef =
-          body.referenceImageDataUrl &&
-          body.referenceImageDataUrl.startsWith("data:image/");
-
-        if (hasRef) {
+        if (hasRefImage) {
           const out2 = await doEdit(safer, body.referenceImageDataUrl!);
           b64 = out2.b64;
           imageInstruction = safer;
