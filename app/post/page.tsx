@@ -166,6 +166,27 @@ export default function PostPage() {
       setLoadingProgress(100);
       if (refinementOverride) setHasRefined(true);
       setStatusMsg("Done ✅");
+
+      // Save to gallery
+      try {
+        const savedPosts = localStorage.getItem("ath_gallery");
+        const posts = savedPosts ? JSON.parse(savedPosts) : [];
+        const newPost = {
+          id: Date.now().toString(),
+          caption: result.caption,
+          hashtags: result.hashtags,
+          postType: form.postType,
+          imageStyle: form.imageStyle,
+          tone: form.tone,
+          niche: form.niche,
+          audience: form.audience,
+          calendarDay: dayContext?.day ? parseInt(dayContext.day) : undefined,
+          month: dayContext?.day ? new Date().toISOString().slice(0, 7) : undefined,
+          createdAt: new Date().toISOString(),
+        };
+        posts.unshift(newPost); // Add to beginning
+        localStorage.setItem("ath_gallery", JSON.stringify(posts.slice(0, 50))); // Keep max 50
+      } catch {}
     } catch (err: any) {
       setStatusMsg("");
       setErrorMsg(err?.message || "Something went wrong.");
@@ -256,7 +277,7 @@ export default function PostPage() {
           <h1 style={styles.title}>{post ? "Your Post" : "Generating"}</h1>
           <p style={styles.subtitle}>{post ? "Edit your caption and copy to clipboard" : "Your post is being created. You can refine once after it finishes."}</p>
         </div>
-        <a href="/" style={{ display: "inline-block", textAlign: "center", borderRadius: 12, border: "1px solid rgba(255,255,255,0.16)", background: "rgba(255,255,255,0.06)", color: "#e6edf7", padding: "10px 14px", fontWeight: 800, textDecoration: "none", textTransform: "uppercase", fontSize: 12, letterSpacing: 0.6, transition: "all 0.15s ease" }} className="hover-btn">Back</a>
+        <a href="/dashboard" style={{ display: "inline-block", textAlign: "center", borderRadius: 12, border: "1px solid rgba(255,255,255,0.16)", background: "rgba(255,255,255,0.06)", color: "#e6edf7", padding: "10px 14px", fontWeight: 800, textDecoration: "none", textTransform: "uppercase", fontSize: 12, letterSpacing: 0.6, transition: "all 0.15s ease" }} className="hover-btn">Dashboard</a>
       </div>
 
       <div style={styles.grid} className="ath-grid">
