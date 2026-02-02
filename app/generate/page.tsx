@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useEffect, useRef } from "react";
+import { imageStyles } from "../lib/imageStyleOptions";
 
 type FormState = {
   niche: string;
@@ -63,42 +64,6 @@ const nicheSuggestions = [
   "E-commerce Store",
   "Podcast",
   "YouTube Channel",
-];
-
-// Image styles with icons (SVG paths)
-const imageStyles = [
-  {
-    value: "lifestyle",
-    name: "Natural Lifestyle",
-    description: "Authentic photo, minimal branding.",
-    icon: "M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z",
-    tooltip:
-      "Best for authentic, relatable content. Shows real scenes without heavy branding.",
-  },
-  {
-    value: "branded_photo",
-    name: "Branded Photo",
-    description: "Photo with brand color frames/accents.",
-    icon: "M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z",
-    tooltip:
-      "Real photo with decorative frames and accents in your brand colors. No text overlay.",
-  },
-  {
-    value: "branded_text_photo",
-    name: "Branded + Text",
-    description: "Photo + graphic design + headline.",
-    icon: "M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1zm2 3v2h2V8H6zm0 4v2h8v-2H6zm10-4v6h2V8h-2z",
-    tooltip:
-      "Maximum brand impact. Combines photo with graphic elements and text overlay.",
-  },
-  {
-    value: "branded_text_only",
-    name: "Graphic Design",
-    description: "Typography-driven, no photo.",
-    icon: "M4 6h16M4 12h16m-7 6h7M4 18h4",
-    tooltip:
-      "Pure typography and graphics. Great for quotes, announcements, or bold statements.",
-  },
 ];
 
 // Post types with icons and short descriptions
@@ -228,8 +193,8 @@ function getSpecificRequestUI(postType: string) {
       return {
         show: true,
         label: "Paste the testimonial",
-        placeholder: `e.g., "Best service we've ever had!"`,
-        helper: "We'll format it naturally.",
+        placeholder: `e.g., "Best service we've ever had! - Sarah M."`,
+        helper: "Include real customer words for authenticity.",
       };
     case "Announcement / Update":
       return {
@@ -248,23 +213,30 @@ function getSpecificRequestUI(postType: string) {
     case "Educational / Tips":
       return {
         show: true,
-        label: "Specific tip to share?",
-        placeholder: `e.g., "Simple maintenance tip"`,
-        helper: "Leave blank for generic educational post.",
+        label: "Share a fact or tip you know is true",
+        placeholder: `e.g., "We use a 100-year-old sourdough starter"`,
+        helper: "Your real expertise makes the best content!",
       };
     case "Problem → Solution":
       return {
         show: true,
-        label: "What problem to call out?",
-        placeholder: `e.g., "leaky faucet", "slow website"`,
-        helper: "Leave blank for common pain point.",
+        label: "What real problem do you solve?",
+        placeholder: `e.g., "Clients struggle with X, we help by Y"`,
+        helper: "Your actual client pain points work best.",
       };
     case "Before & After / Transformation":
       return {
         show: true,
-        label: "What transformation?",
-        placeholder: `e.g., "messy → organized closet"`,
-        helper: "We'll generate a safe visual.",
+        label: "Describe a real transformation",
+        placeholder: `e.g., "Client went from X to Y in 3 months"`,
+        helper: "Real results are more compelling!",
+      };
+    case "Authority / Credibility":
+      return {
+        show: true,
+        label: "What makes you the expert?",
+        placeholder: `e.g., "15 years experience", "Certified by XYZ"`,
+        helper: "Your real credentials build trust.",
       };
     case "Custom (Advanced)":
       return {
@@ -276,9 +248,9 @@ function getSpecificRequestUI(postType: string) {
     default:
       return {
         show: true,
-        label: "Anything specific?",
-        placeholder: `e.g., "Mention free inspection"`,
-        helper: "Leave blank to keep it clean and generic.",
+        label: "Anything specific to include?",
+        placeholder: `e.g., "Mention our free consultation"`,
+        helper: "Your real details make better content.",
       };
   }
 }
@@ -352,7 +324,7 @@ export default function Page() {
     tone: "Confident",
     captionLength: "Medium",
     hashtagCount: 12,
-    imageStyle: "lifestyle",
+    imageStyle: "lifestyle_photo",
     primaryColor: "#000000",
     secondaryColor: "#ffffff",
   });
@@ -388,8 +360,17 @@ export default function Page() {
   // Load saved form from localStorage
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("ath_form");
-      if (saved) setForm((prev) => ({ ...prev, ...JSON.parse(saved) }));
+      // Start with any existing form data
+      let formData = {};
+      try {
+        const existing = localStorage.getItem("ath_form");
+        if (existing) formData = JSON.parse(existing);
+      } catch {}
+
+      // Load component state with existing form data
+      if (Object.keys(formData).length > 0) {
+        setForm((prev) => ({ ...prev, ...formData }));
+      }
     } catch {}
   }, []);
 
@@ -400,14 +381,13 @@ export default function Page() {
     } catch {}
   }, [form]);
 
-  // Read URL params
+  // Read URL params and apply active brand profile precedence
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("autogen") === "1") setAutogenRequested(true);
+
+    // Start with URL param updates
     const updates: Partial<FormState> = {};
-    if (params.get("niche")) updates.niche = params.get("niche")!;
-    if (params.get("audience")) updates.audience = params.get("audience")!;
-    if (params.get("tone")) updates.tone = params.get("tone")!;
     if (params.get("postType") || params.get("goal"))
       updates.postType = (params.get("postType") || params.get("goal"))!;
     if (params.get("specificRequest"))
@@ -420,12 +400,42 @@ export default function Page() {
       updates.hashtagCount = Number(params.get("hashtagCount"));
     if (params.get("imageStyle"))
       updates.imageStyle = params.get("imageStyle")!;
-    if (params.get("primaryColor"))
-      updates.primaryColor = params.get("primaryColor")!;
-    if (params.get("secondaryColor"))
-      updates.secondaryColor = params.get("secondaryColor")!;
-    if (Object.keys(updates).length)
+
+    // Add URL brand data ONLY if no active profile exists
+    const activeBrand = localStorage.getItem("ath_active_brand_profile");
+    if (!activeBrand) {
+      // No active profile - use URL params or existing form data
+      if (params.get("niche")) updates.niche = params.get("niche")!;
+      if (params.get("audience")) updates.audience = params.get("audience")!;
+      if (params.get("tone")) updates.tone = params.get("tone")!;
+      if (params.get("primaryColor"))
+        updates.primaryColor = params.get("primaryColor")!;
+      if (params.get("secondaryColor"))
+        updates.secondaryColor = params.get("secondaryColor")!;
+    } else {
+      // Active profile exists - ALWAYS use profile data, ignore URL brand params
+      try {
+        const brandData = JSON.parse(activeBrand);
+        updates.niche = brandData.niche || "";
+        updates.audience = brandData.audience || "";
+        updates.tone = brandData.tone || "Confident";
+        updates.primaryColor = brandData.primaryColor || "#000000";
+        updates.secondaryColor = brandData.secondaryColor || "#ffffff";
+        // Also update other profile fields if available
+        if (brandData.captionLength)
+          updates.captionLength = brandData.captionLength;
+        if (brandData.hashtagCount)
+          updates.hashtagCount = brandData.hashtagCount;
+        if (brandData.imageStyle) updates.imageStyle = brandData.imageStyle;
+      } catch {}
+    }
+
+    // Apply all updates if any exist
+    if (Object.keys(updates).length > 0) {
       setForm((prev) => ({ ...prev, ...updates }));
+    }
+
+    // Set day context for calendar generation
     const day = params.get("day"),
       title = params.get("title"),
       detail = params.get("detail");

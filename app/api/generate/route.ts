@@ -47,8 +47,40 @@ type PostTypeGuidance = {
 
 /* ------------------------- Helpers ------------------------- */
 
+function applyRefinementAnchor(
+  basePrompt: string,
+  refinement?: string
+): string {
+  if (!refinement || !refinement.trim()) {
+    return basePrompt;
+  }
+
+  const anchorBlock = `
+REFINEMENT ANCHORING:
+Preserve: same subject, identity, pose, framing, camera angle, lighting, background, overall composition.
+Do NOT introduce new objects or change setting unless explicitly requested.
+Do NOT replace the person/subject or create brand-new scenes unless user explicitly asks to "replace" or wants "new background".
+For vague requests ("make it better", "more professional", "change style"), keep the SAME subject and scene.
+Apply ONLY the requested changes.
+Keep everything else the same.
+
+Requested changes: ${refinement.trim()}`;
+
+  return basePrompt + "\n" + anchorBlock;
+}
+
 function jsonError(message: string, details?: any, status = 500) {
   return NextResponse.json({ error: true, message, details }, { status });
+}
+
+function logUsage(description: string, usage?: any, extraInfo?: any) {
+  const timestamp = new Date().toISOString();
+  console.log(`[USAGE] ${timestamp} - ${description}`, {
+    prompt_tokens: usage?.prompt_tokens || "unknown",
+    completion_tokens: usage?.completion_tokens || "unknown",
+    total_tokens: usage?.total_tokens || "unknown",
+    ...extraInfo,
+  });
 }
 
 function clampInt(n: number, min: number, max: number) {
@@ -103,6 +135,12 @@ ${originalPrompt}`,
 
   const raw = (resp.output_text || "").trim();
   const parsed = JSON.parse(raw || "{}");
+
+  logUsage("Safety Rewrite", resp.usage, {
+    model: "gpt-4.1-mini",
+    original_prompt_chars: originalPrompt.length,
+  });
+
   return String(parsed.safe_prompt || "").trim();
 }
 
@@ -134,7 +172,11 @@ function getStyleSpec(styleRaw?: string): StyleSpec {
   const style = String(styleRaw || "").trim();
 
   // 1) Natural Lifestyle — NO text, NO products, very light branding
-  if (style === "lifestyle" || style === "lifestyle_min_brand" || style === "lifestyle_photo") {
+  if (
+    style === "lifestyle" ||
+    style === "lifestyle_min_brand" ||
+    style === "lifestyle_photo"
+  ) {
     return {
       allowText: false,
       photoRequired: true,
@@ -156,7 +198,11 @@ Keep branding minimal: tiny accent colors only (if any).
   }
 
   // 2) Branded Photo — Clean photo with graphic design frame/accents AROUND it
-  if (style === "branded_photo" || style === "branding_photo_no_text" || style === "branding_photo") {
+  if (
+    style === "branded_photo" ||
+    style === "branding_photo_no_text" ||
+    style === "branding_photo"
+  ) {
     return {
       allowText: false,
       photoRequired: true,
@@ -222,10 +268,15 @@ Typography-driven layout with brand colors dominating.
 Modern, premium, high-contrast design.
 Clear hierarchy; looks custom-designed (not templated).
 NO logos. Avoid brand names.
+CRITICAL: Must have solid or gradient background using brand colors.
+NO transparent background. NO alpha channel. NO cutout subject on blank canvas.
+Full-bleed background edge-to-edge, no borders.
+High contrast text over background.
 `,
       layoutHint: `
 Use a strong grid, spacing, and typographic hierarchy.
 Add subtle pattern texture / dots / lines for depth.
+Background must be solid colored or subtle gradient - never transparent.
 `,
     };
   }
@@ -272,7 +323,7 @@ function postTypeToGuidance(postType?: string): PostTypeGuidance {
   if (t.includes("educational") || t.includes("tips")) {
     return {
       caption:
-        "Educational tip. If specificRequest is provided, use it. If blank, choose a safe generic tip relevant to niche.",
+        "Educational content. If specificRequest is provided, use it as the core fact/tip and build the caption around it - this is verified info from the user. If blank: Create engaging content using UNIVERSAL TRUTHS about the niche (things always true), PROCESS insights (how things work), or RELATABLE observations. DO NOT invent specific statistics, company-specific claims, or facts that could be wrong for this particular business. Keep it interesting but grounded in general wisdom.",
       image:
         "Helpful, clean visual consistent with niche; avoid products/packaging unless a reference image is provided.",
     };
@@ -281,7 +332,7 @@ function postTypeToGuidance(postType?: string): PostTypeGuidance {
   if (t.includes("problem") && t.includes("solution")) {
     return {
       caption:
-        "Problem → solution. Describe a common pain point and a simple solution. If blank specifics, keep it general.",
+        "Problem → solution. If specificRequest is provided, use that exact problem/solution - this is verified from the user. If blank: Focus on COMMON, RELATABLE pain points the audience would recognize. Keep solution general to what the niche offers. DO NOT invent specific percentages, timeframes, or guaranteed outcomes unless user provided them.",
       image:
         "Visual hinting at problem/solution concept without text unless style allows it. Do not invent products.",
     };
@@ -342,7 +393,7 @@ function postTypeToGuidance(postType?: string): PostTypeGuidance {
   if (t.includes("authority") || t.includes("credibility")) {
     return {
       caption:
-        "Authority/credibility. Competent, trustworthy. No unverifiable claims.",
+        "Authority/credibility. If specificRequest is provided (credentials, years, certifications), use it confidently - this is verified info from the user. If blank: Demonstrate expertise through PERSPECTIVE (how a professional thinks), GENERAL PRINCIPLES (best practices), or EXPERIENCE-BASED WISDOM. DO NOT invent specific years, certifications, awards, or company-specific claims. Keep it authoritative but general.",
       image: "Premium credible visual consistent with niche and style.",
     };
   }
@@ -377,108 +428,222 @@ function getCaptionStructure(postType?: string): CaptionStructure {
   if (t.includes("basic")) {
     return {
       hookStyle: "Observation or relatable statement",
-      hookExamples: ["Here's what we love about...", "Nothing beats...", "This is why we do what we do."],
-      ctaOptions: ["Follow for more", "Double tap if you agree", "Save this for later"],
-      structureHint: "Start with a relatable observation, share a simple thought, end with CTA.",
+      hookExamples: [
+        "Here's what we love about...",
+        "Nothing beats...",
+        "This is why we do what we do.",
+      ],
+      ctaOptions: [
+        "Follow for more",
+        "Double tap if you agree",
+        "Save this for later",
+      ],
+      structureHint:
+        "Start with a relatable observation, share a simple thought, end with CTA.",
     };
   }
 
   if (t.includes("promotion") || t.includes("offer")) {
     return {
       hookStyle: "Urgency or value-driven opener",
-      hookExamples: ["For a limited time...", "Don't miss this.", "Here's your chance to..."],
-      ctaOptions: ["Grab yours today", "DM us to claim", "Link in bio", "Shop now"],
-      structureHint: "Lead with urgency or value, state the offer clearly, end with action CTA.",
+      hookExamples: [
+        "For a limited time...",
+        "Don't miss this.",
+        "Here's your chance to...",
+      ],
+      ctaOptions: [
+        "Grab yours today",
+        "DM us to claim",
+        "Link in bio",
+        "Shop now",
+      ],
+      structureHint:
+        "Lead with urgency or value, state the offer clearly, end with action CTA.",
     };
   }
 
   if (t.includes("educational") || t.includes("tips")) {
     return {
       hookStyle: "Question or curiosity opener",
-      hookExamples: ["Ever wondered why...?", "Here's a tip most people miss.", "Did you know...?"],
-      ctaOptions: ["Save this for later", "Share with someone who needs this", "Bookmark this"],
-      structureHint: "Open with curiosity, deliver the tip/insight, end with save/share CTA.",
+      hookExamples: [
+        "Ever wondered why...?",
+        "Here's a tip most people miss.",
+        "Did you know...?",
+      ],
+      ctaOptions: [
+        "Save this for later",
+        "Share with someone who needs this",
+        "Bookmark this",
+      ],
+      structureHint:
+        "Open with curiosity, deliver the tip/insight, end with save/share CTA.",
     };
   }
 
   if (t.includes("problem") && t.includes("solution")) {
     return {
       hookStyle: "Pain point callout",
-      hookExamples: ["Tired of...?", "Struggling with...?", "If you've ever dealt with..."],
-      ctaOptions: ["DM us to learn more", "Let us help — link in bio", "Comment if this sounds familiar"],
-      structureHint: "Call out the problem, present the solution, invite them to reach out.",
+      hookExamples: [
+        "Tired of...?",
+        "Struggling with...?",
+        "If you've ever dealt with...",
+      ],
+      ctaOptions: [
+        "DM us to learn more",
+        "Let us help — link in bio",
+        "Comment if this sounds familiar",
+      ],
+      structureHint:
+        "Call out the problem, present the solution, invite them to reach out.",
     };
   }
 
   if (t.includes("before") && t.includes("after")) {
     return {
       hookStyle: "Transformation tease",
-      hookExamples: ["The difference is unreal.", "See what changed.", "From this to this."],
-      ctaOptions: ["Ready for your transformation? DM us", "Want results like this? Link in bio", "Your turn next"],
-      structureHint: "Tease the transformation, highlight the change, invite them to start their journey.",
+      hookExamples: [
+        "The difference is unreal.",
+        "See what changed.",
+        "From this to this.",
+      ],
+      ctaOptions: [
+        "Ready for your transformation? DM us",
+        "Want results like this? Link in bio",
+        "Your turn next",
+      ],
+      structureHint:
+        "Tease the transformation, highlight the change, invite them to start their journey.",
     };
   }
 
   if (t.includes("testimonial") || t.includes("social proof")) {
     return {
       hookStyle: "Quote lead-in",
-      hookExamples: ["Our client said it best:", "Real words from a real customer:", "Here's what they had to say:"],
-      ctaOptions: ["Share your experience below", "Want similar results? DM us", "Your story could be next"],
-      structureHint: "Introduce the testimonial, share the quote, invite others to share or inquire.",
+      hookExamples: [
+        "Our client said it best:",
+        "Real words from a real customer:",
+        "Here's what they had to say:",
+      ],
+      ctaOptions: [
+        "Share your experience below",
+        "Want similar results? DM us",
+        "Your story could be next",
+      ],
+      structureHint:
+        "Introduce the testimonial, share the quote, invite others to share or inquire.",
     };
   }
 
   if (t.includes("behind")) {
     return {
       hookStyle: "Curiosity opener",
-      hookExamples: ["Here's what happens behind the scenes.", "A look at how we do it.", "Ever wonder what goes into...?"],
-      ctaOptions: ["Follow for more behind the scenes", "Comment what you want to see next", "Like if you enjoyed this peek"],
-      structureHint: "Open with curiosity, share the behind-the-scenes moment, invite engagement.",
+      hookExamples: [
+        "Here's what happens behind the scenes.",
+        "A look at how we do it.",
+        "Ever wonder what goes into...?",
+      ],
+      ctaOptions: [
+        "Follow for more behind the scenes",
+        "Comment what you want to see next",
+        "Like if you enjoyed this peek",
+      ],
+      structureHint:
+        "Open with curiosity, share the behind-the-scenes moment, invite engagement.",
     };
   }
 
   if (t.includes("announcement") || t.includes("update")) {
     return {
       hookStyle: "News hook",
-      hookExamples: ["Big news!", "We've got something exciting to share.", "It's finally here."],
-      ctaOptions: ["Stay tuned", "Follow for updates", "Turn on notifications", "Link in bio for details"],
-      structureHint: "Lead with excitement, share the news clearly, direct them to stay connected.",
+      hookExamples: [
+        "Big news!",
+        "We've got something exciting to share.",
+        "It's finally here.",
+      ],
+      ctaOptions: [
+        "Stay tuned",
+        "Follow for updates",
+        "Turn on notifications",
+        "Link in bio for details",
+      ],
+      structureHint:
+        "Lead with excitement, share the news clearly, direct them to stay connected.",
     };
   }
 
   if (t.includes("engagement") || t.includes("conversation")) {
     return {
       hookStyle: "Direct question",
-      hookExamples: ["What's your take on...?", "We want to know:", "Quick question for you:"],
-      ctaOptions: ["Drop your answer below", "Comment your thoughts", "Tag a friend who..."],
-      structureHint: "Ask a compelling question, add context if needed, invite them to respond.",
+      hookExamples: [
+        "What's your take on...?",
+        "We want to know:",
+        "Quick question for you:",
+      ],
+      ctaOptions: [
+        "Drop your answer below",
+        "Comment your thoughts",
+        "Tag a friend who...",
+      ],
+      structureHint:
+        "Ask a compelling question, add context if needed, invite them to respond.",
     };
   }
 
   if (t.includes("seasonal") || t.includes("timely")) {
     return {
       hookStyle: "Time reference",
-      hookExamples: ["This season...", "'Tis the season for...", "With [event] around the corner..."],
-      ctaOptions: ["Book now before it's too late", "DM us today", "Don't wait — link in bio"],
-      structureHint: "Reference the season/event, tie it to your offering, create urgency to act.",
+      hookExamples: [
+        "This season...",
+        "'Tis the season for...",
+        "With [event] around the corner...",
+      ],
+      ctaOptions: [
+        "Book now before it's too late",
+        "DM us today",
+        "Don't wait — link in bio",
+      ],
+      structureHint:
+        "Reference the season/event, tie it to your offering, create urgency to act.",
     };
   }
 
   if (t.includes("authority") || t.includes("credibility")) {
     return {
       hookStyle: "Expertise signal",
-      hookExamples: ["After years in this industry...", "Here's what we've learned:", "One thing most people get wrong:"],
-      ctaOptions: ["Follow for expert tips", "Questions? Drop them below", "DM for advice"],
-      structureHint: "Establish credibility, share an insight, invite them to learn more.",
+      hookExamples: [
+        "After years in this industry...",
+        "Here's what we've learned:",
+        "One thing most people get wrong:",
+      ],
+      ctaOptions: [
+        "Follow for expert tips",
+        "Questions? Drop them below",
+        "DM for advice",
+      ],
+      structureHint:
+        "Establish credibility, share an insight, invite them to learn more.",
     };
   }
 
-  if (t.includes("service") || t.includes("product") || t.includes("highlight")) {
+  if (
+    t.includes("service") ||
+    t.includes("product") ||
+    t.includes("highlight")
+  ) {
     return {
       hookStyle: "Feature or benefit highlight",
-      hookExamples: ["Here's what makes this special.", "Why our clients love this:", "The difference is in the details."],
-      ctaOptions: ["Learn more — link in bio", "DM us for details", "Book a consultation today"],
-      structureHint: "Highlight a key feature/benefit, explain the value, invite inquiry.",
+      hookExamples: [
+        "Here's what makes this special.",
+        "Why our clients love this:",
+        "The difference is in the details.",
+      ],
+      ctaOptions: [
+        "Learn more — link in bio",
+        "DM us for details",
+        "Book a consultation today",
+      ],
+      structureHint:
+        "Highlight a key feature/benefit, explain the value, invite inquiry.",
     };
   }
 
@@ -487,7 +652,8 @@ function getCaptionStructure(postType?: string): CaptionStructure {
       hookStyle: "Flexible — match the user's specific request",
       hookExamples: ["Adapt to what the user describes"],
       ctaOptions: ["Choose based on the content goal"],
-      structureHint: "Follow the user's specific request for both hook and CTA style.",
+      structureHint:
+        "Follow the user's specific request for both hook and CTA style.",
     };
   }
 
@@ -677,6 +843,7 @@ Hard rules:
 - Caption MUST match the post type and tone.
 - If SpecificRequest is provided, caption MUST include it clearly and directly (do not change the offer wording).
 - If SpecificRequest is blank, do NOT invent discounts, dates, guarantees, or factual claims.
+- FACTUAL SAFETY: If SpecificRequest contains facts/claims, use them confidently (user verified). If SpecificRequest is blank, DO NOT invent business-specific claims (years in business, certifications, specific outcomes, data analytics capabilities, etc.). Instead use universal truths and relatable observations about the niche. Be interesting and engaging, but grounded.
 - Hashtags must be ONE line of space-separated hashtags, exactly ${hashtagCount} hashtags (0 allowed if hashtagCount is 0).
 
 CAPTION STRUCTURE (CRITICAL):
@@ -741,6 +908,12 @@ Rules for scene_plan:
       input: textInput,
       temperature: 0.45,
       text: { format: { type: "json_object" } },
+    });
+
+    logUsage("Text Generation (caption/hashtags/scene)", textResp.usage, {
+      model: "gpt-4.1-mini",
+      instructions_chars: textInstructions.length,
+      input_chars: textInput.length,
     });
 
     const raw = (textResp.output_text || "").trim();
@@ -846,13 +1019,14 @@ Rules for scene_plan:
         ? `SpecificRequest (visual interpretation, do not invent products): ${specific}`
         : "",
 
-      refinement ? `Apply ONLY this change: ${refinement}` : "",
-
       "Quality: premium, Instagram-ready, high-end commercial look.",
       "No logos. Avoid brand names. No watermarks.",
     ]
       .filter(Boolean)
       .join("\n");
+
+    // Apply refinement anchoring if refinement exists
+    imageInstruction = applyRefinementAnchor(imageInstruction, refinement);
 
     /* ---------------- Image generation/edit ---------------- */
 
@@ -862,6 +1036,13 @@ Rules for scene_plan:
         prompt,
         size: "1024x1024",
       });
+
+      logUsage("Image Generation", null, {
+        model: "gpt-image-1",
+        size: "1024x1024",
+        prompt_chars: prompt.length,
+      });
+
       const b64 = img.data?.[0]?.b64_json;
       if (!b64) throw new Error("Image generation failed (no data returned).");
       return { b64, usedPrompt: prompt };
@@ -875,6 +1056,12 @@ Rules for scene_plan:
         image: refBlob,
         prompt,
         size: "1024x1024",
+      });
+
+      logUsage("Image Edit", null, {
+        model: "gpt-image-1",
+        size: "1024x1024",
+        prompt_chars: prompt.length,
       });
 
       const b64 = img.data?.[0]?.b64_json;
@@ -937,3 +1124,12 @@ Rules for scene_plan:
     return jsonError(err?.message || "Server error", err?.stack || String(err));
   }
 }
+
+// TOKEN COST ANALYSIS FOR SINGLE GENERATION:
+//
+// Typical API Calls per Generation:
+// 1. Text Generation (gpt-4.1-mini): ~2,000 prompt + 500 completion tokens
+// 2. Image Generation (gpt-image-1): 1x 1024x1024 image
+// 3. Safety Rewrite (gpt-4.1-mini): ~1,500 prompt + 300 completion tokens (only if rejected)
+//
+// Total per generation: ~2,500 tokens + 1 image (typical case)

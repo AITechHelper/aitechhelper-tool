@@ -31,12 +31,24 @@ type PostResult = {
 
 export default function PostPage() {
   const [form, setForm] = useState<FormState>({
-    niche: "", audience: "", postType: "Basic Post", specificRequest: "", tone: "Confident",
-    captionLength: "Medium", hashtagCount: 12, imageStyle: "lifestyle", primaryColor: "#000000", secondaryColor: "#ffffff",
+    niche: "",
+    audience: "",
+    postType: "Basic Post",
+    specificRequest: "",
+    tone: "Confident",
+    captionLength: "Medium",
+    hashtagCount: 12,
+    imageStyle: "lifestyle_photo",
+    primaryColor: "#000000",
+    secondaryColor: "#ffffff",
   });
 
   const [uploadRef, setUploadRef] = useState<UploadRef | null>(null);
-  const [dayContext, setDayContext] = useState<{ day: string; title: string; detail: string } | null>(null);
+  const [dayContext, setDayContext] = useState<{
+    day: string;
+    title: string;
+    detail: string;
+  } | null>(null);
   const [post, setPost] = useState<PostResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string>("Preparing…");
@@ -50,8 +62,8 @@ export default function PostPage() {
   const [isEditingCaption, setIsEditingCaption] = useState(false);
   const [isEditingHashtags, setIsEditingHashtags] = useState(false);
 
-  // Instagram preview toggle
-  const [showIGPreview, setShowIGPreview] = useState(false);
+  // Right panel tab: 'preview' or 'inputs'
+  const [rightTab, setRightTab] = useState<"preview" | "inputs">("preview");
 
   // Loading progress simulation
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -78,10 +90,14 @@ export default function PostPage() {
       }
 
       const params = new URLSearchParams(window.location.search);
-      const niche = params.get("niche"), audience = params.get("audience"), tone = params.get("tone");
+      const niche = params.get("niche"),
+        audience = params.get("audience"),
+        tone = params.get("tone");
       const postType = params.get("postType") || params.get("goal");
       const specificRequest = params.get("specificRequest");
-      const captionLength = params.get("captionLength") as FormState["captionLength"] | null;
+      const captionLength = params.get("captionLength") as
+        | FormState["captionLength"]
+        | null;
       const hashtagCount = params.get("hashtagCount");
       const imageStyle = params.get("imageStyle");
       const primaryColor = params.get("primaryColor");
@@ -89,13 +105,21 @@ export default function PostPage() {
 
       setForm((prev) => ({
         ...prev,
-        ...(niche ? { niche } : {}), ...(audience ? { audience } : {}), ...(tone ? { tone } : {}),
-        ...(postType ? { postType } : {}), ...(specificRequest ? { specificRequest } : {}),
-        ...(captionLength ? { captionLength } : {}), ...(hashtagCount ? { hashtagCount: Number(hashtagCount) } : {}),
-        ...(imageStyle ? { imageStyle } : {}), ...(primaryColor ? { primaryColor } : {}), ...(secondaryColor ? { secondaryColor } : {}),
+        ...(niche ? { niche } : {}),
+        ...(audience ? { audience } : {}),
+        ...(tone ? { tone } : {}),
+        ...(postType ? { postType } : {}),
+        ...(specificRequest ? { specificRequest } : {}),
+        ...(captionLength ? { captionLength } : {}),
+        ...(hashtagCount ? { hashtagCount: Number(hashtagCount) } : {}),
+        ...(imageStyle ? { imageStyle } : {}),
+        ...(primaryColor ? { primaryColor } : {}),
+        ...(secondaryColor ? { secondaryColor } : {}),
       }));
 
-      const day = params.get("day"), title = params.get("title"), detail = params.get("detail");
+      const day = params.get("day"),
+        title = params.get("title"),
+        detail = params.get("detail");
       if (day && title && detail) setDayContext({ day, title, detail });
     } catch {}
   }, []);
@@ -110,7 +134,10 @@ export default function PostPage() {
 
   // Loading progress simulation
   useEffect(() => {
-    if (!isLoading) { setLoadingProgress(0); return; }
+    if (!isLoading) {
+      setLoadingProgress(0);
+      return;
+    }
 
     const stages = [
       { progress: 15, stage: "Analyzing your request..." },
@@ -133,7 +160,10 @@ export default function PostPage() {
     return () => clearInterval(interval);
   }, [isLoading]);
 
-  const canRefine = useMemo(() => !!post && !hasRefined && refinementText.trim().length > 0, [post, hasRefined, refinementText]);
+  const canRefine = useMemo(
+    () => !!post && !hasRefined && refinementText.trim().length > 0,
+    [post, hasRefined, refinementText]
+  );
 
   async function generatePost(refinementOverride?: string) {
     if (isLoading) return;
@@ -148,19 +178,45 @@ export default function PostPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...form, dayContext, goal: form.postType, callToAction: "Comment, Share, Like, Follow, DM us",
-          referenceImageDataUrl: uploadRef?.dataUrl || null, referenceImageName: uploadRef?.name || null, referenceImageMime: uploadRef?.mime || null,
-          ...(refinementOverride ? { refinementText: refinementOverride, previousCaption: post?.caption, previousHashtags: post?.hashtags } : {}),
+          ...form,
+          dayContext,
+          goal: form.postType,
+          callToAction: "Comment, Share, Like, Follow, DM us",
+          referenceImageDataUrl: uploadRef?.dataUrl || null,
+          referenceImageName: uploadRef?.name || null,
+          referenceImageMime: uploadRef?.mime || null,
+          ...(refinementOverride
+            ? {
+                refinementText: refinementOverride,
+                previousCaption: post?.caption,
+                previousHashtags: post?.hashtags,
+              }
+            : {}),
         }),
       });
 
       const text = await res.text();
       let data: any = null;
-      try { data = JSON.parse(text); } catch { throw new Error(`API did not return valid JSON.\n\nStatus: ${res.status}\n\nRaw response:\n${text.slice(0, 800)}`); }
-      if (!res.ok || data?.error) { console.error("API error details:", data); throw new Error(data?.message || `Request failed with status ${res.status}. See details in console.`); }
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(
+          `API did not return valid JSON.\n\nStatus: ${res.status}\n\nRaw response:\n${text.slice(0, 800)}`
+        );
+      }
+      if (!res.ok || data?.error) {
+        console.error("API error details:", data);
+        throw new Error(
+          data?.message ||
+            `Request failed with status ${res.status}. See details in console.`
+        );
+      }
 
       const result = data?.result as PostResult | undefined;
-      if (!result || !result.caption || !result.hashtags) { console.error("Unexpected API shape:", data); throw new Error("API returned an unexpected response shape."); }
+      if (!result || !result.caption || !result.hashtags) {
+        console.error("Unexpected API shape:", data);
+        throw new Error("API returned an unexpected response shape.");
+      }
 
       setPost(result);
       setLoadingProgress(100);
@@ -181,11 +237,13 @@ export default function PostPage() {
           niche: form.niche,
           audience: form.audience,
           calendarDay: dayContext?.day ? parseInt(dayContext.day) : undefined,
-          month: dayContext?.day ? new Date().toISOString().slice(0, 7) : undefined,
+          month: dayContext?.day
+            ? new Date().toISOString().slice(0, 7)
+            : undefined,
           createdAt: new Date().toISOString(),
         };
-        posts.unshift(newPost); // Add to beginning
-        localStorage.setItem("ath_gallery", JSON.stringify(posts.slice(0, 50))); // Keep max 50
+        posts.unshift(newPost);
+        localStorage.setItem("ath_gallery", JSON.stringify(posts.slice(0, 50)));
       } catch {}
     } catch (err: any) {
       setStatusMsg("");
@@ -196,7 +254,9 @@ export default function PostPage() {
     }
   }
 
-  async function refineOnce() { if (canRefine) await generatePost(refinementText.trim()); }
+  async function refineOnce() {
+    if (canRefine) await generatePost(refinementText.trim());
+  }
 
   function downloadImage() {
     if (!post?.imageBase64) return;
@@ -224,50 +284,288 @@ export default function PostPage() {
     }
   }
 
-  const styles: Record<string, React.CSSProperties> = {
-    page: { minHeight: "100vh", background: "#0b1220", color: "#e6edf7", padding: 20, boxSizing: "border-box", fontFamily: "Verdana, Geneva, sans-serif" },
-    header: { maxWidth: 1100, margin: "0 auto 16px auto", display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap" },
-    title: { fontSize: 35, fontWeight: 600, letterSpacing: 1, margin: 0, textTransform: "uppercase" },
-    subtitle: { margin: 0, opacity: 0.75, fontSize: 15, fontWeight: 400 },
-    grid: { maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1.15fr", gap: 16 },
-    card: { background: "#101a33", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: 16, boxShadow: "0 8px 24px rgba(0,0,0,0.28)" },
-    cardTitle: { margin: 0, fontSize: 18, fontWeight: 700, letterSpacing: 0.8, textTransform: "uppercase" },
-    cardHint: { marginTop: 6, marginBottom: 12, opacity: 0.7, fontSize: 14, lineHeight: 1.4 },
-    buttonRow: { display: "flex", gap: 10, flexWrap: "wrap", marginTop: 8 },
-    secondaryBtn: { borderRadius: 12, border: "1px solid rgba(255,255,255,0.16)", background: "rgba(255,255,255,0.06)", color: "#e6edf7", padding: "10px 14px", fontWeight: 800, cursor: "pointer", flex: "1 1 160px", transition: "all 0.15s ease" },
-    danger: { marginTop: 10, border: "1px solid rgba(255, 99, 99, 0.35)", background: "rgba(255, 99, 99, 0.12)", color: "#ffd7d7", borderRadius: 12, padding: "10px 12px", fontSize: 13, whiteSpace: "pre-wrap", lineHeight: 1.35 },
-    status: { marginTop: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#e6edf7", borderRadius: 12, padding: "10px 12px", fontSize: 13 },
-    outputWrap: { display: "flex", flexDirection: "column", gap: 14 },
-    imageFrame: { background: "#0b1220", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 14, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", minHeight: 280 },
-    img: { width: "100%", height: "auto", display: "block" },
-    placeholder: { padding: 18, textAlign: "center", opacity: 0.7, fontSize: 13, lineHeight: 1.4, maxWidth: 420 },
-    textBox: { background: "#0b1220", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 14, padding: 12 },
-    textHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8 },
-    textTitle: { margin: 0, fontSize: 14, fontWeight: 800, opacity: 0.95 },
-    text: { margin: 0, whiteSpace: "pre-wrap", fontSize: 14, lineHeight: 1.5, color: "#e6edf7" },
-    hashtags: { margin: 0, whiteSpace: "pre-wrap", fontSize: 13, lineHeight: 1.45, color: "rgba(230,237,247,0.9)" },
-    divider: { height: 1, background: "rgba(255,255,255,0.10)", margin: "10px 0" },
-    input: { width: "100%", background: "#0b1220", color: "#e6edf7", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px", outline: "none", fontSize: 14, boxSizing: "border-box" },
-    pill: { fontSize: 14, padding: "4px 8px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.14)", background: "rgba(255,255,255,0.06)", color: "#e6edf7", whiteSpace: "nowrap" },
-    editBtn: { fontSize: 11, padding: "4px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.08)", color: "#e6edf7", cursor: "pointer", fontWeight: 600 },
+  const username =
+    form.niche.toLowerCase().replace(/\s+/g, "_").slice(0, 20) ||
+    "your_business";
 
-    // Loading overlay with progress
-    loadingOverlay: { position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, background: "rgba(11, 18, 32, 0.85)", backdropFilter: "blur(8px)", zIndex: 5 },
-    progressBar: { width: "80%", maxWidth: 300, height: 6, background: "rgba(255,255,255,0.1)", borderRadius: 10, overflow: "hidden" },
-    progressFill: { height: "100%", background: "linear-gradient(90deg, #2c6bed, #7eb3ff)", borderRadius: 10, transition: "width 0.5s ease" },
-    loadingText: { fontSize: 14, fontWeight: 600, letterSpacing: 0.4, opacity: 0.9 },
+  const styles: Record<string, React.CSSProperties> = {
+    page: {
+      minHeight: "100vh",
+      background: "#0b1220",
+      color: "#e6edf7",
+      padding: 20,
+      boxSizing: "border-box",
+      fontFamily: "Verdana, Geneva, sans-serif",
+    },
+    header: {
+      maxWidth: 1100,
+      margin: "0 auto 16px auto",
+      display: "flex",
+      alignItems: "baseline",
+      justifyContent: "space-between",
+      gap: 12,
+      flexWrap: "wrap",
+    },
+    title: {
+      fontSize: 35,
+      fontWeight: 600,
+      letterSpacing: 1,
+      margin: 0,
+      textTransform: "uppercase",
+    },
+    subtitle: { margin: 0, opacity: 0.75, fontSize: 15, fontWeight: 400 },
+    grid: {
+      maxWidth: 1100,
+      margin: "0 auto",
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 16,
+    },
+    card: {
+      background: "#101a33",
+      border: "1px solid rgba(255,255,255,0.08)",
+      borderRadius: 16,
+      padding: 16,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.28)",
+    },
+    cardTitle: {
+      margin: 0,
+      fontSize: 18,
+      fontWeight: 700,
+      letterSpacing: 0.8,
+      textTransform: "uppercase",
+    },
+    cardHint: {
+      marginTop: 6,
+      marginBottom: 12,
+      opacity: 0.7,
+      fontSize: 14,
+      lineHeight: 1.4,
+    },
+    buttonRow: { display: "flex", gap: 10, flexWrap: "wrap", marginTop: 8 },
+    secondaryBtn: {
+      borderRadius: 12,
+      border: "1px solid rgba(255,255,255,0.16)",
+      background: "rgba(255,255,255,0.06)",
+      color: "#e6edf7",
+      padding: "10px 14px",
+      fontWeight: 800,
+      cursor: "pointer",
+      flex: "1 1 160px",
+      transition: "all 0.15s ease",
+      fontSize: 13,
+    },
+    danger: {
+      marginTop: 10,
+      border: "1px solid rgba(255, 99, 99, 0.35)",
+      background: "rgba(255, 99, 99, 0.12)",
+      color: "#ffd7d7",
+      borderRadius: 12,
+      padding: "10px 12px",
+      fontSize: 13,
+      whiteSpace: "pre-wrap",
+      lineHeight: 1.35,
+    },
+    status: {
+      marginTop: 10,
+      border: "1px solid rgba(255,255,255,0.12)",
+      background: "rgba(255,255,255,0.06)",
+      color: "#e6edf7",
+      borderRadius: 12,
+      padding: "10px 12px",
+      fontSize: 13,
+    },
+    outputWrap: { display: "flex", flexDirection: "column", gap: 14 },
+    imageFrame: {
+      background: "#0b1220",
+      border: "1px solid rgba(255,255,255,0.12)",
+      borderRadius: 14,
+      overflow: "hidden",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: 280,
+    },
+    img: { width: "100%", height: "auto", display: "block" },
+    placeholder: {
+      padding: 18,
+      textAlign: "center",
+      opacity: 0.7,
+      fontSize: 13,
+      lineHeight: 1.4,
+      maxWidth: 420,
+    },
+    textBox: {
+      background: "#0b1220",
+      border: "1px solid rgba(255,255,255,0.12)",
+      borderRadius: 14,
+      padding: 12,
+    },
+    textHeader: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 10,
+      marginBottom: 8,
+    },
+    textTitle: { margin: 0, fontSize: 14, fontWeight: 800, opacity: 0.95 },
+    text: {
+      margin: 0,
+      whiteSpace: "pre-wrap",
+      fontSize: 14,
+      lineHeight: 1.5,
+      color: "#e6edf7",
+    },
+    hashtags: {
+      margin: 0,
+      whiteSpace: "pre-wrap",
+      fontSize: 13,
+      lineHeight: 1.45,
+      color: "rgba(230,237,247,0.9)",
+    },
+    divider: {
+      height: 1,
+      background: "rgba(255,255,255,0.10)",
+      margin: "10px 0",
+    },
+    input: {
+      width: "100%",
+      background: "#0b1220",
+      color: "#e6edf7",
+      border: "1px solid rgba(255,255,255,0.12)",
+      borderRadius: 10,
+      padding: "10px 12px",
+      outline: "none",
+      fontSize: 14,
+      boxSizing: "border-box",
+    },
+    pill: {
+      fontSize: 14,
+      padding: "4px 8px",
+      borderRadius: 999,
+      border: "1px solid rgba(255,255,255,0.14)",
+      background: "rgba(255,255,255,0.06)",
+      color: "#e6edf7",
+      whiteSpace: "nowrap",
+    },
+    editBtn: {
+      fontSize: 11,
+      padding: "4px 10px",
+      borderRadius: 6,
+      border: "1px solid rgba(255,255,255,0.2)",
+      background: "rgba(255,255,255,0.08)",
+      color: "#e6edf7",
+      cursor: "pointer",
+      fontWeight: 600,
+    },
+
+    // Loading overlay
+    loadingOverlay: {
+      position: "absolute",
+      inset: 0,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 16,
+      background: "rgba(11, 18, 32, 0.85)",
+      backdropFilter: "blur(8px)",
+      zIndex: 5,
+    },
+    progressBar: {
+      width: "80%",
+      maxWidth: 300,
+      height: 6,
+      background: "rgba(255,255,255,0.1)",
+      borderRadius: 10,
+      overflow: "hidden",
+    },
+    progressFill: {
+      height: "100%",
+      background: "linear-gradient(90deg, #2c6bed, #7eb3ff)",
+      borderRadius: 10,
+      transition: "width 0.5s ease",
+    },
+    loadingText: {
+      fontSize: 14,
+      fontWeight: 600,
+      letterSpacing: 0.4,
+      opacity: 0.9,
+    },
     loadingStage: { fontSize: 12, opacity: 0.6 },
 
-    // Instagram preview
-    igPreviewWrap: { background: "#fff", borderRadius: 8, overflow: "hidden", maxWidth: 400, margin: "0 auto" },
-    igHeader: { display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: "1px solid #efefef" },
-    igAvatar: { width: 32, height: 32, borderRadius: "50%", background: "#ddd" },
-    igUsername: { fontSize: 14, fontWeight: 600, color: "#262626" },
-    igImage: { width: "100%", display: "block" },
-    igActions: { display: "flex", gap: 16, padding: "12px 14px" },
-    igIcon: { width: 24, height: 24, cursor: "pointer" },
-    igCaption: { padding: "0 14px 14px", fontSize: 14, color: "#262626", lineHeight: 1.5 },
-    igCaptionUser: { fontWeight: 600, marginRight: 6 },
+    // Tabs
+    tabRow: { display: "flex", gap: 0, marginBottom: 16 },
+    tab: {
+      flex: 1,
+      padding: "12px 16px",
+      background: "rgba(255,255,255,0.04)",
+      borderWidth: 1,
+      borderStyle: "solid",
+      borderColor: "rgba(255,255,255,0.08)",
+      cursor: "pointer",
+      fontSize: 13,
+      fontWeight: 700,
+      textTransform: "uppercase" as const,
+      letterSpacing: 0.5,
+      textAlign: "center" as const,
+      transition: "all 0.15s ease",
+    },
+    tabActive: {
+      background: "rgba(44, 107, 237, 0.15)",
+      borderColor: "rgba(44, 107, 237, 0.4)",
+      color: "#7eb3ff",
+    },
+    tabLeft: { borderRadius: "10px 0 0 10px" },
+    tabRight: { borderRadius: "0 10px 10px 0", borderLeftWidth: 0 },
+
+    // Phone in Hand Preview
+    phoneContainer: {
+      position: "relative" as const,
+      width: "100%",
+      maxWidth: 500,
+      margin: "0 auto",
+    },
+    phoneTemplate: {
+      width: "100%",
+      height: "auto",
+      display: "block" as const,
+    },
+    imageSlot: {
+      position: "absolute" as const,
+      // Image 4260x6390, red box +1px each side
+      top: "25.58%",
+      left: "28.40%",
+      width: "44.06%",
+      height: "29.56%",
+      overflow: "hidden",
+      zIndex: 1,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    slotImage: { width: "100%", height: "100%", objectFit: "cover" as const },
+    slotPlaceholder: {
+      color: "#8e8e8e",
+      fontSize: 11,
+      textAlign: "center" as const,
+    },
+
+    // Inputs panel
+    inputsGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 },
+    inputItem: {
+      background: "rgba(255,255,255,0.04)",
+      borderRadius: 8,
+      padding: 10,
+    },
+    inputLabel: {
+      fontSize: 10,
+      textTransform: "uppercase",
+      opacity: 0.5,
+      marginBottom: 4,
+      letterSpacing: 0.5,
+    },
+    inputValue: { fontSize: 13, fontWeight: 600 },
   };
 
   return (
@@ -275,100 +573,245 @@ export default function PostPage() {
       <div style={styles.header} className="ath-header">
         <div>
           <h1 style={styles.title}>{post ? "Your Post" : "Generating"}</h1>
-          <p style={styles.subtitle}>{post ? "Edit your caption and copy to clipboard" : "Your post is being created. You can refine once after it finishes."}</p>
+          <p style={styles.subtitle}>
+            {post
+              ? "Edit your caption and copy to clipboard"
+              : "Your post is being created. You can refine once after it finishes."}
+          </p>
         </div>
-        <a href="/dashboard" style={{ display: "inline-block", textAlign: "center", borderRadius: 12, border: "1px solid rgba(255,255,255,0.16)", background: "rgba(255,255,255,0.06)", color: "#e6edf7", padding: "10px 14px", fontWeight: 800, textDecoration: "none", textTransform: "uppercase", fontSize: 12, letterSpacing: 0.6, transition: "all 0.15s ease" }} className="hover-btn">Dashboard</a>
+        <a
+          href="/dashboard"
+          style={{
+            display: "inline-block",
+            textAlign: "center",
+            borderRadius: 12,
+            border: "1px solid rgba(255,255,255,0.16)",
+            background: "rgba(255,255,255,0.06)",
+            color: "#e6edf7",
+            padding: "10px 14px",
+            fontWeight: 800,
+            textDecoration: "none",
+            textTransform: "uppercase",
+            fontSize: 12,
+            letterSpacing: 0.6,
+            transition: "all 0.15s ease",
+          }}
+          className="hover-btn"
+        >
+          Dashboard
+        </a>
       </div>
 
       <div style={styles.grid} className="ath-grid">
         {/* LEFT: Output */}
         <div style={styles.card}>
           <h2 style={styles.cardTitle}>Output</h2>
-          <p style={styles.cardHint}>Image + caption + hashtags appear here after generation.</p>
+          <p style={styles.cardHint}>
+            Image + caption + hashtags appear here after generation.
+          </p>
 
           <div style={styles.outputWrap}>
             {/* Refinement */}
             {post && (
-              <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 14, padding: 12 }}>
-                <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase" }}>One-time refinement</div>
-                <div style={{ marginTop: 6, fontSize: 12, opacity: 0.8, lineHeight: 1.4 }}>Be specific — subject, setting, lighting, mood. This runs once.</div>
-                <div style={{ marginTop: 10, display: "flex", gap: 10 }}>
-                  <input style={styles.input} value={refinementText} onChange={(e) => setRefinementText(e.target.value)} placeholder='e.g., "Bright modern café, warm tones, candid moment"' disabled={isLoading || hasRefined} />
-                  <button style={{ ...styles.secondaryBtn, opacity: canRefine ? 1 : 0.5, cursor: canRefine ? "pointer" : "not-allowed", flex: "0 0 auto", whiteSpace: "nowrap" }} disabled={!canRefine || isLoading || hasRefined} onClick={refineOnce} className="hover-btn">Refine once</button>
+              <div
+                style={{
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  borderRadius: 14,
+                  padding: 12,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 800,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  One-time refinement
                 </div>
-                {hasRefined && <div style={{ marginTop: 8, fontSize: 12, opacity: 0.75 }}>Refinement used.</div>}
+                <div
+                  style={{
+                    marginTop: 6,
+                    fontSize: 12,
+                    opacity: 0.8,
+                    lineHeight: 1.4,
+                  }}
+                >
+                  Be specific — subject, setting, lighting, mood. This runs
+                  once.
+                </div>
+                <div style={{ marginTop: 10, display: "flex", gap: 10 }}>
+                  <input
+                    style={styles.input}
+                    value={refinementText}
+                    onChange={(e) => setRefinementText(e.target.value)}
+                    placeholder='e.g., "Bright modern café, warm tones"'
+                    disabled={isLoading || hasRefined}
+                  />
+                  <button
+                    style={{
+                      ...styles.secondaryBtn,
+                      opacity: canRefine ? 1 : 0.5,
+                      cursor: canRefine ? "pointer" : "not-allowed",
+                      flex: "0 0 auto",
+                      whiteSpace: "nowrap",
+                    }}
+                    disabled={!canRefine || isLoading || hasRefined}
+                    onClick={refineOnce}
+                    className="hover-btn"
+                  >
+                    Refine
+                  </button>
+                </div>
+                {hasRefined && (
+                  <div style={{ marginTop: 8, fontSize: 12, opacity: 0.75 }}>
+                    Refinement used.
+                  </div>
+                )}
               </div>
             )}
 
             {/* Image */}
-            <div style={{ ...styles.imageFrame, position: "relative" }} className="ath-imageFrame">
+            <div
+              style={{ ...styles.imageFrame, position: "relative" }}
+              className="ath-imageFrame"
+            >
               {isLoading && (
                 <div style={styles.loadingOverlay}>
                   <div style={{ width: 60, height: 60, position: "relative" }}>
-                    <svg viewBox="0 0 60 60" style={{ width: 60, height: 60, animation: "athSpin 1.2s linear infinite" }}>
-                      <circle cx="30" cy="30" r="26" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="4" />
-                      <circle cx="30" cy="30" r="26" fill="none" stroke="#2c6bed" strokeWidth="4" strokeLinecap="round" strokeDasharray="120" strokeDashoffset={120 - (loadingProgress / 100) * 120} style={{ transition: "stroke-dashoffset 0.5s ease" }} />
+                    <svg
+                      viewBox="0 0 60 60"
+                      style={{
+                        width: 60,
+                        height: 60,
+                        animation: "athSpin 1.2s linear infinite",
+                      }}
+                    >
+                      <circle
+                        cx="30"
+                        cy="30"
+                        r="26"
+                        fill="none"
+                        stroke="rgba(255,255,255,0.15)"
+                        strokeWidth="4"
+                      />
+                      <circle
+                        cx="30"
+                        cy="30"
+                        r="26"
+                        fill="none"
+                        stroke="#2c6bed"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                        strokeDasharray="120"
+                        strokeDashoffset={120 - (loadingProgress / 100) * 120}
+                        style={{ transition: "stroke-dashoffset 0.5s ease" }}
+                      />
                     </svg>
-                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>{loadingProgress}%</div>
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 12,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {loadingProgress}%
+                    </div>
                   </div>
-                  <div style={styles.loadingText}>{statusMsg || "Generating…"}</div>
+                  <div style={styles.loadingText}>
+                    {statusMsg || "Generating…"}
+                  </div>
                   <div style={styles.loadingStage}>{loadingStage}</div>
-                  <div style={styles.progressBar}><div style={{ ...styles.progressFill, width: `${loadingProgress}%` }} /></div>
+                  <div style={styles.progressBar}>
+                    <div
+                      style={{
+                        ...styles.progressFill,
+                        width: `${loadingProgress}%`,
+                      }}
+                    />
+                  </div>
                 </div>
               )}
-              {post?.imageBase64 ? <img src={post.imageBase64} alt="Generated post image" style={styles.img} /> : <div style={styles.placeholder}>{errorMsg ? "Generation failed. Fix the issue and try again from the dashboard." : "Generating your post now…"}</div>}
+              {post?.imageBase64 ? (
+                <img
+                  src={post.imageBase64}
+                  alt="Generated post image"
+                  style={styles.img}
+                />
+              ) : (
+                <div style={styles.placeholder}>
+                  {errorMsg
+                    ? "Generation failed. Fix the issue and try again from the dashboard."
+                    : "Generating your post now…"}
+                </div>
+              )}
             </div>
 
             {/* Actions */}
             <div style={styles.buttonRow} className="ath-buttonRow">
-              <button style={{ ...styles.secondaryBtn, opacity: post?.imageBase64 ? 1 : 0.5, cursor: post?.imageBase64 ? "pointer" : "not-allowed" }} onClick={downloadImage} disabled={!post?.imageBase64} className="hover-btn">Download image</button>
-              <button style={{ ...styles.secondaryBtn, opacity: post ? 1 : 0.5, cursor: post ? "pointer" : "not-allowed" }} onClick={copyCaptionAndHashtags} disabled={!post} className="hover-btn">Copy caption + hashtags</button>
-            </div>
-
-            {/* Instagram Preview Toggle */}
-            {post && (
-              <button style={{ ...styles.secondaryBtn, background: showIGPreview ? "rgba(44, 107, 237, 0.2)" : "rgba(255,255,255,0.06)" }} onClick={() => setShowIGPreview(!showIGPreview)} className="hover-btn">
-                {showIGPreview ? "Hide Instagram Preview" : "Show Instagram Preview"}
+              <button
+                style={{
+                  ...styles.secondaryBtn,
+                  opacity: post?.imageBase64 ? 1 : 0.5,
+                  cursor: post?.imageBase64 ? "pointer" : "not-allowed",
+                }}
+                onClick={downloadImage}
+                disabled={!post?.imageBase64}
+                className="hover-btn"
+              >
+                Download image
               </button>
-            )}
-
-            {/* Instagram Preview */}
-            {showIGPreview && post && (
-              <div style={styles.igPreviewWrap}>
-                <div style={styles.igHeader}>
-                  <div style={styles.igAvatar} />
-                  <span style={styles.igUsername}>{form.niche.toLowerCase().replace(/\s+/g, "_") || "your_business"}</span>
-                </div>
-                {post.imageBase64 && <img src={post.imageBase64} alt="IG Preview" style={styles.igImage} />}
-                <div style={styles.igActions}>
-                  <svg style={styles.igIcon} fill="none" stroke="#262626" strokeWidth="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  <svg style={styles.igIcon} fill="none" stroke="#262626" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  <svg style={styles.igIcon} fill="none" stroke="#262626" strokeWidth="2" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </div>
-                <div style={styles.igCaption}>
-                  <span style={styles.igCaptionUser}>{form.niche.toLowerCase().replace(/\s+/g, "_") || "your_business"}</span>
-                  {editedCaption.slice(0, 100)}{editedCaption.length > 100 ? "..." : ""}
-                </div>
-              </div>
-            )}
+              <button
+                style={{
+                  ...styles.secondaryBtn,
+                  opacity: post ? 1 : 0.5,
+                  cursor: post ? "pointer" : "not-allowed",
+                }}
+                onClick={copyCaptionAndHashtags}
+                disabled={!post}
+                className="hover-btn"
+              >
+                Copy caption + hashtags
+              </button>
+            </div>
 
             {/* Caption/hashtags - EDITABLE */}
             <div style={styles.textBox}>
               <div style={styles.textHeader}>
                 <h3 style={styles.textTitle}>Caption</h3>
                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <span style={styles.pill}>{editedCaption ? `${editedCaption.length} chars` : "—"}</span>
-                  {post && <button style={styles.editBtn} onClick={() => setIsEditingCaption(!isEditingCaption)}>{isEditingCaption ? "Done" : "Edit"}</button>}
+                  <span style={styles.pill}>
+                    {editedCaption ? `${editedCaption.length} chars` : "—"}
+                  </span>
+                  {post && (
+                    <button
+                      style={styles.editBtn}
+                      onClick={() => setIsEditingCaption(!isEditingCaption)}
+                    >
+                      {isEditingCaption ? "Done" : "Edit"}
+                    </button>
+                  )}
                 </div>
               </div>
               {isEditingCaption ? (
                 <textarea
-                  style={{ ...styles.input, minHeight: 100, resize: "vertical" }}
+                  style={{
+                    ...styles.input,
+                    minHeight: 100,
+                    resize: "vertical",
+                  }}
                   value={editedCaption}
                   onChange={(e) => setEditedCaption(e.target.value)}
                 />
               ) : (
-                <p style={styles.text}>{editedCaption || "Waiting for generation…"}</p>
+                <p style={styles.text}>
+                  {editedCaption || "Waiting for generation…"}
+                </p>
               )}
 
               <div style={styles.divider} />
@@ -376,8 +819,17 @@ export default function PostPage() {
               <div style={styles.textHeader}>
                 <h3 style={styles.textTitle}>Hashtags</h3>
                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <span style={styles.pill}>{editedHashtags ? "Ready" : "—"}</span>
-                  {post && <button style={styles.editBtn} onClick={() => setIsEditingHashtags(!isEditingHashtags)}>{isEditingHashtags ? "Done" : "Edit"}</button>}
+                  <span style={styles.pill}>
+                    {editedHashtags ? "Ready" : "—"}
+                  </span>
+                  {post && (
+                    <button
+                      style={styles.editBtn}
+                      onClick={() => setIsEditingHashtags(!isEditingHashtags)}
+                    >
+                      {isEditingHashtags ? "Done" : "Edit"}
+                    </button>
+                  )}
                 </div>
               </div>
               {isEditingHashtags ? (
@@ -387,13 +839,18 @@ export default function PostPage() {
                   onChange={(e) => setEditedHashtags(e.target.value)}
                 />
               ) : (
-                <p style={styles.hashtags}>{editedHashtags || "Waiting for generation…"}</p>
+                <p style={styles.hashtags}>
+                  {editedHashtags || "Waiting for generation…"}
+                </p>
               )}
 
               {SHOW_DEBUG_PROMPT && post?.imagePrompt && (
                 <>
                   <div style={styles.divider} />
-                  <div style={styles.textHeader}><h3 style={styles.textTitle}>Debug: Image prompt</h3><span style={styles.pill}>Dev</span></div>
+                  <div style={styles.textHeader}>
+                    <h3 style={styles.textTitle}>Debug: Image prompt</h3>
+                    <span style={styles.pill}>Dev</span>
+                  </div>
                   <p style={styles.hashtags}>{post.imagePrompt}</p>
                 </>
               )}
@@ -404,30 +861,183 @@ export default function PostPage() {
           </div>
         </div>
 
-        {/* RIGHT: Context (read-only) */}
+        {/* RIGHT: Preview & Inputs */}
         <div style={styles.card}>
-          <h2 style={styles.cardTitle}>Inputs</h2>
-          <p style={styles.cardHint}>Read-only summary of what was generated.</p>
-          <div style={{ fontSize: 13, lineHeight: 1.55, opacity: 0.92 }}>
-            <div><strong>Niche:</strong> {form.niche || "—"}</div>
-            <div><strong>Audience:</strong> {form.audience || "—"}</div>
-            <div><strong>Post type:</strong> {form.postType || "—"}</div>
-            <div><strong>Specific request:</strong> {form.specificRequest?.trim() ? form.specificRequest : "BLANK"}</div>
-            <div><strong>Image style:</strong> {form.imageStyle || "—"}</div>
-            <div><strong>Tone:</strong> {form.tone || "—"}</div>
-            <div><strong>Caption length:</strong> {form.captionLength || "—"}</div>
-            <div><strong>Hashtag count:</strong> {String(form.hashtagCount)}</div>
-            <div><strong>Primary color:</strong> {form.primaryColor || "—"}</div>
-            <div><strong>Secondary color:</strong> {form.secondaryColor || "—"}</div>
-            <div><strong>Reference image:</strong> {uploadRef ? "Yes" : "No"}</div>
-            {dayContext && (
-              <div style={{ marginTop: 10, opacity: 0.95 }}>
-                <div style={{ fontWeight: 800, textTransform: "uppercase" }}>Day context</div>
-                <div>Day {dayContext.day} — {dayContext.title}</div>
-                <div style={{ opacity: 0.85 }}>{dayContext.detail}</div>
-              </div>
-            )}
+          {/* Tabs */}
+          <div style={styles.tabRow}>
+            <div
+              style={{
+                ...styles.tab,
+                ...styles.tabLeft,
+                ...(rightTab === "preview" ? styles.tabActive : {}),
+              }}
+              onClick={() => setRightTab("preview")}
+            >
+              📱 Preview
+            </div>
+            <div
+              style={{
+                ...styles.tab,
+                ...styles.tabRight,
+                ...(rightTab === "inputs" ? styles.tabActive : {}),
+              }}
+              onClick={() => setRightTab("inputs")}
+            >
+              ⚙️ Inputs
+            </div>
           </div>
+
+          {rightTab === "preview" ? (
+            /* Phone in Hand Preview - Real photo mockup */
+            <div style={styles.phoneContainer}>
+              {/* Dynamic image slot - positioned over the phone screen */}
+              <div style={styles.imageSlot}>
+                {post?.imageBase64 ? (
+                  <img
+                    src={post.imageBase64}
+                    alt="Your post"
+                    style={styles.slotImage}
+                  />
+                ) : (
+                  <div style={styles.slotPlaceholder}>
+                    {isLoading ? "Generating..." : "Your image"}
+                  </div>
+                )}
+              </div>
+
+              {/* Phone mockup image */}
+              <img
+                src="/phone-mockup.png"
+                alt="Phone preview"
+                style={styles.phoneTemplate}
+              />
+            </div>
+          ) : (
+            /* Inputs Tab */
+            <div>
+              <h2 style={{ ...styles.cardTitle, marginBottom: 12 }}>
+                Generation Inputs
+              </h2>
+              <div style={styles.inputsGrid}>
+                <div style={styles.inputItem}>
+                  <div style={styles.inputLabel}>Niche</div>
+                  <div style={styles.inputValue}>{form.niche || "—"}</div>
+                </div>
+                <div style={styles.inputItem}>
+                  <div style={styles.inputLabel}>Audience</div>
+                  <div style={styles.inputValue}>{form.audience || "—"}</div>
+                </div>
+                <div style={styles.inputItem}>
+                  <div style={styles.inputLabel}>Post Type</div>
+                  <div style={styles.inputValue}>{form.postType || "—"}</div>
+                </div>
+                <div style={styles.inputItem}>
+                  <div style={styles.inputLabel}>Tone</div>
+                  <div style={styles.inputValue}>{form.tone || "—"}</div>
+                </div>
+                <div style={styles.inputItem}>
+                  <div style={styles.inputLabel}>Image Style</div>
+                  <div style={styles.inputValue}>{form.imageStyle || "—"}</div>
+                </div>
+                <div style={styles.inputItem}>
+                  <div style={styles.inputLabel}>Caption Length</div>
+                  <div style={styles.inputValue}>
+                    {form.captionLength || "—"}
+                  </div>
+                </div>
+                <div style={styles.inputItem}>
+                  <div style={styles.inputLabel}>Hashtag Count</div>
+                  <div style={styles.inputValue}>{form.hashtagCount}</div>
+                </div>
+                <div style={styles.inputItem}>
+                  <div style={styles.inputLabel}>Reference Image</div>
+                  <div style={styles.inputValue}>
+                    {uploadRef ? "Yes" : "No"}
+                  </div>
+                </div>
+              </div>
+
+              {form.specificRequest && (
+                <div style={{ ...styles.inputItem, marginTop: 12 }}>
+                  <div style={styles.inputLabel}>Specific Request</div>
+                  <div style={styles.inputValue}>{form.specificRequest}</div>
+                </div>
+              )}
+
+              {/* Colors */}
+              <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
+                <div
+                  style={{
+                    ...styles.inputItem,
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 6,
+                      background: form.primaryColor,
+                      border: "1px solid rgba(255,255,255,0.2)",
+                    }}
+                  />
+                  <div>
+                    <div style={styles.inputLabel}>Primary</div>
+                    <div style={{ ...styles.inputValue, fontSize: 11 }}>
+                      {form.primaryColor}
+                    </div>
+                  </div>
+                </div>
+                <div
+                  style={{
+                    ...styles.inputItem,
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 6,
+                      background: form.secondaryColor,
+                      border: "1px solid rgba(255,255,255,0.2)",
+                    }}
+                  />
+                  <div>
+                    <div style={styles.inputLabel}>Secondary</div>
+                    <div style={{ ...styles.inputValue, fontSize: 11 }}>
+                      {form.secondaryColor}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {dayContext && (
+                <div
+                  style={{
+                    ...styles.inputItem,
+                    marginTop: 12,
+                    background: "rgba(44, 107, 237, 0.1)",
+                    border: "1px solid rgba(44, 107, 237, 0.2)",
+                  }}
+                >
+                  <div style={styles.inputLabel}>Calendar Context</div>
+                  <div style={styles.inputValue}>
+                    Day {dayContext.day} — {dayContext.title}
+                  </div>
+                  <div style={{ fontSize: 12, opacity: 0.7, marginTop: 4 }}>
+                    {dayContext.detail}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

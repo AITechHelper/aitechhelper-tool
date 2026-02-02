@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+// localStorage keys
+const ACTIVE_BRAND_KEY = "ath_active_brand_profile";
+
 type BrandProfile = {
   id: string;
   name: string;
@@ -35,14 +38,43 @@ export default function DashboardPage() {
   const [profiles, setProfiles] = useState<BrandProfile[]>([]);
   const [recentPosts, setRecentPosts] = useState<SavedPost[]>([]);
   const [showNewProfile, setShowNewProfile] = useState(false);
-  const [editingProfile, setEditingProfile] = useState<BrandProfile | null>(null);
+  const [editingProfile, setEditingProfile] = useState<BrandProfile | null>(
+    null
+  );
   const [newProfileName, setNewProfileName] = useState("");
+  const [newProfileNiche, setNewProfileNiche] = useState("");
+  const [newProfileAudience, setNewProfileAudience] = useState("");
+  const [newProfilePrimaryColor, setNewProfilePrimaryColor] =
+    useState("#000000");
+  const [newProfileSecondaryColor, setNewProfileSecondaryColor] =
+    useState("#ffffff");
+  const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
 
   // Load profiles and posts from localStorage
   useEffect(() => {
     try {
       const savedProfiles = localStorage.getItem("ath_profiles");
-      if (savedProfiles) setProfiles(JSON.parse(savedProfiles));
+      const setupSkipped = localStorage.getItem("ath_profile_setup_skipped");
+      const savedActiveProfile = localStorage.getItem(ACTIVE_BRAND_KEY);
+
+      if (savedActiveProfile) {
+        const activeData = JSON.parse(savedActiveProfile);
+        setActiveProfileId(activeData.profileId || null);
+      }
+
+      if (savedProfiles) {
+        const profilesData = JSON.parse(savedProfiles);
+        setProfiles(profilesData);
+        // Auto-open modal if no profiles exist AND user hasn't skipped setup
+        if (profilesData.length === 0 && setupSkipped !== "1") {
+          setShowNewProfile(true);
+        }
+      } else {
+        // Auto-open modal if no profiles exist AND user hasn't skipped setup
+        if (setupSkipped !== "1") {
+          setShowNewProfile(true);
+        }
+      }
 
       const savedPosts = localStorage.getItem("ath_gallery");
       if (savedPosts) {
@@ -59,8 +91,23 @@ export default function DashboardPage() {
     } catch {}
   }, [profiles]);
 
-  const handleUseProfile = (profile: BrandProfile) => {
-    // Save to form storage and navigate to generate
+  const handleActivateProfile = (profile: BrandProfile) => {
+    // Save active brand profile
+    const activeBrandData = {
+      profileId: profile.id,
+      profileName: profile.name,
+      niche: profile.niche,
+      audience: profile.audience,
+      tone: profile.tone,
+      captionLength: profile.captionLength,
+      hashtagCount: profile.hashtagCount,
+      imageStyle: profile.imageStyle,
+      primaryColor: profile.primaryColor,
+      secondaryColor: profile.secondaryColor,
+    };
+    localStorage.setItem(ACTIVE_BRAND_KEY, JSON.stringify(activeBrandData));
+
+    // Overwrite form storage completely with profile data
     const formData = {
       niche: profile.niche,
       audience: profile.audience,
@@ -74,7 +121,7 @@ export default function DashboardPage() {
       specificRequest: "",
     };
     localStorage.setItem("ath_form", JSON.stringify(formData));
-    router.push("/generate");
+    setActiveProfileId(profile.id);
   };
 
   const handleDeleteProfile = (id: string) => {
@@ -84,24 +131,17 @@ export default function DashboardPage() {
   const handleCreateProfile = () => {
     if (!newProfileName.trim()) return;
 
-    // Get current form data as base
-    let formData: any = {};
-    try {
-      const saved = localStorage.getItem("ath_form");
-      if (saved) formData = JSON.parse(saved);
-    } catch {}
-
     const newProfile: BrandProfile = {
       id: Date.now().toString(),
       name: newProfileName.trim(),
-      niche: formData.niche || "",
-      audience: formData.audience || "",
-      tone: formData.tone || "Confident",
-      captionLength: formData.captionLength || "Medium",
-      hashtagCount: formData.hashtagCount || 12,
-      imageStyle: formData.imageStyle || "lifestyle",
-      primaryColor: formData.primaryColor || "#000000",
-      secondaryColor: formData.secondaryColor || "#ffffff",
+      niche: newProfileNiche.trim(),
+      audience: newProfileAudience.trim(),
+      tone: "Confident",
+      captionLength: "Medium",
+      hashtagCount: 12,
+      imageStyle: "lifestyle_photo",
+      primaryColor: newProfilePrimaryColor,
+      secondaryColor: newProfileSecondaryColor,
       createdAt: new Date().toISOString(),
     };
 
@@ -111,7 +151,12 @@ export default function DashboardPage() {
     }
 
     setProfiles([...profiles, newProfile]);
+    // Reset form fields
     setNewProfileName("");
+    setNewProfileNiche("");
+    setNewProfileAudience("");
+    setNewProfilePrimaryColor("#000000");
+    setNewProfileSecondaryColor("#ffffff");
     setShowNewProfile(false);
   };
 
@@ -160,32 +205,115 @@ export default function DashboardPage() {
       opacity: 0.8,
       margin: 0,
     },
+    secondarySectionTitle: {
+      fontSize: 12,
+      fontWeight: 700,
+      textTransform: "uppercase" as const,
+      letterSpacing: 1,
+      opacity: 0.6,
+      margin: 0,
+    },
+    heroSection: {
+      marginBottom: 40,
+      border: "2px solid rgba(44, 107, 237, 0.3)",
+      borderRadius: 20,
+      boxShadow: "0 0 30px rgba(44, 107, 237, 0.15)",
+      padding: 24,
+    },
+    stepPill: {
+      background: "rgba(44, 107, 237, 0.2)",
+      border: "1px solid rgba(44, 107, 237, 0.3)",
+      borderRadius: 12,
+      padding: "4px 8px",
+      fontSize: 11,
+      fontWeight: 700,
+      color: "#7eb3ff",
+      marginLeft: 12,
+    },
+    instructionText: {
+      fontSize: 13,
+      opacity: 0.7,
+      marginTop: 8,
+      lineHeight: 1.4,
+      marginBottom: 0,
+    },
+    primaryCta: {
+      background: "#2c6bed",
+      border: "none",
+      borderRadius: 12,
+      padding: "12px 20px",
+      color: "#e6edf7",
+      cursor: "pointer",
+      fontSize: 14,
+      fontWeight: 700,
+      transition: "all 0.15s ease",
+    },
+    secondaryCta: {
+      background: "transparent",
+      border: "1px solid rgba(44, 107, 237, 0.3)",
+      borderRadius: 8,
+      padding: "10px 16px",
+      color: "#7eb3ff",
+      cursor: "pointer",
+      fontSize: 13,
+      fontWeight: 600,
+      transition: "all 0.15s ease",
+    },
     actionGrid: {
       display: "grid",
-      gridTemplateColumns: "repeat(3, 1fr)",
+      gridTemplateColumns: "repeat(2, 1fr)",
       gap: 16,
     },
     actionCard: {
-      background: "#101a33",
-      border: "1px solid rgba(255,255,255,0.08)",
+      background: "linear-gradient(135deg, #15233d 0%, #101a33 100%)",
+      border: "1px solid rgba(255,255,255,0.12)",
       borderRadius: 16,
       padding: 24,
       cursor: "pointer",
       transition: "all 0.15s ease",
       textAlign: "center" as const,
+      boxShadow: "0 6px 18px rgba(0,0,0,0.35), 0 2px 6px rgba(44,107,237,0.1)",
+    },
+    secondaryActionCard: {
+      background: "#101a33",
+      border: "1px solid rgba(255,255,255,0.08)",
+      borderRadius: 12,
+      padding: 16,
+      cursor: "pointer",
+      transition: "all 0.15s ease",
+      textAlign: "center" as const,
+      opacity: 0.7,
     },
     actionIcon: {
       fontSize: 40,
       marginBottom: 12,
+      opacity: 0.9,
     },
     actionTitle: {
       fontSize: 16,
       fontWeight: 700,
       marginBottom: 6,
+      opacity: 0.95,
     },
     actionDesc: {
       fontSize: 13,
-      opacity: 0.6,
+      opacity: 0.8,
+      lineHeight: 1.4,
+    },
+    secondaryActionIcon: {
+      fontSize: 32,
+      marginBottom: 8,
+      opacity: 0.8,
+    },
+    secondaryActionTitle: {
+      fontSize: 14,
+      fontWeight: 700,
+      marginBottom: 4,
+      opacity: 0.9,
+    },
+    secondaryActionDesc: {
+      fontSize: 12,
+      opacity: 0.5,
       lineHeight: 1.4,
     },
     profileCard: {
@@ -238,15 +366,18 @@ export default function DashboardPage() {
       color: "#ff9999",
     },
     emptyState: {
-      background: "rgba(255,255,255,0.03)",
-      border: "1px dashed rgba(255,255,255,0.15)",
-      borderRadius: 12,
-      padding: 32,
+      background:
+        "linear-gradient(135deg, rgba(44,107,237,0.08) 0%, rgba(255,255,255,0.04) 100%)",
+      border: "1px solid rgba(126,179,255,0.22)",
+      borderRadius: 16,
+      padding: "40px 32px",
       textAlign: "center" as const,
+      boxShadow: "0 12px 34px rgba(0,0,0,0.45), 0 0 24px rgba(44,107,237,0.10)",
     },
     emptyText: {
-      opacity: 0.5,
-      fontSize: 14,
+      opacity: 0.9,
+      fontSize: 18,
+      fontWeight: 600,
       marginBottom: 16,
     },
     recentPostsGrid: {
@@ -262,6 +393,15 @@ export default function DashboardPage() {
       cursor: "pointer",
       transition: "all 0.15s ease",
     },
+    secondaryPostCard: {
+      background: "#101a33",
+      border: "1px solid rgba(255,255,255,0.08)",
+      borderRadius: 10,
+      padding: 10,
+      cursor: "pointer",
+      transition: "all 0.15s ease",
+      opacity: 0.8,
+    },
     postDate: {
       fontSize: 11,
       opacity: 0.5,
@@ -276,6 +416,27 @@ export default function DashboardPage() {
       fontSize: 11,
       opacity: 0.7,
       lineHeight: 1.4,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      display: "-webkit-box",
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: "vertical" as const,
+    },
+    secondaryPostDate: {
+      fontSize: 10,
+      opacity: 0.4,
+      marginBottom: 4,
+    },
+    secondaryPostType: {
+      fontSize: 12,
+      fontWeight: 600,
+      marginBottom: 3,
+      opacity: 0.9,
+    },
+    secondaryPostCaption: {
+      fontSize: 10,
+      opacity: 0.6,
+      lineHeight: 1.3,
       overflow: "hidden",
       textOverflow: "ellipsis",
       display: "-webkit-box",
@@ -301,9 +462,10 @@ export default function DashboardPage() {
     modalContent: {
       background: "#101a33",
       borderRadius: 16,
-      padding: 24,
-      maxWidth: 400,
-      width: "100%",
+      padding: 32,
+      width: "min(920px, 96vw)",
+      maxHeight: "80vh",
+      overflowY: "auto" as const,
     },
     modalTitle: {
       fontSize: 18,
@@ -338,47 +500,22 @@ export default function DashboardPage() {
           <p style={styles.subtitle}>What would you like to do today?</p>
         </div>
 
-        {/* Main Actions */}
-        <div style={styles.section}>
-          <div style={styles.actionGrid} className="ath-actionGrid">
-            <div
-              style={styles.actionCard}
-              className="hover-card"
-              onClick={() => router.push("/generate")}
-            >
-              <div style={styles.actionIcon}>⚡</div>
-              <div style={styles.actionTitle}>Generate a Post</div>
-              <div style={styles.actionDesc}>Create a single post with AI-generated image and caption</div>
-            </div>
-            <div
-              style={styles.actionCard}
-              className="hover-card"
-              onClick={() => router.push("/calendar")}
-            >
-              <div style={styles.actionIcon}>📅</div>
-              <div style={styles.actionTitle}>Plan Your Month</div>
-              <div style={styles.actionDesc}>Schedule 30 days of content with smart suggestions</div>
-            </div>
-            <div
-              style={styles.actionCard}
-              className="hover-card"
-              onClick={() => router.push("/gallery")}
-            >
-              <div style={styles.actionIcon}>🖼️</div>
-              <div style={styles.actionTitle}>View Gallery</div>
-              <div style={styles.actionDesc}>See your saved posts and copy captions</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Brand Profiles */}
-        <div style={styles.section}>
+        {/* Brand Profiles - Primary Section */}
+        <div style={styles.heroSection} className="primary-section">
           <div style={styles.sectionHeader}>
-            <h2 style={styles.sectionTitle}>Your Brand Profiles</h2>
+            <div>
+              <h2 style={styles.sectionTitle}>
+                Your Brand Profiles
+                <span style={styles.stepPill}>Step 1</span>
+              </h2>
+              <p style={styles.instructionText}>
+                Start here — create a profile so every post matches your brand.
+              </p>
+            </div>
             <button
-              style={{ ...styles.btn, ...styles.btnPrimary }}
+              style={styles.primaryCta}
               onClick={() => setShowNewProfile(true)}
-              className="hover-btn"
+              className="hover-btn-primary"
             >
               + New Profile
             </button>
@@ -386,138 +523,509 @@ export default function DashboardPage() {
 
           {profiles.length === 0 ? (
             <div style={styles.emptyState}>
-              <div style={styles.emptyText}>
-                No profiles yet. Save your brand settings to quickly generate posts.
-              </div>
-              <button
-                style={{ ...styles.btn, ...styles.btnPrimary }}
-                onClick={() => setShowNewProfile(true)}
-                className="hover-btn"
+              {/* Centered Content Container */}
+              <div
+                style={{
+                  maxWidth: 820,
+                  margin: "0 auto",
+                  width: "100%",
+                }}
               >
-                Create Your First Profile
-              </button>
-            </div>
-          ) : (
-            profiles.map((profile) => (
-              <div key={profile.id} style={styles.profileCard} className="hover-card">
-                <div style={styles.profileInfo}>
-                  <div style={styles.profileName}>
-                    <span
+                {/* Title */}
+                <div
+                  style={{
+                    ...styles.emptyText,
+                    textAlign: "center" as const,
+                  }}
+                >
+                  Create your first brand profile to get started:
+                </div>
+
+                {/* What you'll save - 3-column pill grid */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                    gap: 14,
+                    marginBottom: 24,
+                    alignItems: "center",
+                  }}
+                  className="profile-benefits-pill-grid"
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 10,
+                      padding: "10px 12px",
+                      borderRadius: 14,
+                      border: "1px solid rgba(126,179,255,0.18)",
+                      background: "rgba(16,26,51,0.35)",
+                      color: "#cbd6ea",
+                      fontWeight: 700,
+                      fontSize: 16,
+                      whiteSpace: "nowrap" as const,
+                    }}
+                  >
+                    <div
                       style={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: "50%",
-                        background: profile.primaryColor,
-                        border: "1px solid rgba(255,255,255,0.2)",
+                        width: 8,
+                        height: 8,
+                        borderRadius: 999,
+                        background: "#7eb3ff",
+                        opacity: 0.9,
+                        flexShrink: 0,
                       }}
                     />
-                    {profile.name}
+                    Brand colors
                   </div>
-                  <div style={styles.profileMeta}>
-                    {profile.niche || "No niche"} • {profile.audience || "No audience"} • {profile.tone}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 10,
+                      padding: "10px 12px",
+                      borderRadius: 14,
+                      border: "1px solid rgba(126,179,255,0.18)",
+                      background: "rgba(16,26,51,0.35)",
+                      color: "#cbd6ea",
+                      fontWeight: 700,
+                      fontSize: 16,
+                      whiteSpace: "nowrap" as const,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 999,
+                        background: "#7eb3ff",
+                        opacity: 0.9,
+                        flexShrink: 0,
+                      }}
+                    />
+                    Audience + niche
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 10,
+                      padding: "10px 12px",
+                      borderRadius: 14,
+                      border: "1px solid rgba(126,179,255,0.18)",
+                      background: "rgba(16,26,51,0.35)",
+                      color: "#cbd6ea",
+                      fontWeight: 700,
+                      fontSize: 16,
+                      whiteSpace: "nowrap" as const,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 999,
+                        background: "#7eb3ff",
+                        opacity: 0.9,
+                        flexShrink: 0,
+                      }}
+                    />
+                    Tone of voice
                   </div>
                 </div>
-                <div style={styles.profileActions}>
-                  <button
-                    style={{ ...styles.btn, ...styles.btnPrimary }}
-                    onClick={() => handleUseProfile(profile)}
-                    className="hover-btn"
-                  >
-                    Use
-                  </button>
-                  <button
-                    style={{ ...styles.btn, ...styles.btnDanger }}
-                    onClick={() => handleDeleteProfile(profile.id)}
-                    className="hover-btn"
-                  >
-                    Delete
-                  </button>
+
+                {/* Benefit line */}
+                <div
+                  style={{
+                    fontSize: 13,
+                    opacity: 0.7,
+                    marginBottom: 24,
+                    fontStyle: "italic" as const,
+                    textAlign: "center" as const,
+                  }}
+                >
+                  Takes 30 seconds. Saves time on every post.
                 </div>
-              </div>
-            ))
-          )}
-        </div>
 
-        {/* Recent Posts */}
-        <div style={styles.section}>
-          <div style={styles.sectionHeader}>
-            <h2 style={styles.sectionTitle}>Recent Posts</h2>
-            {recentPosts.length > 0 && (
-              <span
-                style={styles.viewAllLink}
-                onClick={() => router.push("/gallery")}
-              >
-                View All →
-              </span>
-            )}
-          </div>
-
-          {recentPosts.length === 0 ? (
-            <div style={styles.emptyState}>
-              <div style={styles.emptyText}>
-                No posts generated yet. Create your first post!
+                {/* Enhanced CTA */}
+                <button
+                  style={{
+                    ...styles.primaryCta,
+                    height: 56,
+                    fontSize: 15,
+                    fontWeight: 700,
+                    boxShadow:
+                      "0 8px 20px rgba(44,107,237,0.35), 0 2px 8px rgba(44,107,237,0.2)",
+                    transition: "all 0.2s ease",
+                  }}
+                  onClick={() => setShowNewProfile(true)}
+                  className="hover-btn-primary enhanced-cta"
+                >
+                  Create Your First Profile
+                </button>
               </div>
-              <button
-                style={{ ...styles.btn, ...styles.btnPrimary }}
-                onClick={() => router.push("/generate")}
-                className="hover-btn"
-              >
-                Generate a Post
-              </button>
             </div>
           ) : (
-            <div style={styles.recentPostsGrid} className="ath-recentPostsGrid">
-              {recentPosts.map((post) => (
+            profiles.map((profile) => {
+              const isActive = activeProfileId === profile.id;
+              return (
                 <div
-                  key={post.id}
-                  style={styles.postCard}
+                  key={profile.id}
+                  style={{
+                    ...styles.profileCard,
+                    border: isActive ? "1px solid #22c55e" : styles.profileCard.border,
+                  }}
                   className="hover-card"
-                  onClick={() => router.push("/gallery")}
                 >
-                  <div style={styles.postDate}>
-                    {new Date(post.createdAt).toLocaleDateString()}
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    {/* Active indicator circle */}
+                    <div
+                      onClick={() => handleActivateProfile(profile)}
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: "50%",
+                        background: isActive ? "#22c55e" : "rgba(255,255,255,0.1)",
+                        border: isActive ? "2px solid #22c55e" : "2px solid rgba(255,255,255,0.3)",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        transition: "all 0.15s ease",
+                        flexShrink: 0,
+                      }}
+                      title={isActive ? "Active profile" : "Click to activate"}
+                    >
+                      {isActive && (
+                        <span style={{ color: "#fff", fontSize: 14 }}>✓</span>
+                      )}
+                    </div>
+                    <div style={styles.profileInfo}>
+                      <div style={styles.profileName}>
+                        <span
+                          style={{
+                            width: 12,
+                            height: 12,
+                            borderRadius: "50%",
+                            background: profile.primaryColor,
+                            border: "1px solid rgba(255,255,255,0.2)",
+                          }}
+                        />
+                        {profile.name}
+                        {isActive && (
+                          <span style={{ fontSize: 10, color: "#22c55e", marginLeft: 8 }}>
+                            ACTIVE
+                          </span>
+                        )}
+                      </div>
+                      <div style={styles.profileMeta}>
+                        {profile.niche || "No niche"} •{" "}
+                        {profile.audience || "No audience"} • {profile.tone}
+                      </div>
+                    </div>
                   </div>
-                  <div style={styles.postType}>{post.postType}</div>
-                  <div style={styles.postCaption}>
-                    {post.caption.substring(0, 80)}...
+                  <div style={styles.profileActions}>
+                    <button
+                      style={{ ...styles.btn, ...styles.btnDanger }}
+                      onClick={() => handleDeleteProfile(profile.id)}
+                      className="hover-btn"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
+              );
+            })
           )}
         </div>
+
+        {/* Main Actions */}
+        <div style={styles.section}>
+          <div style={styles.actionGrid} className="ath-actionGrid">
+            <div
+              style={styles.actionCard}
+              className="primary-action-card hover-card"
+              onClick={() => router.push("/generate")}
+            >
+              <div style={styles.actionIcon}>⚡</div>
+              <div style={styles.actionTitle}>Generate a Post</div>
+              <div style={styles.actionDesc}>
+                Create a single post with AI-generated image and caption
+              </div>
+            </div>
+            <div
+              style={styles.actionCard}
+              className="primary-action-card hover-card"
+              onClick={() => router.push("/calendar")}
+            >
+              <div style={styles.actionIcon}>📅</div>
+              <div style={styles.actionTitle}>Plan Your Month</div>
+              <div style={styles.actionDesc}>
+                Schedule 30 days of content with smart suggestions
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* TODO: View Gallery and Recent Posts sections removed - restore later */}
       </div>
 
       {/* New Profile Modal */}
       {showNewProfile && (
         <div style={styles.modal} onClick={() => setShowNewProfile(false)}>
           <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.modalTitle}>Create New Profile</div>
-            <p style={{ fontSize: 13, opacity: 0.7, marginBottom: 16 }}>
-              This will save your current form settings as a reusable profile.
-              Fill out the generator form first, then come back to save it.
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginBottom: 16,
+              }}
+            >
+              <div style={styles.modalTitle}>Create Your Brand Profile</div>
+              <span
+                style={{
+                  background: "rgba(44, 107, 237, 0.2)",
+                  border: "1px solid rgba(44, 107, 237, 0.3)",
+                  borderRadius: 12,
+                  padding: "3px 8px",
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color: "#7eb3ff",
+                  marginLeft: 12,
+                  textTransform: "uppercase" as const,
+                  letterSpacing: 0.5,
+                }}
+              >
+                One-time setup
+              </span>
+            </div>
+
+            <div
+              style={{
+                fontSize: 14,
+                opacity: 0.8,
+                marginBottom: 24,
+                lineHeight: 1.5,
+                paddingBottom: 16,
+                borderBottom: "1px solid rgba(255,255,255,0.08)",
+              }}
+            >
+              This is a one-time setup. We'll save your brand details so every
+              post is instantly pre-filled and consistent.
+            </div>
+
+            {/* Form Grid */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                gap: 14,
+                marginBottom: 24,
+              }}
+              className="profile-form-grid"
+            >
+              {/* Profile Name - Full Width */}
+              <input
+                style={{ ...styles.input, gridColumn: "1 / -1" }}
+                placeholder="Profile name (e.g., Coffee Shop)"
+                value={newProfileName}
+                onChange={(e) => setNewProfileName(e.target.value)}
+                autoFocus
+              />
+
+              {/* Niche */}
+              <input
+                style={styles.input}
+                placeholder="Your niche (e.g., Coffee, Fitness, Tech)"
+                value={newProfileNiche}
+                onChange={(e) => setNewProfileNiche(e.target.value)}
+              />
+
+              {/* Audience */}
+              <input
+                style={styles.input}
+                placeholder="Your audience (e.g., Coffee lovers, Entrepreneurs)"
+                value={newProfileAudience}
+                onChange={(e) => setNewProfileAudience(e.target.value)}
+              />
+            </div>
+
+            {/* Brand Colors */}
+            <div style={{ marginBottom: 24 }}>
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  marginBottom: 12,
+                  opacity: 0.9,
+                }}
+              >
+                Brand Colors
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                  gap: 14,
+                }}
+                className="profile-colors-grid"
+              >
+                {/* Primary Color */}
+                <div>
+                  <label
+                    style={{
+                      fontSize: 12,
+                      opacity: 0.7,
+                      marginBottom: 6,
+                      display: "block",
+                    }}
+                  >
+                    Primary Color
+                  </label>
+                  <div
+                    style={{ display: "flex", gap: 8, alignItems: "center" }}
+                  >
+                    <input
+                      type="color"
+                      value={newProfilePrimaryColor}
+                      onChange={(e) =>
+                        setNewProfilePrimaryColor(e.target.value)
+                      }
+                      style={{
+                        width: 40,
+                        height: 40,
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        borderRadius: 6,
+                        background: "transparent",
+                        cursor: "pointer",
+                      }}
+                    />
+                    <input
+                      style={{ ...styles.input, marginBottom: 0, flex: 1 }}
+                      placeholder="#000000"
+                      value={newProfilePrimaryColor}
+                      onChange={(e) =>
+                        setNewProfilePrimaryColor(e.target.value)
+                      }
+                    />
+                  </div>
+                </div>
+
+                {/* Secondary Color */}
+                <div>
+                  <label
+                    style={{
+                      fontSize: 12,
+                      opacity: 0.7,
+                      marginBottom: 6,
+                      display: "block",
+                    }}
+                  >
+                    Secondary Color
+                  </label>
+                  <div
+                    style={{ display: "flex", gap: 8, alignItems: "center" }}
+                  >
+                    <input
+                      type="color"
+                      value={newProfileSecondaryColor}
+                      onChange={(e) =>
+                        setNewProfileSecondaryColor(e.target.value)
+                      }
+                      style={{
+                        width: 40,
+                        height: 40,
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        borderRadius: 6,
+                        background: "transparent",
+                        cursor: "pointer",
+                      }}
+                    />
+                    <input
+                      style={{ ...styles.input, marginBottom: 0, flex: 1 }}
+                      placeholder="#ffffff"
+                      value={newProfileSecondaryColor}
+                      onChange={(e) =>
+                        setNewProfileSecondaryColor(e.target.value)
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <p
+              style={{
+                fontSize: 12,
+                opacity: 0.6,
+                marginBottom: 20,
+                textAlign: "center" as const,
+                fontStyle: "italic" as const,
+              }}
+            >
+              You can edit or update your brand profile anytime.
             </p>
-            <input
-              style={styles.input}
-              placeholder="Profile name (e.g., Coffee Shop)"
-              value={newProfileName}
-              onChange={(e) => setNewProfileName(e.target.value)}
-              autoFocus
-            />
-            <div style={styles.modalActions}>
+
+            <div
+              style={{
+                ...styles.modalActions,
+                flexDirection: "column" as const,
+                gap: 12,
+              }}
+            >
+              <div
+                style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}
+              >
+                <button
+                  style={styles.btn}
+                  onClick={() => {
+                    setShowNewProfile(false);
+                    // Reset form fields
+                    setNewProfileName("");
+                    setNewProfileNiche("");
+                    setNewProfileAudience("");
+                    setNewProfilePrimaryColor("#000000");
+                    setNewProfileSecondaryColor("#ffffff");
+                  }}
+                  className="hover-btn"
+                >
+                  Cancel
+                </button>
+                <button
+                  style={{ ...styles.btn, ...styles.btnPrimary }}
+                  onClick={handleCreateProfile}
+                  className="hover-btn"
+                >
+                  Save Profile
+                </button>
+              </div>
+
               <button
-                style={styles.btn}
-                onClick={() => setShowNewProfile(false)}
+                style={{
+                  ...styles.btn,
+                  opacity: 0.7,
+                  fontSize: 12,
+                  padding: "8px 12px",
+                  alignSelf: "center" as const,
+                }}
+                onClick={() => {
+                  localStorage.setItem("ath_profile_setup_skipped", "1");
+                  setShowNewProfile(false);
+                  // Reset form fields
+                  setNewProfileName("");
+                  setNewProfileNiche("");
+                  setNewProfileAudience("");
+                  setNewProfilePrimaryColor("#000000");
+                  setNewProfileSecondaryColor("#ffffff");
+                }}
                 className="hover-btn"
               >
-                Cancel
-              </button>
-              <button
-                style={{ ...styles.btn, ...styles.btnPrimary }}
-                onClick={handleCreateProfile}
-                className="hover-btn"
-              >
-                Save Profile
+                No thanks — continue without a profile
               </button>
             </div>
           </div>
@@ -527,11 +1035,40 @@ export default function DashboardPage() {
       {/* CSS */}
       <style>{`
         .hover-card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-2px); }
+        .primary-action-card:hover {
+          border-color: rgba(44,107,237,0.4) !important;
+          box-shadow: 0 8px 25px rgba(0,0,0,0.4), 0 4px 12px rgba(44,107,237,0.2) !important;
+          transform: translateY(-3px) !important;
+        }
         .hover-btn:hover { background: rgba(255,255,255,0.12) !important; }
+        .hover-btn-primary:hover { background: #357ae8 !important; transform: translateY(-1px); }
+        .enhanced-cta:hover {
+          background: #357ae8 !important;
+          transform: translateY(-2px) !important;
+          box-shadow: 0 12px 28px rgba(44,107,237,0.45), 0 4px 12px rgba(44,107,237,0.3) !important;
+        }
+        .primary-section { margin-bottom: 100px; }
 
+        @media (max-width: 900px) {
+          .profile-benefits-pill-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+        }
         @media (max-width: 768px) {
           .ath-actionGrid { grid-template-columns: 1fr !important; }
           .ath-recentPostsGrid { grid-template-columns: repeat(2, 1fr) !important; }
+          .primary-section { margin-bottom: 60px; }
+          .profile-benefits-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 700px) {
+          .profile-form-grid { grid-template-columns: 1fr !important; }
+          .profile-colors-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 560px) {
+          .profile-benefits-pill-grid { 
+            grid-template-columns: 1fr !important; 
+          }
+          .profile-benefits-pill-grid > div {
+            white-space: normal !important;
+          }
         }
         @media (max-width: 480px) {
           .ath-recentPostsGrid { grid-template-columns: 1fr !important; }
