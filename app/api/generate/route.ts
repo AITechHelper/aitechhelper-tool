@@ -133,8 +133,8 @@ type StyleSpec = {
 function getStyleSpec(styleRaw?: string): StyleSpec {
   const style = String(styleRaw || "").trim();
 
-  // 1) Lifestyle photo — NO text, NO products, very light branding
-  if (style === "lifestyle_photo") {
+  // 1) Natural Lifestyle — NO text, NO products, very light branding
+  if (style === "lifestyle" || style === "lifestyle_min_brand" || style === "lifestyle_photo") {
     return {
       allowText: false,
       photoRequired: true,
@@ -155,52 +155,62 @@ Keep branding minimal: tiny accent colors only (if any).
     };
   }
 
-  // 2) Branding + photo — NO text, heavy brand design
-  if (style === "branding_photo") {
+  // 2) Branded Photo — Clean photo with graphic design frame/accents AROUND it
+  if (style === "branded_photo" || style === "branding_photo_no_text" || style === "branding_photo") {
     return {
       allowText: false,
       photoRequired: true,
-      brandingStrength: "heavy",
+      brandingStrength: "light",
       banProducts: true,
       basePrompt: `
-REALISTIC photo used as the base layer.
-Strong branded graphic design elements layered on top.
-Use brand colors via frames, shapes, borders, gradients, and overlays.
+CLEAN, REALISTIC photo as the main subject — DO NOT alter or stylize the photo itself.
+The photo should look natural and untouched.
+Add graphic design elements AROUND or ON TOP of the photo edges:
+  - Bold colored frames or borders in brand colors
+  - Geometric shapes (circles, lines, corners) as decorative accents
+  - Color blocks or panels beside or behind the photo
+  - Subtle overlays at corners or edges only
+KEEP the photo center clean and unaltered.
 NO readable text. NO logos. NO packaging. NO labels.
-Photo must remain visible and realistic.
-Modern Instagram feed composition, premium brand aesthetic.
+Modern Instagram feed aesthetic with designed frame/accents.
 `,
       layoutHint: `
-Use bold brand color blocks/shapes with a clean grid.
-Leave negative space like a designed post, but DO NOT render text.
+Think of a photo inside a designed frame or template.
+Graphic elements should frame or accent the photo, not be embedded in it.
+Leave the main photo area clean and realistic.
 `,
     };
   }
 
-  // 3) Branding + text + photo — text allowed
-  if (style === "branding_text_photo") {
+  // 3) Branded + Text + Photo — HEAVY graphic design elements with text
+  if (style === "branded_text_photo" || style === "branding_text_photo") {
     return {
       allowText: true,
       photoRequired: true,
       brandingStrength: "heavy",
       banProducts: true,
       basePrompt: `
-REALISTIC photo as the base layer.
-Branded layout with intentional areas for headline text.
-Brand colors dominate the design; high contrast, premium look.
-Typography is EXPECTED and intentional (clean, modern, readable).
+REALISTIC photo as the base layer with HEAVY graphic design treatment.
+CRITICAL: This style requires MAXIMUM graphic design elements:
+- Bold frames, shapes, borders, and geometric overlays in brand colors
+- Gradients, color blocks, and design accents throughout
+- The design should look like a professional social media template
+Brand colors MUST dominate the visual design.
+Typography is EXPECTED: clean, modern, high-contrast headline text.
+The photo is a backdrop; the graphic design and text are the stars.
 NO logos. Avoid brand names. Avoid packaging and labels.
-Photo supports the message.
 `,
       layoutHint: `
-Headline + subhead style layout (like a real IG post).
-Bold but clean typography hierarchy.
+Think premium Instagram template with bold design elements.
+Use geometric shapes, frames, and overlays extensively.
+Headline + subhead style layout with strong visual hierarchy.
+Brand colors should be impossible to miss.
 `,
     };
   }
 
-  // 4) Branding + text only — no photo
-  if (style === "branding_text_only") {
+  // 4) Graphic Design (text only) — no photo
+  if (style === "branded_text_only" || style === "branding_text_only") {
     return {
       allowText: true,
       photoRequired: false,
@@ -220,7 +230,7 @@ Add subtle pattern texture / dots / lines for depth.
     };
   }
 
-  // Default fallback: treat like lifestyle_photo (safe)
+  // Default fallback: treat like lifestyle (safe)
   return {
     allowText: false,
     photoRequired: true,
@@ -349,6 +359,144 @@ function postTypeToGuidance(postType?: string): PostTypeGuidance {
   return {
     caption: "General post type. Stay in niche. Do not invent specifics.",
     image: "High-quality niche visual. No invented products/packaging.",
+  };
+}
+
+/* ----------------- Caption Structure (Hooks + CTAs) ----------------- */
+
+type CaptionStructure = {
+  hookStyle: string;
+  hookExamples: string[];
+  ctaOptions: string[];
+  structureHint: string;
+};
+
+function getCaptionStructure(postType?: string): CaptionStructure {
+  const t = String(postType || "").toLowerCase();
+
+  if (t.includes("basic")) {
+    return {
+      hookStyle: "Observation or relatable statement",
+      hookExamples: ["Here's what we love about...", "Nothing beats...", "This is why we do what we do."],
+      ctaOptions: ["Follow for more", "Double tap if you agree", "Save this for later"],
+      structureHint: "Start with a relatable observation, share a simple thought, end with CTA.",
+    };
+  }
+
+  if (t.includes("promotion") || t.includes("offer")) {
+    return {
+      hookStyle: "Urgency or value-driven opener",
+      hookExamples: ["For a limited time...", "Don't miss this.", "Here's your chance to..."],
+      ctaOptions: ["Grab yours today", "DM us to claim", "Link in bio", "Shop now"],
+      structureHint: "Lead with urgency or value, state the offer clearly, end with action CTA.",
+    };
+  }
+
+  if (t.includes("educational") || t.includes("tips")) {
+    return {
+      hookStyle: "Question or curiosity opener",
+      hookExamples: ["Ever wondered why...?", "Here's a tip most people miss.", "Did you know...?"],
+      ctaOptions: ["Save this for later", "Share with someone who needs this", "Bookmark this"],
+      structureHint: "Open with curiosity, deliver the tip/insight, end with save/share CTA.",
+    };
+  }
+
+  if (t.includes("problem") && t.includes("solution")) {
+    return {
+      hookStyle: "Pain point callout",
+      hookExamples: ["Tired of...?", "Struggling with...?", "If you've ever dealt with..."],
+      ctaOptions: ["DM us to learn more", "Let us help — link in bio", "Comment if this sounds familiar"],
+      structureHint: "Call out the problem, present the solution, invite them to reach out.",
+    };
+  }
+
+  if (t.includes("before") && t.includes("after")) {
+    return {
+      hookStyle: "Transformation tease",
+      hookExamples: ["The difference is unreal.", "See what changed.", "From this to this."],
+      ctaOptions: ["Ready for your transformation? DM us", "Want results like this? Link in bio", "Your turn next"],
+      structureHint: "Tease the transformation, highlight the change, invite them to start their journey.",
+    };
+  }
+
+  if (t.includes("testimonial") || t.includes("social proof")) {
+    return {
+      hookStyle: "Quote lead-in",
+      hookExamples: ["Our client said it best:", "Real words from a real customer:", "Here's what they had to say:"],
+      ctaOptions: ["Share your experience below", "Want similar results? DM us", "Your story could be next"],
+      structureHint: "Introduce the testimonial, share the quote, invite others to share or inquire.",
+    };
+  }
+
+  if (t.includes("behind")) {
+    return {
+      hookStyle: "Curiosity opener",
+      hookExamples: ["Here's what happens behind the scenes.", "A look at how we do it.", "Ever wonder what goes into...?"],
+      ctaOptions: ["Follow for more behind the scenes", "Comment what you want to see next", "Like if you enjoyed this peek"],
+      structureHint: "Open with curiosity, share the behind-the-scenes moment, invite engagement.",
+    };
+  }
+
+  if (t.includes("announcement") || t.includes("update")) {
+    return {
+      hookStyle: "News hook",
+      hookExamples: ["Big news!", "We've got something exciting to share.", "It's finally here."],
+      ctaOptions: ["Stay tuned", "Follow for updates", "Turn on notifications", "Link in bio for details"],
+      structureHint: "Lead with excitement, share the news clearly, direct them to stay connected.",
+    };
+  }
+
+  if (t.includes("engagement") || t.includes("conversation")) {
+    return {
+      hookStyle: "Direct question",
+      hookExamples: ["What's your take on...?", "We want to know:", "Quick question for you:"],
+      ctaOptions: ["Drop your answer below", "Comment your thoughts", "Tag a friend who..."],
+      structureHint: "Ask a compelling question, add context if needed, invite them to respond.",
+    };
+  }
+
+  if (t.includes("seasonal") || t.includes("timely")) {
+    return {
+      hookStyle: "Time reference",
+      hookExamples: ["This season...", "'Tis the season for...", "With [event] around the corner..."],
+      ctaOptions: ["Book now before it's too late", "DM us today", "Don't wait — link in bio"],
+      structureHint: "Reference the season/event, tie it to your offering, create urgency to act.",
+    };
+  }
+
+  if (t.includes("authority") || t.includes("credibility")) {
+    return {
+      hookStyle: "Expertise signal",
+      hookExamples: ["After years in this industry...", "Here's what we've learned:", "One thing most people get wrong:"],
+      ctaOptions: ["Follow for expert tips", "Questions? Drop them below", "DM for advice"],
+      structureHint: "Establish credibility, share an insight, invite them to learn more.",
+    };
+  }
+
+  if (t.includes("service") || t.includes("product") || t.includes("highlight")) {
+    return {
+      hookStyle: "Feature or benefit highlight",
+      hookExamples: ["Here's what makes this special.", "Why our clients love this:", "The difference is in the details."],
+      ctaOptions: ["Learn more — link in bio", "DM us for details", "Book a consultation today"],
+      structureHint: "Highlight a key feature/benefit, explain the value, invite inquiry.",
+    };
+  }
+
+  if (t.includes("custom")) {
+    return {
+      hookStyle: "Flexible — match the user's specific request",
+      hookExamples: ["Adapt to what the user describes"],
+      ctaOptions: ["Choose based on the content goal"],
+      structureHint: "Follow the user's specific request for both hook and CTA style.",
+    };
+  }
+
+  // Default fallback
+  return {
+    hookStyle: "Engaging opener",
+    hookExamples: ["Here's something worth knowing.", "Let's talk about..."],
+    ctaOptions: ["Follow for more", "Comment below", "Share if you agree"],
+    structureHint: "Open strong, deliver value, end with engagement CTA.",
   };
 }
 
@@ -486,9 +634,7 @@ export async function POST(req: Request) {
     const primaryColor = normalizeHex(body.primaryColor);
     const secondaryColor = normalizeHex(body.secondaryColor);
 
-    const callToAction =
-      String(body.callToAction || "").trim() ||
-      "Comment, Share, Like, Follow, DM us";
+    // CTA will be set dynamically after we get captionStructure
 
     const dayContext = body.dayContext
       ? `Calendar context: Day ${body.dayContext.day}. Title: ${body.dayContext.title}. Detail: ${body.dayContext.detail}.`
@@ -502,6 +648,7 @@ export async function POST(req: Request) {
 
     const styleSpec = getStyleSpec(body.imageStyle);
     const postTypeGuide = postTypeToGuidance(postType);
+    const captionStructure = getCaptionStructure(postType);
 
     const priority = buildPriorityRules({
       niche,
@@ -528,10 +675,22 @@ Hard rules:
 - Caption MUST be <= ${maxCaptionChars} characters.
 - Caption must NOT describe the image ("in the photo", "picture this", etc).
 - Caption MUST match the post type and tone.
-- Caption MUST end with the call-to-action exactly: "${callToAction}" (case-sensitive).
 - If SpecificRequest is provided, caption MUST include it clearly and directly (do not change the offer wording).
 - If SpecificRequest is blank, do NOT invent discounts, dates, guarantees, or factual claims.
 - Hashtags must be ONE line of space-separated hashtags, exactly ${hashtagCount} hashtags (0 allowed if hashtagCount is 0).
+
+CAPTION STRUCTURE (CRITICAL):
+1. HOOK: Start with an attention-grabbing opening line.
+   - Hook style for this post type: ${captionStructure.hookStyle}
+   - Example hooks: ${captionStructure.hookExamples.slice(0, 2).join(" / ")}
+   - First 5-10 words MUST grab attention. No generic openers like "Hey there" or "Check this out".
+
+2. BODY: ${captionStructure.structureHint}
+
+3. CTA: End with a strong call-to-action.
+   - Best CTAs for this post type: ${captionStructure.ctaOptions.join(", ")}
+   - Pick ONE that fits naturally. Make it feel organic, not forced.
+   - The CTA should match the post's intent (don't use "Save this" for a promo post).
 
 - The field "scene_plan" must be visual-only instructions and MUST obey the ImageStyle rules:
   - ${styleSpec.allowText ? "Text in image is allowed." : "NO text in image."}
@@ -601,15 +760,8 @@ Rules for scene_plan:
     if (caption.length > maxCaptionChars)
       caption = caption.slice(0, maxCaptionChars).trim();
 
-    if (!caption.endsWith(callToAction)) {
-      caption = `${caption.replace(/\s+$/g, "")} ${callToAction}`.trim();
-      if (caption.length > maxCaptionChars) {
-        const keep = ` ${callToAction}`;
-        caption =
-          caption.slice(0, Math.max(0, maxCaptionChars - keep.length)).trim() +
-          keep;
-      }
-    }
+    // CTA is now generated dynamically by the AI based on post type
+    // No forced CTA appending - the AI picks the best contextual CTA
 
     if (hashtagCount === 0) {
       hashtags = "";
