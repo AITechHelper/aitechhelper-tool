@@ -435,7 +435,12 @@ export default function GalleryPage() {
               Showing posts for <strong>{filterProfileName}</strong>
             </span>
             <button
-              onClick={() => router.push("/gallery")}
+              onClick={() => {
+                setFilterProfileId(null);
+                setFilterProfileName(null);
+                setPosts(allPosts);
+                router.replace("/gallery");
+              }}
               style={{
                 background: "rgba(255,255,255,0.1)",
                 border: "none",
