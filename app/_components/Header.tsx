@@ -8,6 +8,7 @@ export default function Header() {
         top: 16,
         left: 16,
         zIndex: 1000,
+        pointerEvents: "none",
       }}
     >
       <a
@@ -17,6 +18,7 @@ export default function Header() {
         style={{
           display: "block",
           transition: "opacity 0.2s ease",
+          pointerEvents: "auto",
         }}
         onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
         onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
