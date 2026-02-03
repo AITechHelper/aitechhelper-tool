@@ -1990,7 +1990,7 @@ export default function DashboardPage() {
           .profile-benefits-pill-grid > div {
             white-space: normal !important;
           }
-          .view-posts-btn { display: none !important; }
+          .view-posts-btn { padding: 6px 10px !important; font-size: 11px !important; }
         }
         @media (max-width: 480px) {
           .ath-recentPostsGrid { grid-template-columns: 1fr !important; }
