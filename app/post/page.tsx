@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { saveImage } from "../lib/imageStorage";
 
 type FormState = {
   niche: string;
@@ -223,12 +224,31 @@ export default function PostPage() {
       if (refinementOverride) setHasRefined(true);
       setStatusMsg("Done ✅");
 
-      // Save to gallery
+      // Save to gallery (metadata in localStorage, image in IndexedDB)
       try {
+        const postId = Date.now().toString();
+
+        // Save image to IndexedDB
+        if (result.imageBase64) {
+          await saveImage(postId, result.imageBase64);
+        }
+
+        // Get active profile ID
+        let activeProfileId: string | undefined;
+        try {
+          const activeProfile = localStorage.getItem("ath_active_brand_profile");
+          if (activeProfile) {
+            activeProfileId = JSON.parse(activeProfile).profileId;
+          }
+        } catch {}
+
+        // Save metadata to localStorage
         const savedPosts = localStorage.getItem("ath_gallery");
         const posts = savedPosts ? JSON.parse(savedPosts) : [];
         const newPost = {
-          id: Date.now().toString(),
+          id: postId,
+          profileId: activeProfileId,
+          hasImage: !!result.imageBase64,
           caption: result.caption,
           hashtags: result.hashtags,
           postType: form.postType,
@@ -307,13 +327,24 @@ export default function PostPage() {
       flexWrap: "wrap",
     },
     title: {
-      fontSize: 35,
-      fontWeight: 600,
+      fontSize: 34,
+      fontWeight: 800,
       letterSpacing: 1,
       margin: 0,
-      textTransform: "uppercase",
+      background: "linear-gradient(135deg, #22c55e 0%, #4ade80 50%, #7eb3ff 100%)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      backgroundClip: "text",
     },
-    subtitle: { margin: 0, opacity: 0.75, fontSize: 15, fontWeight: 400 },
+    subtitle: {
+      margin: "8px 0 0 0",
+      opacity: 0.8,
+      fontSize: 15,
+      fontWeight: 500,
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+    },
     grid: {
       maxWidth: 1100,
       margin: "0 auto",
@@ -322,11 +353,11 @@ export default function PostPage() {
       gap: 16,
     },
     card: {
-      background: "#101a33",
-      border: "1px solid rgba(255,255,255,0.08)",
-      borderRadius: 16,
-      padding: 16,
-      boxShadow: "0 8px 24px rgba(0,0,0,0.28)",
+      background: "linear-gradient(135deg, #15233d 0%, #101a33 100%)",
+      border: "1px solid rgba(255,255,255,0.1)",
+      borderRadius: 20,
+      padding: 20,
+      boxShadow: "0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.05)",
     },
     cardTitle: {
       margin: 0,
@@ -574,6 +605,7 @@ export default function PostPage() {
         <div>
           <h1 style={styles.title}>{post ? "Your Post" : "Generating"}</h1>
           <p style={styles.subtitle}>
+            <span style={{ fontSize: 18 }}>{post ? "✨" : "⚡"}</span>
             {post
               ? "Edit your caption and copy to clipboard"
               : "Your post is being created. You can refine once after it finishes."}

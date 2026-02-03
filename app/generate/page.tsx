@@ -669,11 +669,11 @@ export default function Page() {
     },
     container: { maxWidth: 900, margin: "0 auto" },
     card: {
-      background: "#101a33",
-      border: "1px solid rgba(255,255,255,0.08)",
-      borderRadius: 16,
-      padding: 20,
-      boxShadow: "0 8px 24px rgba(0,0,0,0.28)",
+      background: "linear-gradient(135deg, #15233d 0%, #101a33 100%)",
+      border: "1px solid rgba(255,255,255,0.1)",
+      borderRadius: 20,
+      padding: 24,
+      boxShadow: "0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.05)",
       marginBottom: 16,
       transition: "all 0.15s ease",
     },
@@ -1086,15 +1086,16 @@ export default function Page() {
       display: "flex",
       alignItems: "center",
       gap: 6,
-      background: "#2c6bed",
+      background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
       border: "none",
-      borderRadius: 8,
-      padding: "10px 20px",
+      borderRadius: 10,
+      padding: "12px 24px",
       color: "#fff",
       cursor: "pointer",
-      fontSize: 13,
-      fontWeight: 600,
+      fontSize: 14,
+      fontWeight: 700,
       transition: "all 0.15s ease",
+      boxShadow: "0 4px 14px rgba(44, 107, 237, 0.4)",
     },
     nextBtnDisabled: {
       background: "rgba(255,255,255,0.10)",
@@ -1107,35 +1108,78 @@ export default function Page() {
       alignItems: "center",
     },
     stepDot: {
-      width: 8,
-      height: 8,
+      width: 10,
+      height: 10,
       borderRadius: "50%",
-      background: "rgba(255,255,255,0.2)",
-      transition: "all 0.15s ease",
+      background: "rgba(255,255,255,0.15)",
+      transition: "all 0.2s ease",
+      boxShadow: "none",
     },
     stepDotActive: {
-      background: "#2c6bed",
-      width: 24,
-      borderRadius: 4,
+      background: "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)",
+      width: 32,
+      borderRadius: 6,
+      boxShadow: "0 2px 10px rgba(44, 107, 237, 0.4)",
     },
     stepDotCompleted: {
-      background: "#4ade80",
+      background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+      boxShadow: "0 2px 8px rgba(34, 197, 94, 0.3)",
     },
   };
 
   return (
     <div style={styles.page}>
-      {/* Header */}
-      <div style={styles.header}>
+      {/* Header - Enhanced with gradient */}
+      <div style={{
+        maxWidth: 900,
+        margin: "0 auto 24px auto",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12,
+        flexWrap: "wrap" as const,
+      }}>
         <div>
-          <h1 style={styles.title}>Generate a Post</h1>
-          <p style={styles.subtitle}>AI-powered image + caption + hashtags</p>
+          <h1 style={{
+            fontSize: 32,
+            fontWeight: 800,
+            letterSpacing: 1,
+            margin: 0,
+            background: "linear-gradient(135deg, #2c6bed 0%, #7eb3ff 50%, #a78bfa 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}>
+            Generate a Post
+          </h1>
+          <p style={{
+            margin: "8px 0 0 0",
+            opacity: 0.8,
+            fontSize: 15,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}>
+            <span style={{ fontSize: 18 }}>⚡</span>
+            AI-powered image + caption + hashtags
+          </p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <a
             href="/dashboard"
             style={{
-              ...styles.helpBtn,
+              background: "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(44, 107, 237, 0.1) 100%)",
+              border: "1px solid rgba(44, 107, 237, 0.3)",
+              borderRadius: 10,
+              padding: "10px 16px",
+              color: "#7eb3ff",
+              cursor: "pointer",
+              fontSize: 13,
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              transition: "all 0.15s ease",
               textDecoration: "none",
             }}
             className="hover-btn"
@@ -1157,7 +1201,20 @@ export default function Page() {
             Dashboard
           </a>
           <button
-            style={styles.helpBtn}
+            style={{
+              background: "linear-gradient(135deg, rgba(124, 58, 237, 0.2) 0%, rgba(124, 58, 237, 0.1) 100%)",
+              border: "1px solid rgba(124, 58, 237, 0.3)",
+              borderRadius: 10,
+              padding: "10px 16px",
+              color: "#a78bfa",
+              cursor: "pointer",
+              fontSize: 13,
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              transition: "all 0.15s ease",
+            }}
             onClick={() => setShowInstructions(true)}
             className="hover-btn"
           >

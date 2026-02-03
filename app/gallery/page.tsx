@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { getImage, deleteImage } from "../lib/imageStorage";
 
 type SavedPost = {
   id: string;
   profileId?: string;
   calendarDay?: number;
   month?: string;
+  hasImage?: boolean;
   caption: string;
   hashtags: string;
   postType: string;
@@ -21,21 +23,89 @@ type SavedPost = {
 export default function GalleryPage() {
   const router = useRouter();
   const [posts, setPosts] = useState<SavedPost[]>([]);
+  const [allPosts, setAllPosts] = useState<SavedPost[]>([]);
   const [selectedPost, setSelectedPost] = useState<SavedPost | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [postImages, setPostImages] = useState<Record<string, string>>({});
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [loadingImages, setLoadingImages] = useState(true);
+  const [filterProfileId, setFilterProfileId] = useState<string | null>(null);
+  const [filterProfileName, setFilterProfileName] = useState<string | null>(null);
 
-  // Load posts from localStorage
+  // Load posts from localStorage and images from IndexedDB
   useEffect(() => {
-    try {
-      const savedPosts = localStorage.getItem("ath_gallery");
-      if (savedPosts) {
-        const parsed = JSON.parse(savedPosts) as SavedPost[];
-        // Sort by date, newest first
-        parsed.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        setPosts(parsed);
+    async function loadPosts() {
+      try {
+        // Check for profileId filter in URL
+        const params = new URLSearchParams(window.location.search);
+        const profileIdParam = params.get("profileId");
+        setFilterProfileId(profileIdParam);
+
+        // Get profile name if filtering
+        if (profileIdParam) {
+          try {
+            const profiles = localStorage.getItem("ath_profiles");
+            if (profiles) {
+              const parsed = JSON.parse(profiles);
+              const profile = parsed.find((p: any) => p.id === profileIdParam);
+              if (profile) {
+                setFilterProfileName(profile.name);
+              }
+            }
+          } catch {}
+        }
+
+        const savedPosts = localStorage.getItem("ath_gallery");
+        if (savedPosts) {
+          const parsed = JSON.parse(savedPosts) as SavedPost[];
+          // Sort by date, newest first
+          parsed.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          setAllPosts(parsed);
+
+          // Filter by profileId if provided
+          const filtered = profileIdParam
+            ? parsed.filter((p) => p.profileId === profileIdParam)
+            : parsed;
+          setPosts(filtered);
+
+          // Load images from IndexedDB
+          const images: Record<string, string> = {};
+          for (const post of filtered) {
+            if (post.hasImage) {
+              const img = await getImage(post.id);
+              if (img) {
+                images[post.id] = img;
+              }
+            }
+          }
+          setPostImages(images);
+        }
+      } catch (err) {
+        console.error("Error loading posts:", err);
+      } finally {
+        setLoadingImages(false);
       }
-    } catch {}
+    }
+    loadPosts();
   }, []);
+
+  // Load image when selecting a post
+  useEffect(() => {
+    async function loadSelectedImage() {
+      if (selectedPost?.hasImage && !postImages[selectedPost.id]) {
+        const img = await getImage(selectedPost.id);
+        if (img) {
+          setSelectedImage(img);
+          setPostImages((prev) => ({ ...prev, [selectedPost.id]: img }));
+        }
+      } else if (selectedPost && postImages[selectedPost.id]) {
+        setSelectedImage(postImages[selectedPost.id]);
+      } else {
+        setSelectedImage(null);
+      }
+    }
+    loadSelectedImage();
+  }, [selectedPost, postImages]);
 
   const handleCopy = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -43,11 +113,34 @@ export default function GalleryPage() {
     setTimeout(() => setCopiedField(null), 2000);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
+    // Delete image from IndexedDB
+    await deleteImage(id);
+
+    // Delete from localStorage
     const updated = posts.filter((p) => p.id !== id);
     setPosts(updated);
     localStorage.setItem("ath_gallery", JSON.stringify(updated));
+
+    // Remove from local image cache
+    setPostImages((prev) => {
+      const newImages = { ...prev };
+      delete newImages[id];
+      return newImages;
+    });
+
     setSelectedPost(null);
+    setSelectedImage(null);
+  };
+
+  const handleDownloadImage = () => {
+    if (!selectedImage || !selectedPost) return;
+    const a = document.createElement("a");
+    a.href = selectedImage;
+    a.download = `ai-tech-helper-${selectedPost.id}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   const formatDate = (dateStr: string) => {
@@ -82,27 +175,34 @@ export default function GalleryPage() {
       display: "flex",
       alignItems: "center",
       gap: 8,
-      background: "rgba(255,255,255,0.08)",
-      border: "1px solid rgba(255,255,255,0.12)",
-      borderRadius: 8,
-      padding: "10px 16px",
-      color: "#e6edf7",
+      background: "linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%)",
+      border: "1px solid rgba(236, 72, 153, 0.3)",
+      borderRadius: 10,
+      padding: "10px 18px",
+      color: "#f472b6",
       cursor: "pointer",
       fontSize: 13,
       fontWeight: 600,
       transition: "all 0.15s ease",
+      textDecoration: "none",
     },
     title: {
-      fontSize: 28,
-      fontWeight: 700,
+      fontSize: 32,
+      fontWeight: 800,
       letterSpacing: 1,
       margin: 0,
-      textTransform: "uppercase" as const,
+      background: "linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #a78bfa 100%)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      backgroundClip: "text",
     },
     subtitle: {
-      margin: "8px 0 0 0",
-      opacity: 0.7,
-      fontSize: 14,
+      margin: "10px 0 0 0",
+      opacity: 0.8,
+      fontSize: 15,
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
     },
     grid: {
       display: "grid",
@@ -110,12 +210,13 @@ export default function GalleryPage() {
       gap: 16,
     },
     postCard: {
-      background: "#101a33",
-      border: "1px solid rgba(255,255,255,0.08)",
-      borderRadius: 12,
-      padding: 16,
+      background: "linear-gradient(135deg, #15233d 0%, #101a33 100%)",
+      border: "1px solid rgba(255,255,255,0.1)",
+      borderRadius: 16,
+      padding: 18,
       cursor: "pointer",
       transition: "all 0.15s ease",
+      boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
     },
     postHeader: {
       display: "flex",
@@ -301,16 +402,62 @@ export default function GalleryPage() {
           </div>
           <div style={{ textAlign: "right" }}>
             <h1 style={styles.title}>Gallery</h1>
-            <p style={styles.subtitle}>{posts.length} saved posts</p>
+            <p style={styles.subtitle}>
+              <span style={{ fontSize: 16 }}>🖼️</span>
+              {posts.length} saved posts
+              {filterProfileName && (
+                <span style={{ marginLeft: 8, color: "#f472b6" }}>
+                  for {filterProfileName}
+                </span>
+              )}
+            </p>
           </div>
         </div>
+
+        {/* Filter indicator */}
+        {filterProfileId && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              background: "rgba(236, 72, 153, 0.1)",
+              border: "1px solid rgba(236, 72, 153, 0.2)",
+              borderRadius: 10,
+              padding: "10px 16px",
+              marginBottom: 20,
+            }}
+          >
+            <span style={{ fontSize: 13, color: "#f472b6" }}>
+              Showing posts for <strong>{filterProfileName}</strong>
+            </span>
+            <button
+              onClick={() => router.push("/gallery")}
+              style={{
+                background: "rgba(255,255,255,0.1)",
+                border: "none",
+                borderRadius: 6,
+                padding: "6px 12px",
+                color: "#e6edf7",
+                cursor: "pointer",
+                fontSize: 12,
+                fontWeight: 600,
+              }}
+              className="hover-btn"
+            >
+              Show All Posts
+            </button>
+          </div>
+        )}
 
         {/* Posts Grid */}
         {posts.length === 0 ? (
           <div style={styles.emptyState}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🖼️</div>
             <div style={styles.emptyText}>
-              No posts saved yet. Generate your first post and it will appear here!
+              {filterProfileId
+                ? `No posts saved for this profile yet. Generate your first post!`
+                : `No posts saved yet. Generate your first post and it will appear here!`}
             </div>
             <button
               style={{ ...styles.btn, ...styles.btnPrimary }}
@@ -329,6 +476,64 @@ export default function GalleryPage() {
                 className="hover-card"
                 onClick={() => setSelectedPost(post)}
               >
+                {/* Image Thumbnail */}
+                {postImages[post.id] ? (
+                  <div
+                    style={{
+                      width: "100%",
+                      aspectRatio: "1",
+                      borderRadius: 10,
+                      overflow: "hidden",
+                      marginBottom: 12,
+                      background: "#0b1220",
+                    }}
+                  >
+                    <img
+                      src={postImages[post.id]}
+                      alt="Post"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  </div>
+                ) : post.hasImage && loadingImages ? (
+                  <div
+                    style={{
+                      width: "100%",
+                      aspectRatio: "1",
+                      borderRadius: 10,
+                      marginBottom: 12,
+                      background: "rgba(255,255,255,0.05)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "rgba(255,255,255,0.3)",
+                      fontSize: 12,
+                    }}
+                  >
+                    Loading...
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      width: "100%",
+                      aspectRatio: "1",
+                      borderRadius: 10,
+                      marginBottom: 12,
+                      background: "linear-gradient(135deg, rgba(44, 107, 237, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 32,
+                      opacity: 0.5,
+                    }}
+                  >
+                    🖼️
+                  </div>
+                )}
+
                 <div style={styles.postHeader}>
                   <div style={styles.postDate}>{formatDate(post.createdAt)}</div>
                   <div style={styles.postType}>{post.postType}</div>
@@ -364,6 +569,46 @@ export default function GalleryPage() {
                 ×
               </button>
             </div>
+
+            {/* Image */}
+            {selectedImage && (
+              <div style={styles.detailSection}>
+                <div style={styles.detailLabel}>Generated Image</div>
+                <div
+                  style={{
+                    borderRadius: 12,
+                    overflow: "hidden",
+                    background: "#0b1220",
+                    marginBottom: 8,
+                  }}
+                >
+                  <img
+                    src={selectedImage}
+                    alt="Generated post"
+                    style={{
+                      width: "100%",
+                      height: "auto",
+                      display: "block",
+                    }}
+                  />
+                </div>
+                <button
+                  style={{
+                    ...styles.copyBtn,
+                    background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                    border: "none",
+                    color: "#fff",
+                  }}
+                  onClick={handleDownloadImage}
+                  className="hover-btn"
+                >
+                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download Image
+                </button>
+              </div>
+            )}
 
             {/* Caption */}
             <div style={styles.detailSection}>

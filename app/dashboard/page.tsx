@@ -49,6 +49,7 @@ export default function DashboardPage() {
   const [newProfileSecondaryColor, setNewProfileSecondaryColor] =
     useState("#ffffff");
   const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
   // Load profiles and posts from localStorage
   useEffect(() => {
@@ -151,6 +152,10 @@ export default function DashboardPage() {
     }
 
     setProfiles([...profiles, newProfile]);
+
+    // Auto-activate the newly created profile
+    handleActivateProfile(newProfile);
+
     // Reset form fields
     setNewProfileName("");
     setNewProfileNiche("");
@@ -489,39 +494,315 @@ export default function DashboardPage() {
       gap: 12,
       justifyContent: "flex-end",
     },
+    // Compact profile bar styles
+    profileBar: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      background: "linear-gradient(135deg, #15233d 0%, #101a33 100%)",
+      border: "1px solid rgba(34, 197, 94, 0.3)",
+      borderRadius: 12,
+      padding: "12px 16px",
+      marginBottom: 24,
+    },
+    profileBarLeft: {
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+    },
+    profileBarIndicator: {
+      width: 10,
+      height: 10,
+      borderRadius: "50%",
+      background: "#22c55e",
+      boxShadow: "0 0 8px rgba(34, 197, 94, 0.5)",
+    },
+    profileBarName: {
+      fontSize: 14,
+      fontWeight: 700,
+      color: "#e6edf7",
+    },
+    profileBarMeta: {
+      fontSize: 12,
+      opacity: 0.6,
+      marginLeft: 8,
+    },
+    profileBarDropdown: {
+      position: "relative" as const,
+    },
+    profileBarButton: {
+      background: "rgba(255,255,255,0.08)",
+      border: "1px solid rgba(255,255,255,0.15)",
+      borderRadius: 8,
+      padding: "8px 12px",
+      color: "#e6edf7",
+      cursor: "pointer",
+      fontSize: 13,
+      fontWeight: 600,
+      display: "flex",
+      alignItems: "center",
+      gap: 6,
+      transition: "all 0.15s ease",
+    },
+    dropdownMenu: {
+      position: "absolute" as const,
+      top: "100%",
+      right: 0,
+      marginTop: 8,
+      background: "#101a33",
+      border: "1px solid rgba(255,255,255,0.15)",
+      borderRadius: 10,
+      padding: 8,
+      minWidth: 220,
+      zIndex: 100,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+    },
+    dropdownItem: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      padding: "10px 12px",
+      borderRadius: 6,
+      cursor: "pointer",
+      fontSize: 13,
+      color: "#e6edf7",
+      transition: "background 0.15s ease",
+    },
+    dropdownDivider: {
+      height: 1,
+      background: "rgba(255,255,255,0.1)",
+      margin: "8px 0",
+    },
   };
+
+  // Get active profile data
+  const activeProfile = profiles.find(p => p.id === activeProfileId);
 
   return (
     <div style={styles.page}>
       <div style={styles.container}>
-        {/* Header */}
-        <div style={styles.header}>
-          <h1 style={styles.title}>AI Tech Helper</h1>
-          <p style={styles.subtitle}>What would you like to do today?</p>
+        {/* Header - Enhanced */}
+        <div style={{ marginBottom: 32, textAlign: "center" as const }}>
+          <h1
+            style={{
+              fontSize: 36,
+              fontWeight: 800,
+              letterSpacing: 1,
+              margin: 0,
+              background: "linear-gradient(135deg, #e6edf7 0%, #7eb3ff 50%, #a78bfa 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            AI TECH HELPER
+          </h1>
+          <p
+            style={{
+              margin: "12px 0 0 0",
+              fontSize: 17,
+              opacity: 0.8,
+              fontWeight: 500,
+            }}
+          >
+            What would you like to do today?
+          </p>
         </div>
 
-        {/* Brand Profiles - Primary Section */}
-        <div style={styles.heroSection} className="primary-section">
-          <div style={styles.sectionHeader}>
-            <div>
-              <h2 style={styles.sectionTitle}>
-                Your Brand Profiles
-                <span style={styles.stepPill}>Step 1</span>
-              </h2>
-              <p style={styles.instructionText}>
-                Start here — create a profile so every post matches your brand.
-              </p>
+        {/* Show compact profile bar when profiles exist */}
+        {profiles.length > 0 && activeProfile && (
+          <div
+            style={{
+              background: "linear-gradient(135deg, #15233d 0%, #1a1a2e 100%)",
+              border: "1px solid rgba(34, 197, 94, 0.3)",
+              borderRadius: 16,
+              padding: "16px 20px",
+              marginBottom: 28,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.3), 0 0 30px rgba(34, 197, 94, 0.08)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 16, fontWeight: 700 }}>{activeProfile.name}</span>
+                  <span
+                    style={{
+                      background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                      padding: "3px 10px",
+                      borderRadius: 20,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: "#fff",
+                      textTransform: "uppercase" as const,
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    Active
+                  </span>
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>
+                  {activeProfile.niche || "No niche"} • {activeProfile.tone} • {activeProfile.audience || "No audience"}
+                </div>
+              </div>
+              {/* View Posts Button */}
+              <button
+                onClick={() => router.push(`/gallery?profileId=${activeProfile.id}`)}
+                style={{
+                  background: "linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%)",
+                  border: "1px solid rgba(236, 72, 153, 0.3)",
+                  borderRadius: 8,
+                  padding: "8px 14px",
+                  color: "#f472b6",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  transition: "all 0.15s ease",
+                }}
+                className="hover-btn"
+              >
+                <span>🖼️</span>
+                View Posts
+              </button>
             </div>
-            <button
-              style={styles.primaryCta}
-              onClick={() => setShowNewProfile(true)}
-              className="hover-btn-primary"
-            >
-              + New Profile
-            </button>
+            <div style={styles.profileBarDropdown}>
+              <button
+                style={{
+                  background: "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  borderRadius: 10,
+                  padding: "10px 16px",
+                  color: "#e6edf7",
+                  cursor: "pointer",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  transition: "all 0.15s ease",
+                }}
+                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                className="hover-btn"
+              >
+                <span>Switch Profile</span>
+                <span style={{ fontSize: 10, opacity: 0.7 }}>{showProfileDropdown ? "▲" : "▼"}</span>
+              </button>
+              {showProfileDropdown && (
+                <div style={styles.dropdownMenu}>
+                  {profiles.map((profile) => (
+                    <div
+                      key={profile.id}
+                      style={{
+                        ...styles.dropdownItem,
+                        background:
+                          profile.id === activeProfileId
+                            ? "rgba(34, 197, 94, 0.15)"
+                            : "transparent",
+                        justifyContent: "flex-start",
+                      }}
+                      onClick={() => {
+                        handleActivateProfile(profile);
+                        setShowProfileDropdown(false);
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background =
+                          profile.id === activeProfileId
+                            ? "rgba(34, 197, 94, 0.2)"
+                            : "rgba(255,255,255,0.05)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background =
+                          profile.id === activeProfileId
+                            ? "rgba(34, 197, 94, 0.15)"
+                            : "transparent")
+                      }
+                    >
+                      <div
+                        style={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: "50%",
+                          background: profile.primaryColor,
+                          border: "1px solid rgba(255,255,255,0.2)",
+                          flexShrink: 0,
+                        }}
+                      />
+                      <span style={{ flex: 1 }}>{profile.name}</span>
+                      {profile.id === activeProfileId && (
+                        <span style={{ color: "#22c55e", fontSize: 12 }}>✓</span>
+                      )}
+                    </div>
+                  ))}
+                  <div style={styles.dropdownDivider} />
+                  <div
+                    style={{
+                      ...styles.dropdownItem,
+                      color: "#7eb3ff",
+                    }}
+                    onClick={() => {
+                      setShowNewProfile(true);
+                      setShowProfileDropdown(false);
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background = "rgba(255,255,255,0.05)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background = "transparent")
+                    }
+                  >
+                    <span style={{ fontSize: 16 }}>+</span>
+                    <span>Add New Profile</span>
+                  </div>
+                  <div style={styles.dropdownDivider} />
+                  {profiles.map((profile) => (
+                    <div
+                      key={`delete-${profile.id}`}
+                      style={{
+                        ...styles.dropdownItem,
+                        color: "#ef4444",
+                        fontSize: 12,
+                      }}
+                      onClick={() => {
+                        handleDeleteProfile(profile.id);
+                        setShowProfileDropdown(false);
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background = "transparent")
+                      }
+                    >
+                      <span style={{ fontSize: 12 }}>🗑</span>
+                      <span>Delete {profile.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
+        )}
 
-          {profiles.length === 0 ? (
+        {/* Show hero section only when no profiles exist */}
+        {profiles.length === 0 && (
+          <div style={styles.heroSection} className="primary-section">
+            <div style={styles.sectionHeader}>
+              <div>
+                <h2 style={styles.sectionTitle}>
+                  Your Brand Profiles
+                  <span style={styles.stepPill}>Step 1</span>
+                </h2>
+                <p style={styles.instructionText}>
+                  Start here — create a profile so every post matches your brand.
+                </p>
+              </div>
+            </div>
+
             <div style={styles.emptyState}>
               {/* Centered Content Container */}
               <div
@@ -669,109 +950,342 @@ export default function DashboardPage() {
                 </button>
               </div>
             </div>
-          ) : (
-            profiles.map((profile) => {
-              const isActive = activeProfileId === profile.id;
-              return (
-                <div
-                  key={profile.id}
-                  style={{
-                    ...styles.profileCard,
-                    border: isActive ? "1px solid #22c55e" : styles.profileCard.border,
-                  }}
-                  className="hover-card"
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    {/* Active indicator circle */}
-                    <div
-                      onClick={() => handleActivateProfile(profile)}
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: "50%",
-                        background: isActive ? "#22c55e" : "rgba(255,255,255,0.1)",
-                        border: isActive ? "2px solid #22c55e" : "2px solid rgba(255,255,255,0.3)",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        transition: "all 0.15s ease",
-                        flexShrink: 0,
-                      }}
-                      title={isActive ? "Active profile" : "Click to activate"}
-                    >
-                      {isActive && (
-                        <span style={{ color: "#fff", fontSize: 14 }}>✓</span>
-                      )}
-                    </div>
-                    <div style={styles.profileInfo}>
-                      <div style={styles.profileName}>
-                        <span
-                          style={{
-                            width: 12,
-                            height: 12,
-                            borderRadius: "50%",
-                            background: profile.primaryColor,
-                            border: "1px solid rgba(255,255,255,0.2)",
-                          }}
-                        />
-                        {profile.name}
-                        {isActive && (
-                          <span style={{ fontSize: 10, color: "#22c55e", marginLeft: 8 }}>
-                            ACTIVE
-                          </span>
-                        )}
-                      </div>
-                      <div style={styles.profileMeta}>
-                        {profile.niche || "No niche"} •{" "}
-                        {profile.audience || "No audience"} • {profile.tone}
-                      </div>
-                    </div>
-                  </div>
-                  <div style={styles.profileActions}>
-                    <button
-                      style={{ ...styles.btn, ...styles.btnDanger }}
-                      onClick={() => handleDeleteProfile(profile.id)}
-                      className="hover-btn"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Main Actions */}
-        <div style={styles.section}>
-          <div style={styles.actionGrid} className="ath-actionGrid">
-            <div
-              style={styles.actionCard}
-              className="primary-action-card hover-card"
-              onClick={() => router.push("/generate")}
-            >
-              <div style={styles.actionIcon}>⚡</div>
-              <div style={styles.actionTitle}>Generate a Post</div>
-              <div style={styles.actionDesc}>
-                Create a single post with AI-generated image and caption
+        {/* How It Works Section - Enhanced */}
+        <div style={{ ...styles.section, marginBottom: 28 }}>
+          <div
+            style={{
+              background: "linear-gradient(135deg, #15233d 0%, #1a1a2e 100%)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 20,
+              padding: "28px 32px",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+            }}
+          >
+            {/* Section Header */}
+            <div style={{ textAlign: "center" as const, marginBottom: 28 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#7eb3ff", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: 2 }}>
+                Simple 4-Step Process
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 700 }}>
+                How It Works
               </div>
             </div>
+
             <div
-              style={styles.actionCard}
-              className="primary-action-card hover-card"
-              onClick={() => router.push("/calendar")}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                gap: 16,
+              }}
+              className="how-it-works-grid"
             >
-              <div style={styles.actionIcon}>📅</div>
-              <div style={styles.actionTitle}>Plan Your Month</div>
-              <div style={styles.actionDesc}>
-                Schedule 30 days of content with smart suggestions
+              {/* Step 1 */}
+              <div
+                style={{
+                  background: "rgba(44, 107, 237, 0.08)",
+                  border: "1px solid rgba(44, 107, 237, 0.2)",
+                  borderRadius: 16,
+                  padding: "20px 16px",
+                  textAlign: "center" as const,
+                  position: "relative" as const,
+                }}
+              >
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 12,
+                    background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 14px",
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: "#fff",
+                    boxShadow: "0 4px 12px rgba(44, 107, 237, 0.4)",
+                  }}
+                >
+                  1
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6, color: "#e6edf7" }}>Create Profile</div>
+                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>Save your brand colors, tone & audience once</div>
+              </div>
+
+              {/* Step 2 */}
+              <div
+                style={{
+                  background: "rgba(124, 58, 237, 0.08)",
+                  border: "1px solid rgba(124, 58, 237, 0.2)",
+                  borderRadius: 16,
+                  padding: "20px 16px",
+                  textAlign: "center" as const,
+                }}
+              >
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 12,
+                    background: "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 14px",
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: "#fff",
+                    boxShadow: "0 4px 12px rgba(124, 58, 237, 0.4)",
+                  }}
+                >
+                  2
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6, color: "#e6edf7" }}>Choose Post Type</div>
+                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>Quick tip, promo, testimonial, behind-the-scenes</div>
+              </div>
+
+              {/* Step 3 */}
+              <div
+                style={{
+                  background: "rgba(236, 72, 153, 0.08)",
+                  border: "1px solid rgba(236, 72, 153, 0.2)",
+                  borderRadius: 16,
+                  padding: "20px 16px",
+                  textAlign: "center" as const,
+                }}
+              >
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 12,
+                    background: "linear-gradient(135deg, #ec4899 0%, #be185d 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 14px",
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: "#fff",
+                    boxShadow: "0 4px 12px rgba(236, 72, 153, 0.4)",
+                  }}
+                >
+                  3
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6, color: "#e6edf7" }}>AI Generates</div>
+                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>Custom image + caption + hashtags instantly</div>
+              </div>
+
+              {/* Step 4 */}
+              <div
+                style={{
+                  background: "rgba(34, 197, 94, 0.08)",
+                  border: "1px solid rgba(34, 197, 94, 0.2)",
+                  borderRadius: 16,
+                  padding: "20px 16px",
+                  textAlign: "center" as const,
+                }}
+              >
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 12,
+                    background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 14px",
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: "#fff",
+                    boxShadow: "0 4px 12px rgba(34, 197, 94, 0.4)",
+                  }}
+                >
+                  ✓
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6, color: "#e6edf7" }}>Post & Save</div>
+                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>Download image & copy caption to post</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* TODO: View Gallery and Recent Posts sections removed - restore later */}
+        {/* Main Actions - Enhanced Cards */}
+        <div style={styles.section}>
+          <div style={styles.actionGrid} className="ath-actionGrid">
+            {/* Generate a Post Card */}
+            <div
+              style={{
+                ...styles.actionCard,
+                padding: 0,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column" as const,
+              }}
+              className="primary-action-card hover-card"
+              onClick={() => router.push("/generate")}
+            >
+              {/* Card Header with gradient */}
+              <div
+                style={{
+                  background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
+                  padding: "24px 24px 20px",
+                  textAlign: "center" as const,
+                }}
+              >
+                <div style={{ fontSize: 48, marginBottom: 8 }}>⚡</div>
+                <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
+                  Generate a Post
+                </div>
+                <div style={{ fontSize: 13, opacity: 0.85 }}>
+                  Quick single post creation
+                </div>
+              </div>
+
+              {/* Card Body */}
+              <div
+                style={{
+                  padding: "20px 24px 24px",
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column" as const,
+                }}
+              >
+                {/* What you get */}
+                <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.5, marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: 1 }}>
+                  What you get
+                </div>
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, marginBottom: 20 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 16 }}>🖼️</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>AI-generated custom image</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 16 }}>✍️</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>Engaging caption for your brand</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 16 }}>#️⃣</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>Optimized hashtags</span>
+                  </div>
+                </div>
+
+                {/* Best for */}
+                <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.5, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: 1 }}>
+                  Best for
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.7, lineHeight: 1.5, marginBottom: 20 }}>
+                  Quick posts, one-off content, testing ideas, or when you need a single post right now.
+                </div>
+
+                {/* CTA Button */}
+                <div
+                  style={{
+                    marginTop: "auto",
+                    background: "#2c6bed",
+                    borderRadius: 10,
+                    padding: "14px 20px",
+                    textAlign: "center" as const,
+                    fontWeight: 700,
+                    fontSize: 14,
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  Create a Post →
+                </div>
+              </div>
+            </div>
+
+            {/* Plan Your Month Card */}
+            <div
+              style={{
+                ...styles.actionCard,
+                padding: 0,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column" as const,
+              }}
+              className="primary-action-card hover-card"
+              onClick={() => router.push("/calendar")}
+            >
+              {/* Card Header with gradient */}
+              <div
+                style={{
+                  background: "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
+                  padding: "24px 24px 20px",
+                  textAlign: "center" as const,
+                }}
+              >
+                <div style={{ fontSize: 48, marginBottom: 8 }}>📅</div>
+                <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
+                  Plan Your Month
+                </div>
+                <div style={{ fontSize: 13, opacity: 0.85 }}>
+                  Strategic content calendar
+                </div>
+              </div>
+
+              {/* Card Body */}
+              <div
+                style={{
+                  padding: "20px 24px 24px",
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column" as const,
+                }}
+              >
+                {/* What you get */}
+                <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.5, marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: 1 }}>
+                  What you get
+                </div>
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, marginBottom: 20 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 16 }}>🗓️</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>30-day visual content calendar</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 16 }}>💡</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>Smart post type suggestions</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 16 }}>🎯</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>Click any day to generate content</span>
+                  </div>
+                </div>
+
+                {/* Best for */}
+                <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.5, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: 1 }}>
+                  Best for
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.7, lineHeight: 1.5, marginBottom: 20 }}>
+                  Consistent posting, content strategy, batching your content creation, and staying organized.
+                </div>
+
+                {/* CTA Button */}
+                <div
+                  style={{
+                    marginTop: "auto",
+                    background: "#7c3aed",
+                    borderRadius: 10,
+                    padding: "14px 20px",
+                    textAlign: "center" as const,
+                    fontWeight: 700,
+                    fontSize: 14,
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  Open Calendar →
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
       </div>
 
       {/* New Profile Modal */}
@@ -1057,6 +1571,7 @@ export default function DashboardPage() {
           .ath-recentPostsGrid { grid-template-columns: repeat(2, 1fr) !important; }
           .primary-section { margin-bottom: 60px; }
           .profile-benefits-grid { grid-template-columns: 1fr !important; }
+          .how-it-works-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 16px !important; }
         }
         @media (max-width: 700px) {
           .profile-form-grid { grid-template-columns: 1fr !important; }
@@ -1072,6 +1587,7 @@ export default function DashboardPage() {
         }
         @media (max-width: 480px) {
           .ath-recentPostsGrid { grid-template-columns: 1fr !important; }
+          .how-it-works-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </div>

@@ -542,27 +542,33 @@ export default function CalendarPage() {
       marginBottom: 24,
     },
     h1: {
-      fontSize: 32,
-      fontWeight: 700,
+      fontSize: 34,
+      fontWeight: 800,
       letterSpacing: 1,
       margin: 0,
-      textTransform: "uppercase",
+      background: "linear-gradient(135deg, #7c3aed 0%, #a78bfa 50%, #c4b5fd 100%)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      backgroundClip: "text",
     },
     subtitle: {
-      margin: "8px 0 0 0",
-      opacity: 0.7,
-      fontSize: 14,
+      margin: "10px 0 0 0",
+      opacity: 0.8,
+      fontSize: 15,
       lineHeight: 1.5,
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
     },
     backBtn: {
       display: "flex",
       alignItems: "center",
       gap: 8,
-      background: "rgba(255,255,255,0.08)",
-      border: "1px solid rgba(255,255,255,0.12)",
+      background: "linear-gradient(135deg, rgba(124, 58, 237, 0.2) 0%, rgba(124, 58, 237, 0.1) 100%)",
+      border: "1px solid rgba(124, 58, 237, 0.3)",
       borderRadius: 10,
-      padding: "10px 16px",
-      color: "#e6edf7",
+      padding: "10px 18px",
+      color: "#a78bfa",
       cursor: "pointer",
       fontSize: 13,
       fontWeight: 600,
@@ -570,11 +576,11 @@ export default function CalendarPage() {
       transition: "all 0.15s ease",
     },
     card: {
-      background: "#101a33",
-      border: "1px solid rgba(255,255,255,0.08)",
-      borderRadius: 16,
-      padding: 20,
-      boxShadow: "0 8px 24px rgba(0,0,0,0.28)",
+      background: "linear-gradient(135deg, #15233d 0%, #101a33 100%)",
+      border: "1px solid rgba(255,255,255,0.1)",
+      borderRadius: 20,
+      padding: 24,
+      boxShadow: "0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.05)",
     },
     holidayAlert: {
       background:
@@ -609,17 +615,21 @@ export default function CalendarPage() {
       marginBottom: 20,
     },
     monthLabel: {
-      fontSize: 20,
-      fontWeight: 700,
+      fontSize: 22,
+      fontWeight: 800,
       textTransform: "uppercase",
       letterSpacing: 1,
+      background: "linear-gradient(135deg, #e6edf7 0%, #a78bfa 100%)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      backgroundClip: "text",
     },
-    navBtns: { display: "flex", gap: 8 },
+    navBtns: { display: "flex", gap: 10 },
     navBtn: {
-      background: "rgba(255,255,255,0.08)",
+      background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%)",
       border: "1px solid rgba(255,255,255,0.12)",
-      borderRadius: 8,
-      padding: "8px 16px",
+      borderRadius: 10,
+      padding: "10px 18px",
       color: "#e6edf7",
       cursor: "pointer",
       fontSize: 13,
@@ -673,15 +683,17 @@ export default function CalendarPage() {
       color: "#7eb3ff",
     },
     dayToday: {
-      background: "#2c6bed",
+      background: "linear-gradient(135deg, #7c3aed 0%, #2c6bed 100%)",
       color: "#fff",
-      width: 24,
-      height: 24,
+      width: 26,
+      height: 26,
       borderRadius: "50%",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
       fontSize: 12,
+      fontWeight: 700,
+      boxShadow: "0 2px 10px rgba(124, 58, 237, 0.4)",
     },
     holidayLabel: {
       fontSize: 9,
@@ -880,6 +892,7 @@ export default function CalendarPage() {
           <div>
             <h1 style={styles.h1}>Plan Your Month</h1>
             <p style={styles.subtitle}>
+              <span style={{ fontSize: 18 }}>📅</span>
               Click any day to preview and generate that post. Holidays are
               auto-detected!
             </p>
@@ -1025,213 +1038,189 @@ export default function CalendarPage() {
       {/* Preview Modal */}
       {selectedDay && (
         <div style={styles.modalOverlay} onClick={() => setSelectedDay(null)}>
-          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+          <div style={{...styles.modal, maxWidth: 520}} onClick={(e) => e.stopPropagation()}>
+            {/* Colorful Header */}
             <div
               style={{
-                ...styles.modalHeader,
-                ...(selectedDay.isHoliday ? styles.modalHeaderHoliday : {}),
+                padding: "28px 28px 24px",
+                background: selectedDay.isHoliday
+                  ? "linear-gradient(135deg, rgba(255, 99, 132, 0.2) 0%, rgba(255, 159, 64, 0.15) 100%)"
+                  : "linear-gradient(135deg, rgba(124, 58, 237, 0.2) 0%, rgba(44, 107, 237, 0.15) 100%)",
+                borderBottom: "1px solid rgba(255,255,255,0.08)",
+                textAlign: "center" as const,
               }}
             >
-              <div style={styles.modalDate}>
-                {WEEKDAYS[selectedDay.date.getDay()]}, {MONTHS[currentMonth]}{" "}
-                {selectedDay.day}
+              <div style={{ fontSize: 13, opacity: 0.6, marginBottom: 8 }}>
+                {WEEKDAYS[selectedDay.date.getDay()]}, {MONTHS[currentMonth]} {selectedDay.day}
               </div>
-              <h2 style={styles.modalTitle}>
-                {selectedDay.isHoliday
-                  ? selectedDay.holidayName
-                  : selectedDay.postType}
+              <h2 style={{ fontSize: 26, fontWeight: 800, margin: 0, marginBottom: 8 }}>
+                {selectedDay.isHoliday ? `🎉 ${selectedDay.holidayName}` : selectedDay.postType}
               </h2>
-              {selectedDay.isHoliday && (
-                <span style={styles.modalHolidayBadge}>🎉 Holiday Content</span>
+              <p style={{ fontSize: 15, opacity: 0.85, margin: 0, lineHeight: 1.5 }}>
+                {selectedDay.detail}
+              </p>
+            </div>
+
+            {/* Simple Body */}
+            <div style={{ padding: "24px 28px" }}>
+              {/* Post type explanation */}
+              <div style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: 12,
+                padding: 16,
+                marginBottom: 20,
+              }}>
+                <div style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  textTransform: "uppercase" as const,
+                  letterSpacing: 1,
+                  opacity: 0.5,
+                  marginBottom: 8
+                }}>
+                  What this means for your post
+                </div>
+                <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0, opacity: 0.9 }}>
+                  {selectedDay.postType === "Engagement" && (
+                    <>Your post will include a <strong>question or call-to-action</strong> designed to spark conversation. Expect a <strong>casual, inviting tone</strong> that encourages your followers to comment and share their thoughts.</>
+                  )}
+                  {selectedDay.postType === "Educational" && (
+                    <>Your post will share <strong>valuable tips or insights</strong> that teach your audience something new. The content will establish you as a <strong>helpful resource</strong> in your niche.</>
+                  )}
+                  {selectedDay.postType === "Authority" && (
+                    <>Your post will showcase your <strong>expertise and credibility</strong>. Expect content that positions you as a <strong>trusted leader</strong> in your industry.</>
+                  )}
+                  {selectedDay.postType === "Problem → Solution" && (
+                    <>Your post will address a <strong>common pain point</strong> your audience faces and present your <strong>solution or approach</strong>. Great for showing how you can help.</>
+                  )}
+                  {selectedDay.postType === "Before & After" && (
+                    <>Your post will highlight a <strong>transformation or results</strong>. Perfect for showing the <strong>impact of your work</strong> or product in a visual, compelling way.</>
+                  )}
+                  {selectedDay.postType === "Basic Post" && (
+                    <>Your post will be a <strong>well-crafted, on-brand message</strong> that keeps your audience engaged. Simple, effective, and true to your voice.</>
+                  )}
+                  {selectedDay.postType === "Seasonal" && (
+                    <>Your post will tap into the <strong>holiday excitement</strong> with festive, timely content. Perfect for connecting with your audience through <strong>shared celebrations</strong>.</>
+                  )}
+                </p>
+              </div>
+
+              {/* What you'll get section */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  textTransform: "uppercase" as const,
+                  letterSpacing: 1,
+                  opacity: 0.5,
+                  marginBottom: 14
+                }}>
+                  What you'll get
+                </div>
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 10,
+                      background: "linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 18,
+                    }}>🖼️</div>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 14 }}>Custom AI Image</div>
+                      <div style={{ fontSize: 12, opacity: 0.6 }}>Designed to match your brand colors</div>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 10,
+                      background: "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(44, 107, 237, 0.1) 100%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 18,
+                    }}>✍️</div>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 14 }}>Engaging Caption</div>
+                      <div style={{ fontSize: 12, opacity: 0.6 }}>Written in your brand voice</div>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 10,
+                      background: "linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 18,
+                    }}>#️⃣</div>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 14 }}>Relevant Hashtags</div>
+                      <div style={{ fontSize: 12, opacity: 0.6 }}>Optimized for your niche</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Brand profile indicator */}
+              {activeBrandProfile ? (
+                <div style={{
+                  background: "linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%)",
+                  border: "1px solid rgba(16, 185, 129, 0.3)",
+                  borderRadius: 12,
+                  padding: 16,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                }}>
+                  <div style={{ fontSize: 22 }}>✅</div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: "#6ee7b7" }}>
+                      Using "{activeBrandProfile.profileName}" Profile
+                    </div>
+                    <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
+                      Your brand settings will be applied automatically
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: 12,
+                  padding: 16,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                }}>
+                  <div style={{ fontSize: 22 }}>💡</div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>
+                      No Profile Selected
+                    </div>
+                    <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
+                      <a
+                        href="/dashboard"
+                        style={{ color: "#7eb3ff", textDecoration: "none" }}
+                      >
+                        Set up a profile
+                      </a>{" "}
+                      for personalized results
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
 
-            <div style={styles.modalBody} className="calendar-modal-body">
-              {/* Left Column */}
-              <div style={styles.modalLeftColumn}>
-                <div style={styles.modalSection}>
-                  <div style={styles.modalSectionTitle}>What We'll Create</div>
-                  <div style={styles.modalDetail}>{selectedDay.detail}</div>
-                </div>
-
-                <div style={styles.modalSection}>
-                  <div style={styles.modalSectionTitle}>
-                    Generation Settings
-                  </div>
-                  <div style={styles.modalGrid}>
-                    <div style={styles.modalItem}>
-                      <div style={styles.modalItemLabel}>Post Type</div>
-                      <div style={styles.modalItemValue}>
-                        {selectedDay.postType}
-                      </div>
-                    </div>
-                    <div style={styles.modalItem}>
-                      <div style={styles.modalItemLabel}>Image Style</div>
-                      <div style={styles.modalItemValue}>
-                        {selectedDay.imageFormatLabel}
-                      </div>
-                    </div>
-                    <div style={styles.modalItem}>
-                      <div style={styles.modalItemLabel}>Caption</div>
-                      <div style={styles.modalItemValue}>
-                        {selectedDay.captionLength}
-                      </div>
-                    </div>
-                    <div style={styles.modalItem}>
-                      <div style={styles.modalItemLabel}>Hashtags</div>
-                      <div style={styles.modalItemValue}>
-                        {selectedDay.hashtagPack}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column */}
-              <div style={styles.modalRightColumn}>
-                <div style={styles.modalSection}>
-                  <div style={styles.modalSectionTitle}>Brand Profile Used</div>
-                  {activeBrandProfile ? (
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr",
-                        gap: 8,
-                      }}
-                    >
-                      <div style={styles.modalItem}>
-                        <div style={styles.modalItemLabel}>Profile</div>
-                        <div style={styles.modalItemValue}>
-                          {activeBrandProfile.profileName || "—"}
-                        </div>
-                      </div>
-                      <div style={styles.modalItem}>
-                        <div style={styles.modalItemLabel}>Niche</div>
-                        <div style={styles.modalItemValue}>
-                          {activeBrandProfile.niche || "—"}
-                        </div>
-                      </div>
-                      <div style={styles.modalItem}>
-                        <div style={styles.modalItemLabel}>Audience</div>
-                        <div style={styles.modalItemValue}>
-                          {activeBrandProfile.audience || "—"}
-                        </div>
-                      </div>
-                      <div style={styles.modalItem}>
-                        <div style={styles.modalItemLabel}>Tone</div>
-                        <div style={styles.modalItemValue}>
-                          {activeBrandProfile.tone || "—"}
-                        </div>
-                      </div>
-                      <div style={styles.modalItem}>
-                        <div style={styles.modalItemLabel}>Primary Color</div>
-                        <div
-                          style={{
-                            ...styles.modalItemValue,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                          }}
-                        >
-                          {activeBrandProfile.primaryColor ? (
-                            <>
-                              <div
-                                style={{
-                                  width: 16,
-                                  height: 16,
-                                  borderRadius: "50%",
-                                  background: activeBrandProfile.primaryColor,
-                                  border: "1px solid rgba(255,255,255,0.2)",
-                                  flexShrink: 0,
-                                }}
-                              />
-                              {activeBrandProfile.primaryColor}
-                            </>
-                          ) : (
-                            "—"
-                          )}
-                        </div>
-                      </div>
-                      <div style={styles.modalItem}>
-                        <div style={styles.modalItemLabel}>Secondary Color</div>
-                        <div
-                          style={{
-                            ...styles.modalItemValue,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                          }}
-                        >
-                          {activeBrandProfile.secondaryColor ? (
-                            <>
-                              <div
-                                style={{
-                                  width: 16,
-                                  height: 16,
-                                  borderRadius: "50%",
-                                  background: activeBrandProfile.secondaryColor,
-                                  border: "1px solid rgba(255,255,255,0.2)",
-                                  flexShrink: 0,
-                                }}
-                              />
-                              {activeBrandProfile.secondaryColor}
-                            </>
-                          ) : (
-                            "—"
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div
-                      style={{
-                        fontSize: 13,
-                        opacity: 0.7,
-                        padding: "12px 0",
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      No brand profile selected. This post will use your last
-                      manual inputs.{" "}
-                      <a
-                        href="/dashboard"
-                        style={{
-                          color: "#7eb3ff",
-                          textDecoration: "none",
-                          fontWeight: 500,
-                        }}
-                        onMouseOver={(e) =>
-                          ((e.target as HTMLElement).style.textDecoration =
-                            "underline")
-                        }
-                        onMouseOut={(e) =>
-                          ((e.target as HTMLElement).style.textDecoration =
-                            "none")
-                        }
-                      >
-                        Set up profile →
-                      </a>
-                    </div>
-                  )}
-                </div>
-
-                <div
-                  style={{
-                    ...styles.modalItem,
-                    background: "rgba(44, 107, 237, 0.1)",
-                    border: "1px solid rgba(44, 107, 237, 0.2)",
-                    marginTop: "auto",
-                  }}
-                >
-                  <div style={{ fontSize: 12, opacity: 0.8, lineHeight: 1.5 }}>
-                    ✨ This will generate an <strong>AI image</strong>,{" "}
-                    <strong>caption</strong>, and <strong>hashtags</strong>{" "}
-                    based on your saved brand settings.
-                  </div>
-                </div>
-              </div>
-            </div>
-
+            {/* Footer */}
             <div style={styles.modalFooter}>
               <button
                 style={{ ...styles.modalBtn, ...styles.modalBtnCancel }}
@@ -1251,7 +1240,7 @@ export default function CalendarPage() {
                 onClick={handleGenerate}
                 className="hover-btn-primary"
               >
-                Generate Post →
+                ✨ Create My Post
               </button>
             </div>
           </div>
