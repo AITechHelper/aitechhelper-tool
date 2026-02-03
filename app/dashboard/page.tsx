@@ -1556,7 +1556,7 @@ export default function DashboardPage() {
               <span style={{ fontWeight: 700, fontSize: 16, color: "#e6edf7" }}>Recent Posts</span>
             </div>
             <div
-              onClick={() => router.push(`/gallery?profileId=${activeProfile?.id}`)}
+              onClick={() => router.push(activeProfile?.id ? `/gallery?profileId=${activeProfile.id}` : '/gallery')}
               style={{
                 background: "rgba(124, 58, 237, 0.2)",
                 border: "1px solid rgba(124, 58, 237, 0.4)",
@@ -1585,7 +1585,7 @@ export default function DashboardPage() {
               {recentPosts.map((post) => (
                 <div
                   key={post.id}
-                  onClick={() => router.push(`/gallery?profileId=${activeProfile?.id}`)}
+                  onClick={() => router.push(activeProfile?.id ? `/gallery?profileId=${activeProfile.id}` : '/gallery')}
                   style={{
                     background: "#0b1220",
                     borderRadius: 12,
