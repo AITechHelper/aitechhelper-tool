@@ -52,6 +52,7 @@ export default function DashboardPage() {
   const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [postImages, setPostImages] = useState<Record<string, string>>({});
+  const [hasLoadedProfiles, setHasLoadedProfiles] = useState(false);
 
   // Load profiles and posts from localStorage
   useEffect(() => {
@@ -99,14 +100,17 @@ export default function DashboardPage() {
         });
       }
     } catch {}
+
+    setHasLoadedProfiles(true);
   }, []);
 
-  // Save profiles to localStorage
+  // Save profiles to localStorage (only after initial load)
   useEffect(() => {
+    if (!hasLoadedProfiles) return;
     try {
       localStorage.setItem("ath_profiles", JSON.stringify(profiles));
     } catch {}
-  }, [profiles]);
+  }, [profiles, hasLoadedProfiles]);
 
   const handleActivateProfile = (profile: BrandProfile) => {
     // Save active brand profile
