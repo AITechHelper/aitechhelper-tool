@@ -668,6 +668,7 @@ export default function DashboardPage() {
         {/* Show compact profile bar when profiles exist */}
         {profiles.length > 0 && activeProfile && (
           <div
+            className="profile-bar"
             style={{
               background: "linear-gradient(135deg, #15233d 0%, #1a1a2e 100%)",
               border: "1px solid rgba(34, 197, 94, 0.3)",
@@ -681,7 +682,7 @@ export default function DashboardPage() {
                 "0 4px 20px rgba(0,0,0,0.3), 0 0 30px rgba(34, 197, 94, 0.08)",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <div className="profile-bar-left" style={{ display: "flex", alignItems: "center", gap: 16 }}>
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: 16, fontWeight: 700 }}>
@@ -728,13 +729,13 @@ export default function DashboardPage() {
                   gap: 6,
                   transition: "all 0.15s ease",
                 }}
-                className="hover-btn"
+                className="hover-btn view-posts-btn"
               >
                 <span>🖼️</span>
                 View Posts
               </button>
             </div>
-            <div style={styles.profileBarDropdown}>
+            <div className="profile-bar-right" style={styles.profileBarDropdown}>
               <button
                 style={{
                   background:
@@ -1974,18 +1975,22 @@ export default function DashboardPage() {
           .primary-section { margin-bottom: 60px; }
           .profile-benefits-grid { grid-template-columns: 1fr !important; }
           .how-it-works-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 16px !important; }
+          .profile-bar { flex-wrap: wrap !important; gap: 12px !important; }
+          .profile-bar-left { flex-wrap: wrap !important; gap: 10px !important; }
+          .profile-bar-right { width: 100% !important; justify-content: flex-end !important; }
         }
         @media (max-width: 700px) {
           .profile-form-grid { grid-template-columns: 1fr !important; }
           .profile-colors-grid { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 560px) {
-          .profile-benefits-pill-grid { 
-            grid-template-columns: 1fr !important; 
+          .profile-benefits-pill-grid {
+            grid-template-columns: 1fr !important;
           }
           .profile-benefits-pill-grid > div {
             white-space: normal !important;
           }
+          .view-posts-btn { display: none !important; }
         }
         @media (max-width: 480px) {
           .ath-recentPostsGrid { grid-template-columns: 1fr !important; }

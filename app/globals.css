@@ -24,4 +24,14 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
   padding-top: 70px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix for mobile scroll getting stuck */
+html, body {
+  overflow-x: hidden;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
 }
