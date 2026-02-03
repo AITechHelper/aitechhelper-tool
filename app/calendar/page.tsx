@@ -549,7 +549,8 @@ export default function CalendarPage() {
       fontWeight: 800,
       letterSpacing: 1,
       margin: 0,
-      background: "linear-gradient(135deg, #7c3aed 0%, #a78bfa 50%, #c4b5fd 100%)",
+      background:
+        "linear-gradient(135deg, #7c3aed 0%, #a78bfa 50%, #c4b5fd 100%)",
       WebkitBackgroundClip: "text",
       WebkitTextFillColor: "transparent",
       backgroundClip: "text",
@@ -567,7 +568,8 @@ export default function CalendarPage() {
       display: "flex",
       alignItems: "center",
       gap: 8,
-      background: "linear-gradient(135deg, rgba(124, 58, 237, 0.2) 0%, rgba(124, 58, 237, 0.1) 100%)",
+      background:
+        "linear-gradient(135deg, rgba(124, 58, 237, 0.2) 0%, rgba(124, 58, 237, 0.1) 100%)",
       border: "1px solid rgba(124, 58, 237, 0.3)",
       borderRadius: 10,
       padding: "10px 18px",
@@ -583,7 +585,8 @@ export default function CalendarPage() {
       border: "1px solid rgba(255,255,255,0.1)",
       borderRadius: 20,
       padding: 24,
-      boxShadow: "0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.05)",
+      boxShadow:
+        "0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.05)",
     },
     holidayAlert: {
       background:
@@ -629,7 +632,8 @@ export default function CalendarPage() {
     },
     navBtns: { display: "flex", gap: 10 },
     navBtn: {
-      background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%)",
+      background:
+        "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%)",
       border: "1px solid rgba(255,255,255,0.12)",
       borderRadius: 10,
       padding: "10px 18px",
@@ -742,6 +746,87 @@ export default function CalendarPage() {
       display: "grid",
       gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
       gap: 10,
+    },
+    // Mobile list styles
+    mobileListContainer: {
+      display: "none", // Hidden by default, shown on mobile via CSS
+    },
+    mobileListItem: {
+      background:
+        "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)",
+      border: "1px solid rgba(255,255,255,0.08)",
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 12,
+      cursor: "pointer",
+      transition: "all 0.2s ease",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    mobileListItemHoliday: {
+      background:
+        "linear-gradient(135deg, rgba(255, 165, 0, 0.15) 0%, rgba(255, 165, 0, 0.05) 100%)",
+      border: "1px solid rgba(255, 165, 0, 0.3)",
+    },
+    mobileListLeft: {
+      flex: 1,
+    },
+    mobileListDate: {
+      fontSize: 16,
+      fontWeight: 600,
+      marginBottom: 4,
+      color: "#e6edf7",
+    },
+    mobileListDateToday: {
+      fontSize: 16,
+      fontWeight: 600,
+      marginBottom: 4,
+      color: "#22c55e",
+    },
+    mobileListPostType: {
+      fontSize: 14,
+      fontWeight: 500,
+      marginBottom: 2,
+      color: "#7eb3ff",
+    },
+    mobileListDetail: {
+      fontSize: 12,
+      opacity: 0.7,
+      color: "#e6edf7",
+    },
+    mobileListRight: {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "flex-end",
+      gap: 6,
+    },
+    mobileListBadge: {
+      background: "rgba(126, 179, 255, 0.2)",
+      border: "1px solid rgba(126, 179, 255, 0.3)",
+      borderRadius: 6,
+      padding: "2px 6px",
+      fontSize: 10,
+      fontWeight: 600,
+      color: "#7eb3ff",
+      display: "flex",
+      alignItems: "center",
+      gap: 3,
+    },
+    mobileListBadgeHoliday: {
+      background: "rgba(255, 165, 0, 0.2)",
+      border: "1px solid rgba(255, 165, 0, 0.4)",
+      color: "#ffa500",
+    },
+    mobileSeasonalTag: {
+      background: "rgba(255, 165, 0, 0.2)",
+      border: "1px solid rgba(255, 165, 0, 0.4)",
+      borderRadius: 4,
+      padding: "1px 4px",
+      fontSize: 9,
+      fontWeight: 600,
+      color: "#ffa500",
+      textTransform: "uppercase" as const,
     },
     legendItem: {
       display: "flex",
@@ -893,7 +978,9 @@ export default function CalendarPage() {
         {/* Header */}
         <div style={styles.header}>
           <div>
-            <h1 style={styles.h1} className="ath-page-title">Plan Your Month</h1>
+            <h1 style={styles.h1} className="ath-page-title">
+              Plan Your Month
+            </h1>
             <p style={styles.subtitle} className="ath-page-subtitle">
               <span style={{ fontSize: 18 }}>📅</span>
               Click any day to preview and generate that post. Holidays are
@@ -945,13 +1032,20 @@ export default function CalendarPage() {
 
           <div style={styles.weekdayRow}>
             {WEEKDAYS.map((day) => (
-              <div key={day} style={styles.weekdayLabel} className="ath-weekday-label">
+              <div
+                key={day}
+                style={styles.weekdayLabel}
+                className="ath-weekday-label"
+              >
                 {day}
               </div>
             ))}
           </div>
 
-          <div style={styles.calendarGrid} className="ath-cal-grid">
+          <div
+            style={styles.calendarGrid}
+            className="ath-cal-grid desktop-calendar"
+          >
             {calendarCells.map((cell, idx) => {
               if (cell.type === "empty")
                 return <div key={`empty-${idx}`} style={styles.emptyCell} />;
@@ -975,9 +1069,13 @@ export default function CalendarPage() {
                     {p.day}
                   </div>
                   {p.isHoliday && (
-                    <div style={styles.holidayLabel} className="holiday-label">{p.holidayName}</div>
+                    <div style={styles.holidayLabel} className="holiday-label">
+                      {p.holidayName}
+                    </div>
                   )}
-                  <div style={styles.postType} className="post-type-label">{p.postType}</div>
+                  <div style={styles.postType} className="post-type-label">
+                    {p.postType}
+                  </div>
                   <div
                     style={{
                       ...styles.badge,
@@ -1000,6 +1098,70 @@ export default function CalendarPage() {
                       <path d={imageStyleOption?.icon || ""} />
                     </svg>
                     {p.imageFormatLabel}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Mobile List View */}
+          <div style={styles.mobileListContainer} className="mobile-calendar">
+            {plan.map((dayPlan, index) => {
+              const imageStyleOption = getImageStyleOption(dayPlan.imageStyle);
+              const dayOfWeek = WEEKDAYS[dayPlan.date.getDay()];
+              const monthName = MONTHS[dayPlan.date.getMonth()];
+              const dayNum = dayPlan.day;
+
+              return (
+                <div
+                  key={dayPlan.day}
+                  style={{
+                    ...styles.mobileListItem,
+                    ...(dayPlan.isHoliday ? styles.mobileListItemHoliday : {}),
+                  }}
+                  className="mobile-list-item"
+                  onClick={() => setSelectedDay(dayPlan)}
+                >
+                  <div style={styles.mobileListLeft}>
+                    <div
+                      style={
+                        isToday(dayPlan.day)
+                          ? styles.mobileListDateToday
+                          : styles.mobileListDate
+                      }
+                    >
+                      {dayOfWeek}, {monthName} {dayNum}
+                    </div>
+                    <div style={styles.mobileListPostType}>
+                      {dayPlan.postType}
+                    </div>
+                    <div style={styles.mobileListDetail}>{dayPlan.detail}</div>
+                  </div>
+                  <div style={styles.mobileListRight}>
+                    {dayPlan.isHoliday && (
+                      <div style={styles.mobileSeasonalTag}>Seasonal</div>
+                    )}
+                    <div
+                      style={{
+                        ...styles.mobileListBadge,
+                        ...(dayPlan.isHoliday
+                          ? styles.mobileListBadgeHoliday
+                          : {}),
+                      }}
+                      title={imageStyleOption?.tooltip || ""}
+                    >
+                      <svg
+                        width="8"
+                        height="8"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d={imageStyleOption?.icon || ""} />
+                      </svg>
+                      <span>{imageStyleOption?.name || ""}</span>
+                    </div>
                   </div>
                 </div>
               );
@@ -1043,7 +1205,10 @@ export default function CalendarPage() {
       {/* Preview Modal */}
       {selectedDay && (
         <div style={styles.modalOverlay} onClick={() => setSelectedDay(null)}>
-          <div style={{...styles.modal, maxWidth: 520}} onClick={(e) => e.stopPropagation()}>
+          <div
+            style={{ ...styles.modal, maxWidth: 520 }}
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Colorful Header */}
             <div
               style={{
@@ -1056,12 +1221,29 @@ export default function CalendarPage() {
               }}
             >
               <div style={{ fontSize: 13, opacity: 0.6, marginBottom: 8 }}>
-                {WEEKDAYS[selectedDay.date.getDay()]}, {MONTHS[currentMonth]} {selectedDay.day}
+                {WEEKDAYS[selectedDay.date.getDay()]}, {MONTHS[currentMonth]}{" "}
+                {selectedDay.day}
               </div>
-              <h2 style={{ fontSize: 26, fontWeight: 800, margin: 0, marginBottom: 8 }}>
-                {selectedDay.isHoliday ? `🎉 ${selectedDay.holidayName}` : selectedDay.postType}
+              <h2
+                style={{
+                  fontSize: 26,
+                  fontWeight: 800,
+                  margin: 0,
+                  marginBottom: 8,
+                }}
+              >
+                {selectedDay.isHoliday
+                  ? `🎉 ${selectedDay.holidayName}`
+                  : selectedDay.postType}
               </h2>
-              <p style={{ fontSize: 15, opacity: 0.85, margin: 0, lineHeight: 1.5 }}>
+              <p
+                style={{
+                  fontSize: 15,
+                  opacity: 0.85,
+                  margin: 0,
+                  lineHeight: 1.5,
+                }}
+              >
                 {selectedDay.detail}
               </p>
             </div>
@@ -1069,107 +1251,195 @@ export default function CalendarPage() {
             {/* Simple Body */}
             <div style={{ padding: "24px 28px" }}>
               {/* Post type explanation */}
-              <div style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: 12,
-                padding: 16,
-                marginBottom: 20,
-              }}>
-                <div style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  textTransform: "uppercase" as const,
-                  letterSpacing: 1,
-                  opacity: 0.5,
-                  marginBottom: 8
-                }}>
+              <div
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 12,
+                  padding: 16,
+                  marginBottom: 20,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    textTransform: "uppercase" as const,
+                    letterSpacing: 1,
+                    opacity: 0.5,
+                    marginBottom: 8,
+                  }}
+                >
                   What this means for your post
                 </div>
-                <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0, opacity: 0.9 }}>
+                <p
+                  style={{
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                    margin: 0,
+                    opacity: 0.9,
+                  }}
+                >
                   {selectedDay.postType === "Engagement" && (
-                    <>Your post will include a <strong>question or call-to-action</strong> designed to spark conversation. Expect a <strong>casual, inviting tone</strong> that encourages your followers to comment and share their thoughts.</>
+                    <>
+                      Your post will include a{" "}
+                      <strong>question or call-to-action</strong> designed to
+                      spark conversation. Expect a{" "}
+                      <strong>casual, inviting tone</strong> that encourages
+                      your followers to comment and share their thoughts.
+                    </>
                   )}
                   {selectedDay.postType === "Educational" && (
-                    <>Your post will share <strong>valuable tips or insights</strong> that teach your audience something new. The content will establish you as a <strong>helpful resource</strong> in your niche.</>
+                    <>
+                      Your post will share{" "}
+                      <strong>valuable tips or insights</strong> that teach your
+                      audience something new. The content will establish you as
+                      a <strong>helpful resource</strong> in your niche.
+                    </>
                   )}
                   {selectedDay.postType === "Authority" && (
-                    <>Your post will showcase your <strong>expertise and credibility</strong>. Expect content that positions you as a <strong>trusted leader</strong> in your industry.</>
+                    <>
+                      Your post will showcase your{" "}
+                      <strong>expertise and credibility</strong>. Expect content
+                      that positions you as a <strong>trusted leader</strong> in
+                      your industry.
+                    </>
                   )}
                   {selectedDay.postType === "Problem → Solution" && (
-                    <>Your post will address a <strong>common pain point</strong> your audience faces and present your <strong>solution or approach</strong>. Great for showing how you can help.</>
+                    <>
+                      Your post will address a{" "}
+                      <strong>common pain point</strong> your audience faces and
+                      present your <strong>solution or approach</strong>. Great
+                      for showing how you can help.
+                    </>
                   )}
                   {selectedDay.postType === "Before & After" && (
-                    <>Your post will highlight a <strong>transformation or results</strong>. Perfect for showing the <strong>impact of your work</strong> or product in a visual, compelling way.</>
+                    <>
+                      Your post will highlight a{" "}
+                      <strong>transformation or results</strong>. Perfect for
+                      showing the <strong>impact of your work</strong> or
+                      product in a visual, compelling way.
+                    </>
                   )}
                   {selectedDay.postType === "Basic Post" && (
-                    <>Your post will be a <strong>well-crafted, on-brand message</strong> that keeps your audience engaged. Simple, effective, and true to your voice.</>
+                    <>
+                      Your post will be a{" "}
+                      <strong>well-crafted, on-brand message</strong> that keeps
+                      your audience engaged. Simple, effective, and true to your
+                      voice.
+                    </>
                   )}
                   {selectedDay.postType === "Seasonal" && (
-                    <>Your post will tap into the <strong>holiday excitement</strong> with festive, timely content. Perfect for connecting with your audience through <strong>shared celebrations</strong>.</>
+                    <>
+                      Your post will tap into the{" "}
+                      <strong>holiday excitement</strong> with festive, timely
+                      content. Perfect for connecting with your audience through{" "}
+                      <strong>shared celebrations</strong>.
+                    </>
                   )}
                 </p>
               </div>
 
               {/* What you'll get section */}
               <div style={{ marginBottom: 20 }}>
-                <div style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  textTransform: "uppercase" as const,
-                  letterSpacing: 1,
-                  opacity: 0.5,
-                  marginBottom: 14
-                }}>
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    textTransform: "uppercase" as const,
+                    letterSpacing: 1,
+                    opacity: 0.5,
+                    marginBottom: 14,
+                  }}
+                >
                   What you'll get
                 </div>
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 10,
-                      background: "linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 18,
-                    }}>🖼️</div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column" as const,
+                    gap: 10,
+                  }}
+                >
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 12 }}
+                  >
+                    <div
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 10,
+                        background:
+                          "linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 18,
+                      }}
+                    >
+                      🖼️
+                    </div>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: 14 }}>Custom AI Image</div>
-                      <div style={{ fontSize: 12, opacity: 0.6 }}>Designed to match your brand colors</div>
+                      <div style={{ fontWeight: 600, fontSize: 14 }}>
+                        Custom AI Image
+                      </div>
+                      <div style={{ fontSize: 12, opacity: 0.6 }}>
+                        Designed to match your brand colors
+                      </div>
                     </div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 10,
-                      background: "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(44, 107, 237, 0.1) 100%)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 18,
-                    }}>✍️</div>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 12 }}
+                  >
+                    <div
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 10,
+                        background:
+                          "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(44, 107, 237, 0.1) 100%)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 18,
+                      }}
+                    >
+                      ✍️
+                    </div>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: 14 }}>Engaging Caption</div>
-                      <div style={{ fontSize: 12, opacity: 0.6 }}>Written in your brand voice</div>
+                      <div style={{ fontWeight: 600, fontSize: 14 }}>
+                        Engaging Caption
+                      </div>
+                      <div style={{ fontSize: 12, opacity: 0.6 }}>
+                        Written in your brand voice
+                      </div>
                     </div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 10,
-                      background: "linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 18,
-                    }}>#️⃣</div>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 12 }}
+                  >
+                    <div
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 10,
+                        background:
+                          "linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 18,
+                      }}
+                    >
+                      #️⃣
+                    </div>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: 14 }}>Relevant Hashtags</div>
-                      <div style={{ fontSize: 12, opacity: 0.6 }}>Optimized for your niche</div>
+                      <div style={{ fontWeight: 600, fontSize: 14 }}>
+                        Relevant Hashtags
+                      </div>
+                      <div style={{ fontSize: 12, opacity: 0.6 }}>
+                        Optimized for your niche
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1177,18 +1447,27 @@ export default function CalendarPage() {
 
               {/* Brand profile indicator */}
               {activeBrandProfile ? (
-                <div style={{
-                  background: "linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%)",
-                  border: "1px solid rgba(16, 185, 129, 0.3)",
-                  borderRadius: 12,
-                  padding: 16,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                }}>
+                <div
+                  style={{
+                    background:
+                      "linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%)",
+                    border: "1px solid rgba(16, 185, 129, 0.3)",
+                    borderRadius: 12,
+                    padding: 16,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
+                >
                   <div style={{ fontSize: 22 }}>✅</div>
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: 14, color: "#6ee7b7" }}>
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        fontSize: 14,
+                        color: "#6ee7b7",
+                      }}
+                    >
                       Using "{activeBrandProfile.profileName}" Profile
                     </div>
                     <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
@@ -1197,15 +1476,17 @@ export default function CalendarPage() {
                   </div>
                 </div>
               ) : (
-                <div style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: 12,
-                  padding: 16,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                }}>
+                <div
+                  style={{
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 12,
+                    padding: 16,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
+                >
                   <div style={{ fontSize: 22 }}>💡</div>
                   <div>
                     <div style={{ fontWeight: 600, fontSize: 14 }}>
@@ -1259,6 +1540,25 @@ export default function CalendarPage() {
           background: rgba(44, 107, 237, 0.15) !important;
           border-color: rgba(44, 107, 237, 0.4) !important;
           transform: translateY(-2px);
+        }
+
+        /* Desktop/Tablet: Show grid, hide mobile list */
+        @media (min-width: 769px) {
+          .desktop-calendar { display: grid !important; }
+          .mobile-calendar { display: none !important; }
+        }
+        
+        /* Mobile: Hide grid, show mobile list */
+        @media (max-width: 768px) {
+          .desktop-calendar { display: none !important; }
+          .mobile-calendar { display: block !important; }
+          
+          /* Adjust mobile list item hover states */
+          .mobile-list-item:hover {
+            transform: translateY(-1px);
+            background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%) !important;
+            border-color: rgba(255,255,255,0.15) !important;
+          }
         }
 
         /* Tablet */

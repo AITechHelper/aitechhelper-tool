@@ -132,32 +132,64 @@ export default function DashboardPage() {
     setProfiles(profiles.filter((p) => p.id !== id));
   };
 
+  const handleEditProfile = (profile: BrandProfile) => {
+    setEditingProfile(profile);
+    setNewProfileName(profile.name);
+    setNewProfileNiche(profile.niche);
+    setNewProfileAudience(profile.audience);
+    setNewProfilePrimaryColor(profile.primaryColor);
+    setNewProfileSecondaryColor(profile.secondaryColor);
+    setShowNewProfile(true);
+  };
+
   const handleCreateProfile = () => {
     if (!newProfileName.trim()) return;
 
-    const newProfile: BrandProfile = {
-      id: Date.now().toString(),
-      name: newProfileName.trim(),
-      niche: newProfileNiche.trim(),
-      audience: newProfileAudience.trim(),
-      tone: "Confident",
-      captionLength: "Medium",
-      hashtagCount: 12,
-      imageStyle: "lifestyle_photo",
-      primaryColor: newProfilePrimaryColor,
-      secondaryColor: newProfileSecondaryColor,
-      createdAt: new Date().toISOString(),
-    };
+    if (editingProfile) {
+      // Update existing profile
+      const updatedProfile: BrandProfile = {
+        ...editingProfile,
+        name: newProfileName.trim(),
+        niche: newProfileNiche.trim(),
+        audience: newProfileAudience.trim(),
+        primaryColor: newProfilePrimaryColor,
+        secondaryColor: newProfileSecondaryColor,
+      };
 
-    if (profiles.length >= 5) {
-      alert("Maximum 5 profiles allowed. Delete one to add more.");
-      return;
+      setProfiles(
+        profiles.map((p) => (p.id === editingProfile.id ? updatedProfile : p))
+      );
+
+      // If this is the active profile, update the active profile data too
+      if (activeProfileId === editingProfile.id) {
+        handleActivateProfile(updatedProfile);
+      }
+    } else {
+      // Create new profile
+      const newProfile: BrandProfile = {
+        id: Date.now().toString(),
+        name: newProfileName.trim(),
+        niche: newProfileNiche.trim(),
+        audience: newProfileAudience.trim(),
+        tone: "Confident",
+        captionLength: "Medium",
+        hashtagCount: 12,
+        imageStyle: "lifestyle_photo",
+        primaryColor: newProfilePrimaryColor,
+        secondaryColor: newProfileSecondaryColor,
+        createdAt: new Date().toISOString(),
+      };
+
+      if (profiles.length >= 5) {
+        alert("Maximum 5 profiles allowed. Delete one to add more.");
+        return;
+      }
+
+      setProfiles([...profiles, newProfile]);
+
+      // Auto-activate the newly created profile
+      handleActivateProfile(newProfile);
     }
-
-    setProfiles([...profiles, newProfile]);
-
-    // Auto-activate the newly created profile
-    handleActivateProfile(newProfile);
 
     // Reset form fields
     setNewProfileName("");
@@ -165,6 +197,7 @@ export default function DashboardPage() {
     setNewProfileAudience("");
     setNewProfilePrimaryColor("#000000");
     setNewProfileSecondaryColor("#ffffff");
+    setEditingProfile(null);
     setShowNewProfile(false);
   };
 
@@ -579,7 +612,7 @@ export default function DashboardPage() {
   };
 
   // Get active profile data
-  const activeProfile = profiles.find(p => p.id === activeProfileId);
+  const activeProfile = profiles.find((p) => p.id === activeProfileId);
 
   return (
     <div style={styles.page}>
@@ -592,7 +625,8 @@ export default function DashboardPage() {
               fontWeight: 800,
               letterSpacing: 1,
               margin: 0,
-              background: "linear-gradient(135deg, #e6edf7 0%, #7eb3ff 50%, #a78bfa 100%)",
+              background:
+                "linear-gradient(135deg, #e6edf7 0%, #7eb3ff 50%, #a78bfa 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -624,16 +658,20 @@ export default function DashboardPage() {
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.3), 0 0 30px rgba(34, 197, 94, 0.08)",
+              boxShadow:
+                "0 4px 20px rgba(0,0,0,0.3), 0 0 30px rgba(34, 197, 94, 0.08)",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 16, fontWeight: 700 }}>{activeProfile.name}</span>
+                  <span style={{ fontSize: 16, fontWeight: 700 }}>
+                    {activeProfile.name}
+                  </span>
                   <span
                     style={{
-                      background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                      background:
+                        "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
                       padding: "3px 10px",
                       borderRadius: 20,
                       fontSize: 10,
@@ -647,14 +685,18 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>
-                  {activeProfile.niche || "No niche"} • {activeProfile.tone} • {activeProfile.audience || "No audience"}
+                  {activeProfile.niche || "No niche"} • {activeProfile.tone} •{" "}
+                  {activeProfile.audience || "No audience"}
                 </div>
               </div>
               {/* View Posts Button */}
               <button
-                onClick={() => router.push(`/gallery?profileId=${activeProfile.id}`)}
+                onClick={() =>
+                  router.push(`/gallery?profileId=${activeProfile.id}`)
+                }
                 style={{
-                  background: "linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%)",
+                  background:
+                    "linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%)",
                   border: "1px solid rgba(236, 72, 153, 0.3)",
                   borderRadius: 8,
                   padding: "8px 14px",
@@ -676,7 +718,8 @@ export default function DashboardPage() {
             <div style={styles.profileBarDropdown}>
               <button
                 style={{
-                  background: "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)",
+                  background:
+                    "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)",
                   border: "1px solid rgba(255,255,255,0.15)",
                   borderRadius: 10,
                   padding: "10px 16px",
@@ -693,7 +736,9 @@ export default function DashboardPage() {
                 className="hover-btn"
               >
                 <span>Switch Profile</span>
-                <span style={{ fontSize: 10, opacity: 0.7 }}>{showProfileDropdown ? "▲" : "▼"}</span>
+                <span style={{ fontSize: 10, opacity: 0.7 }}>
+                  {showProfileDropdown ? "▲" : "▼"}
+                </span>
               </button>
               {showProfileDropdown && (
                 <div style={styles.dropdownMenu}>
@@ -736,8 +781,38 @@ export default function DashboardPage() {
                         }}
                       />
                       <span style={{ flex: 1 }}>{profile.name}</span>
+                      <button
+                        style={{
+                          background: "rgba(126, 179, 255, 0.1)",
+                          border: "1px solid rgba(126, 179, 255, 0.2)",
+                          borderRadius: 4,
+                          padding: "2px 6px",
+                          color: "#7eb3ff",
+                          fontSize: 10,
+                          cursor: "pointer",
+                          marginRight: 6,
+                          transition: "all 0.15s ease",
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditProfile(profile);
+                          setShowProfileDropdown(false);
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background =
+                            "rgba(126, 179, 255, 0.2)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background =
+                            "rgba(126, 179, 255, 0.1)";
+                        }}
+                      >
+                        edit
+                      </button>
                       {profile.id === activeProfileId && (
-                        <span style={{ color: "#22c55e", fontSize: 12 }}>✓</span>
+                        <span style={{ color: "#22c55e", fontSize: 12 }}>
+                          ✓
+                        </span>
                       )}
                     </div>
                   ))}
@@ -752,7 +827,8 @@ export default function DashboardPage() {
                       setShowProfileDropdown(false);
                     }}
                     onMouseEnter={(e) =>
-                      (e.currentTarget.style.background = "rgba(255,255,255,0.05)")
+                      (e.currentTarget.style.background =
+                        "rgba(255,255,255,0.05)")
                     }
                     onMouseLeave={(e) =>
                       (e.currentTarget.style.background = "transparent")
@@ -775,7 +851,8 @@ export default function DashboardPage() {
                         setShowProfileDropdown(false);
                       }}
                       onMouseEnter={(e) =>
-                        (e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)")
+                        (e.currentTarget.style.background =
+                          "rgba(239, 68, 68, 0.1)")
                       }
                       onMouseLeave={(e) =>
                         (e.currentTarget.style.background = "transparent")
@@ -801,7 +878,8 @@ export default function DashboardPage() {
                   <span style={styles.stepPill}>Step 1</span>
                 </h2>
                 <p style={styles.instructionText}>
-                  Start here — create a profile so every post matches your brand.
+                  Start here — create a profile so every post matches your
+                  brand.
                 </p>
               </div>
             </div>
@@ -969,12 +1047,19 @@ export default function DashboardPage() {
           >
             {/* Section Header */}
             <div style={{ textAlign: "center" as const, marginBottom: 28 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#7eb3ff", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: 2 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#7eb3ff",
+                  marginBottom: 6,
+                  textTransform: "uppercase" as const,
+                  letterSpacing: 2,
+                }}
+              >
                 Simple 4-Step Process
               </div>
-              <div style={{ fontSize: 22, fontWeight: 700 }}>
-                How It Works
-              </div>
+              <div style={{ fontSize: 22, fontWeight: 700 }}>How It Works</div>
             </div>
 
             <div
@@ -1001,7 +1086,8 @@ export default function DashboardPage() {
                     width: 48,
                     height: 48,
                     borderRadius: 12,
-                    background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
+                    background:
+                      "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -1014,8 +1100,19 @@ export default function DashboardPage() {
                 >
                   1
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6, color: "#e6edf7" }}>Create Profile</div>
-                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>Save your brand colors, tone & audience once</div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    marginBottom: 6,
+                    color: "#e6edf7",
+                  }}
+                >
+                  Create Profile
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
+                  Save your brand colors, tone & audience once
+                </div>
               </div>
 
               {/* Step 2 */}
@@ -1033,7 +1130,8 @@ export default function DashboardPage() {
                     width: 48,
                     height: 48,
                     borderRadius: 12,
-                    background: "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
+                    background:
+                      "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -1046,8 +1144,19 @@ export default function DashboardPage() {
                 >
                   2
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6, color: "#e6edf7" }}>Choose Post Type</div>
-                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>Quick tip, promo, testimonial, behind-the-scenes</div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    marginBottom: 6,
+                    color: "#e6edf7",
+                  }}
+                >
+                  Choose Post Type
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
+                  Quick tip, promo, testimonial, behind-the-scenes
+                </div>
               </div>
 
               {/* Step 3 */}
@@ -1065,7 +1174,8 @@ export default function DashboardPage() {
                     width: 48,
                     height: 48,
                     borderRadius: 12,
-                    background: "linear-gradient(135deg, #ec4899 0%, #be185d 100%)",
+                    background:
+                      "linear-gradient(135deg, #ec4899 0%, #be185d 100%)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -1078,8 +1188,19 @@ export default function DashboardPage() {
                 >
                   3
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6, color: "#e6edf7" }}>AI Generates</div>
-                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>Custom image + caption + hashtags instantly</div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    marginBottom: 6,
+                    color: "#e6edf7",
+                  }}
+                >
+                  AI Generates
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
+                  Custom image + caption + hashtags instantly
+                </div>
               </div>
 
               {/* Step 4 */}
@@ -1097,7 +1218,8 @@ export default function DashboardPage() {
                     width: 48,
                     height: 48,
                     borderRadius: 12,
-                    background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                    background:
+                      "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -1110,8 +1232,19 @@ export default function DashboardPage() {
                 >
                   ✓
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6, color: "#e6edf7" }}>Post & Save</div>
-                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>Download image & copy caption to post</div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    marginBottom: 6,
+                    color: "#e6edf7",
+                  }}
+                >
+                  Post & Save
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
+                  Download image & copy caption to post
+                </div>
               </div>
             </div>
           </div>
@@ -1135,7 +1268,8 @@ export default function DashboardPage() {
               {/* Card Header with gradient */}
               <div
                 style={{
-                  background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
+                  background:
+                    "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
                   padding: "24px 24px 20px",
                   textAlign: "center" as const,
                 }}
@@ -1159,30 +1293,75 @@ export default function DashboardPage() {
                 }}
               >
                 {/* What you get */}
-                <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.5, marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: 1 }}>
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    opacity: 0.5,
+                    marginBottom: 12,
+                    textTransform: "uppercase" as const,
+                    letterSpacing: 1,
+                  }}
+                >
                   What you get
                 </div>
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, marginBottom: 20 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column" as const,
+                    gap: 10,
+                    marginBottom: 20,
+                  }}
+                >
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 10 }}
+                  >
                     <span style={{ fontSize: 16 }}>🖼️</span>
-                    <span style={{ fontSize: 13, opacity: 0.9 }}>AI-generated custom image</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>
+                      AI-generated custom image
+                    </span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 10 }}
+                  >
                     <span style={{ fontSize: 16 }}>✍️</span>
-                    <span style={{ fontSize: 13, opacity: 0.9 }}>Engaging caption for your brand</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>
+                      Engaging caption for your brand
+                    </span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 10 }}
+                  >
                     <span style={{ fontSize: 16 }}>#️⃣</span>
-                    <span style={{ fontSize: 13, opacity: 0.9 }}>Optimized hashtags</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>
+                      Optimized hashtags
+                    </span>
                   </div>
                 </div>
 
                 {/* Best for */}
-                <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.5, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: 1 }}>
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    opacity: 0.5,
+                    marginBottom: 8,
+                    textTransform: "uppercase" as const,
+                    letterSpacing: 1,
+                  }}
+                >
                   Best for
                 </div>
-                <div style={{ fontSize: 12, opacity: 0.7, lineHeight: 1.5, marginBottom: 20 }}>
-                  Quick posts, one-off content, testing ideas, or when you need a single post right now.
+                <div
+                  style={{
+                    fontSize: 12,
+                    opacity: 0.7,
+                    lineHeight: 1.5,
+                    marginBottom: 20,
+                  }}
+                >
+                  Quick posts, one-off content, testing ideas, or when you need
+                  a single post right now.
                 </div>
 
                 {/* CTA Button */}
@@ -1218,7 +1397,8 @@ export default function DashboardPage() {
               {/* Card Header with gradient */}
               <div
                 style={{
-                  background: "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
+                  background:
+                    "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
                   padding: "24px 24px 20px",
                   textAlign: "center" as const,
                 }}
@@ -1242,30 +1422,75 @@ export default function DashboardPage() {
                 }}
               >
                 {/* What you get */}
-                <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.5, marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: 1 }}>
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    opacity: 0.5,
+                    marginBottom: 12,
+                    textTransform: "uppercase" as const,
+                    letterSpacing: 1,
+                  }}
+                >
                   What you get
                 </div>
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, marginBottom: 20 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column" as const,
+                    gap: 10,
+                    marginBottom: 20,
+                  }}
+                >
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 10 }}
+                  >
                     <span style={{ fontSize: 16 }}>🗓️</span>
-                    <span style={{ fontSize: 13, opacity: 0.9 }}>30-day visual content calendar</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>
+                      30-day visual content calendar
+                    </span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 10 }}
+                  >
                     <span style={{ fontSize: 16 }}>💡</span>
-                    <span style={{ fontSize: 13, opacity: 0.9 }}>Smart post type suggestions</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>
+                      Smart post type suggestions
+                    </span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 10 }}
+                  >
                     <span style={{ fontSize: 16 }}>🎯</span>
-                    <span style={{ fontSize: 13, opacity: 0.9 }}>Click any day to generate content</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>
+                      Click any day to generate content
+                    </span>
                   </div>
                 </div>
 
                 {/* Best for */}
-                <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.5, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: 1 }}>
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    opacity: 0.5,
+                    marginBottom: 8,
+                    textTransform: "uppercase" as const,
+                    letterSpacing: 1,
+                  }}
+                >
                   Best for
                 </div>
-                <div style={{ fontSize: 12, opacity: 0.7, lineHeight: 1.5, marginBottom: 20 }}>
-                  Consistent posting, content strategy, batching your content creation, and staying organized.
+                <div
+                  style={{
+                    fontSize: 12,
+                    opacity: 0.7,
+                    lineHeight: 1.5,
+                    marginBottom: 20,
+                  }}
+                >
+                  Consistent posting, content strategy, batching your content
+                  creation, and staying organized.
                 </div>
 
                 {/* CTA Button */}
@@ -1286,9 +1511,7 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-
         </div>
-
       </div>
 
       {/* New Profile Modal */}
@@ -1302,7 +1525,11 @@ export default function DashboardPage() {
                 marginBottom: 16,
               }}
             >
-              <div style={styles.modalTitle}>Create Your Brand Profile</div>
+              <div style={styles.modalTitle}>
+                {editingProfile
+                  ? "Edit Brand Profile"
+                  : "Create Your Brand Profile"}
+              </div>
               <span
                 style={{
                   background: "rgba(44, 107, 237, 0.2)",
@@ -1508,6 +1735,7 @@ export default function DashboardPage() {
                     setNewProfileAudience("");
                     setNewProfilePrimaryColor("#000000");
                     setNewProfileSecondaryColor("#ffffff");
+                    setEditingProfile(null);
                   }}
                   className="hover-btn"
                 >
@@ -1518,7 +1746,7 @@ export default function DashboardPage() {
                   onClick={handleCreateProfile}
                   className="hover-btn"
                 >
-                  Save Profile
+                  {editingProfile ? "Update Profile" : "Save Profile"}
                 </button>
               </div>
 
@@ -1539,6 +1767,7 @@ export default function DashboardPage() {
                   setNewProfileAudience("");
                   setNewProfilePrimaryColor("#000000");
                   setNewProfileSecondaryColor("#ffffff");
+                  setEditingProfile(null);
                 }}
                 className="hover-btn"
               >
