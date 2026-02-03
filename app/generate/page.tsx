@@ -1157,6 +1157,7 @@ export default function Page() {
         justifyContent: "space-between",
         gap: 12,
         flexWrap: "wrap" as const,
+        paddingTop: 50,
       }}>
         <div>
           <h1 style={{
