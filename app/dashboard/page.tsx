@@ -495,10 +495,12 @@ export default function DashboardPage() {
       inset: 0,
       background: "rgba(0,0,0,0.7)",
       display: "flex",
-      alignItems: "center",
+      alignItems: "flex-start",
       justifyContent: "center",
       zIndex: 200,
       padding: 20,
+      paddingTop: 60,
+      overflowY: "auto" as const,
     },
     modalContent: {
       background: "#101a33",

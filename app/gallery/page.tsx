@@ -293,10 +293,12 @@ export default function GalleryPage() {
       inset: 0,
       background: "rgba(0,0,0,0.8)",
       display: "flex",
-      alignItems: "center",
+      alignItems: "flex-start",
       justifyContent: "center",
       zIndex: 200,
       padding: 20,
+      paddingTop: 60,
+      overflowY: "auto" as const,
     },
     modalContent: {
       background: "#101a33",

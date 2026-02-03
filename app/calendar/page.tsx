@@ -859,10 +859,12 @@ export default function CalendarPage() {
       inset: 0,
       background: "rgba(0,0,0,0.75)",
       display: "flex",
-      alignItems: "center",
+      alignItems: "flex-start",
       justifyContent: "center",
       zIndex: 100,
       padding: 20,
+      paddingTop: 60,
+      overflowY: "auto" as const,
     },
     modal: {
       background: "#101a33",
