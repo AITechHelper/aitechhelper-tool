@@ -499,10 +499,22 @@ export default function Page() {
     }
   };
 
+  const scrollToTopInParent = () => {
+    window.scrollTo(0, 0);
+    if (window.self !== window.top) {
+      try {
+        window.parent.postMessage({ type: "AIT_HELPER_SCROLL_TOP" }, "*");
+      } catch (error) {
+        // Silently fail if blocked
+      }
+    }
+  };
+
   const goToNextStep = () => {
     if (currentStep < totalSteps - 1 && isStepComplete(currentStep)) {
       setSlideDirection("left");
       setCurrentStep(currentStep + 1);
+      scrollToTopInParent();
     }
   };
 
@@ -510,6 +522,7 @@ export default function Page() {
     if (currentStep > 0) {
       setSlideDirection("right");
       setCurrentStep(currentStep - 1);
+      scrollToTopInParent();
     }
   };
 
