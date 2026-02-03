@@ -16,8 +16,8 @@ function ScrollToTopLogic() {
   useEffect(() => {
     if (!isClient) return;
 
-    // Scroll the current window/iframe to top
-    window.scrollTo({ top: 0, left: 0 });
+    // Instant scroll to top (no smooth behavior for reliability)
+    window.scrollTo(0, 0);
 
     // If embedded in iframe, notify parent to scroll to iframe
     if (typeof window !== "undefined" && window.self !== window.top) {
@@ -28,7 +28,7 @@ function ScrollToTopLogic() {
         console.debug("Could not send scroll message to parent:", error);
       }
     }
-  }, [pathname, searchParams, isClient]);
+  }, [pathname, searchParams.toString(), isClient]);
 
   return null;
 }
