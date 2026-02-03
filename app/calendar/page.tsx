@@ -543,6 +543,7 @@ export default function CalendarPage() {
       flexWrap: "wrap",
       gap: 16,
       marginBottom: 24,
+      paddingTop: 50,
     },
     h1: {
       fontSize: 34,

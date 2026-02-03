@@ -660,6 +660,7 @@ export default function Page() {
       justifyContent: "space-between",
       gap: 12,
       flexWrap: "wrap",
+      paddingTop: 50,
     },
     title: {
       fontSize: 28,

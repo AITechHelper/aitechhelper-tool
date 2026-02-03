@@ -173,6 +173,7 @@ export default function GalleryPage() {
       alignItems: "center",
       justifyContent: "space-between",
       marginBottom: 24,
+      paddingTop: 50,
     },
     backBtn: {
       display: "flex",

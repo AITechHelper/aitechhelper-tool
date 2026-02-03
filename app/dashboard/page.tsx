@@ -654,7 +654,7 @@ export default function DashboardPage() {
     <div style={styles.page}>
       <div style={styles.container}>
         {/* Header - Enhanced */}
-        <div style={{ marginBottom: 32, textAlign: "center" as const }}>
+        <div style={{ marginBottom: 32, textAlign: "center" as const, paddingTop: 50 }}>
           <h1
             style={{
               fontSize: 36,

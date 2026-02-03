@@ -330,6 +330,7 @@ export default function PostPage() {
       justifyContent: "space-between",
       gap: 12,
       flexWrap: "wrap",
+      paddingTop: 50,
     },
     title: {
       fontSize: 34,
