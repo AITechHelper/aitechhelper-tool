@@ -112,6 +112,18 @@ export default function DashboardPage() {
     } catch {}
   }, [profiles, hasLoadedProfiles]);
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (showNewProfile) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showNewProfile]);
+
   const handleActivateProfile = (profile: BrandProfile) => {
     // Save active brand profile
     const activeBrandData = {
@@ -518,6 +530,7 @@ export default function DashboardPage() {
       padding: 16,
       paddingTop: 20,
       overflowY: "auto" as const,
+      WebkitOverflowScrolling: "touch" as const,
     },
     modalContent: {
       background: "#101a33",
@@ -526,6 +539,7 @@ export default function DashboardPage() {
       width: "min(920px, 96vw)",
       maxHeight: "none",
       marginBottom: 20,
+      flexShrink: 0,
     },
     modalTitle: {
       fontSize: 18,
