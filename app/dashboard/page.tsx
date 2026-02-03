@@ -1514,6 +1514,62 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Bottom Action Buttons */}
+        <div
+          style={{
+            display: "flex",
+            gap: 16,
+            justifyContent: "center",
+            marginTop: 40,
+            flexWrap: "wrap",
+          }}
+        >
+          <div
+            onClick={() => router.push(`/gallery?profileId=${activeProfile?.id}`)}
+            style={{
+              background: "linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(99, 102, 241, 0.1) 100%)",
+              border: "1px solid rgba(124, 58, 237, 0.3)",
+              borderRadius: 12,
+              padding: "16px 32px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              transition: "all 0.2s ease",
+            }}
+            className="hover-card"
+          >
+            <svg width="20" height="20" fill="none" stroke="#a78bfa" strokeWidth="2" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+            <span style={{ fontWeight: 600, color: "#a78bfa" }}>View Gallery</span>
+          </div>
+
+          <div
+            onClick={() => router.push(`/post?profileId=${activeProfile?.id}`)}
+            style={{
+              background: "linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(22, 163, 74, 0.1) 100%)",
+              border: "1px solid rgba(34, 197, 94, 0.3)",
+              borderRadius: 12,
+              padding: "16px 32px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              transition: "all 0.2s ease",
+            }}
+            className="hover-card"
+          >
+            <svg width="20" height="20" fill="none" stroke="#4ade80" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span style={{ fontWeight: 600, color: "#4ade80" }}>Recent Posts</span>
+          </div>
+        </div>
       </div>
 
       {/* New Profile Modal */}
