@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getImage } from "./lib/imageStorage";
+import { getImage } from "../lib/imageStorage";
 
 // localStorage keys
 const ACTIVE_BRAND_KEY = "ath_active_brand_profile";
