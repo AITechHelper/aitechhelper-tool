@@ -2,39 +2,34 @@
 
 export default function Header() {
   return (
-    <>
-      {/* Fixed logo */}
-      <header
+    <header
+      style={{
+        position: "fixed",
+        top: 16,
+        left: 16,
+        zIndex: 1000,
+      }}
+    >
+      <a
+        href="https://aitechhelper.com"
+        target="_blank"
+        rel="noopener noreferrer"
         style={{
-          position: "fixed",
-          top: 16,
-          left: 16,
-          zIndex: 1000,
+          display: "block",
+          transition: "opacity 0.2s ease",
         }}
+        onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+        onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
       >
-        <a
-          href="https://aitechhelper.com"
-          target="_blank"
-          rel="noopener noreferrer"
+        <img
+          src="/logo.svg"
+          alt="AI Tech Helper"
           style={{
-            display: "block",
-            transition: "opacity 0.2s ease",
+            height: 40,
+            width: "auto",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-        >
-          <img
-            src="/logo.svg"
-            alt="AI Tech Helper"
-            style={{
-              height: 40,
-              width: "auto",
-            }}
-          />
-        </a>
-      </header>
-      {/* Spacer to push content below logo */}
-      <div style={{ height: 70 }} />
-    </>
+        />
+      </a>
+    </header>
   );
 }
