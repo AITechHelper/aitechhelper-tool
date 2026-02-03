@@ -304,10 +304,8 @@ export default function GalleryPage() {
       background: "#101a33",
       borderRadius: 16,
       padding: 24,
-      maxWidth: 600,
-      width: "100%",
-      maxHeight: "80vh",
-      overflow: "auto",
+      maxWidth: 900,
+      width: "95%",
     },
     modalHeader: {
       display: "flex",
