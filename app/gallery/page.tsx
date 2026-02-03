@@ -557,6 +557,7 @@ export default function GalleryPage() {
       {selectedPost && (
         <div style={styles.modal} onClick={() => setSelectedPost(null)}>
           <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
             <div style={styles.modalHeader}>
               <div>
                 <div style={styles.modalTitle}>{selectedPost.postType}</div>
@@ -573,114 +574,127 @@ export default function GalleryPage() {
               </button>
             </div>
 
-            {/* Image */}
-            {selectedImage && (
-              <div style={styles.detailSection}>
-                <div style={styles.detailLabel}>Generated Image</div>
-                <div
-                  style={{
-                    borderRadius: 12,
-                    overflow: "hidden",
-                    background: "#0b1220",
-                    marginBottom: 8,
-                  }}
-                >
-                  <img
-                    src={selectedImage}
-                    alt="Generated post"
-                    style={{
-                      width: "100%",
-                      height: "auto",
-                      display: "block",
+            {/* Two-column layout */}
+            <div className="modal-two-col" style={{
+              display: "flex",
+              gap: 24,
+              flexDirection: "row",
+            }}>
+              {/* Left column - Image */}
+              <div className="modal-left-col" style={{ flex: "0 0 45%", minWidth: 0 }}>
+                {selectedImage && (
+                  <div>
+                    <div
+                      style={{
+                        borderRadius: 12,
+                        overflow: "hidden",
+                        background: "#0b1220",
+                        marginBottom: 12,
+                      }}
+                    >
+                      <img
+                        src={selectedImage}
+                        alt="Generated post"
+                        style={{
+                          width: "100%",
+                          height: "auto",
+                          display: "block",
+                        }}
+                      />
+                    </div>
+                    <button
+                      style={{
+                        ...styles.copyBtn,
+                        background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                        border: "none",
+                        color: "#fff",
+                        width: "100%",
+                        justifyContent: "center",
+                      }}
+                      onClick={handleDownloadImage}
+                      className="hover-btn"
+                    >
+                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Download Image
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Right column - Content */}
+              <div className="modal-right-col" style={{ flex: 1, minWidth: 0 }}>
+                {/* Caption */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={styles.detailLabel}>Caption</div>
+                  <div style={styles.detailContent}>{selectedPost.caption}</div>
+                  <button
+                    style={styles.copyBtn}
+                    onClick={() => handleCopy(selectedPost.caption, "caption")}
+                    className="hover-btn"
+                  >
+                    {copiedField === "caption" ? "✓ Copied!" : "Copy Caption"}
+                  </button>
+                </div>
+
+                {/* Hashtags */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={styles.detailLabel}>Hashtags</div>
+                  <div style={styles.detailContent}>{selectedPost.hashtags}</div>
+                  <button
+                    style={styles.copyBtn}
+                    onClick={() => handleCopy(selectedPost.hashtags, "hashtags")}
+                    className="hover-btn"
+                  >
+                    {copiedField === "hashtags" ? "✓ Copied!" : "Copy Hashtags"}
+                  </button>
+                </div>
+
+                {/* Metadata */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={styles.detailLabel}>Post Details</div>
+                  <div style={styles.metaGrid}>
+                    <div style={styles.metaItem}>
+                      <div style={styles.metaLabel}>Niche</div>
+                      <div style={styles.metaValue}>{selectedPost.niche || "—"}</div>
+                    </div>
+                    <div style={styles.metaItem}>
+                      <div style={styles.metaLabel}>Audience</div>
+                      <div style={styles.metaValue}>{selectedPost.audience || "—"}</div>
+                    </div>
+                    <div style={styles.metaItem}>
+                      <div style={styles.metaLabel}>Tone</div>
+                      <div style={styles.metaValue}>{selectedPost.tone}</div>
+                    </div>
+                    <div style={styles.metaItem}>
+                      <div style={styles.metaLabel}>Image Style</div>
+                      <div style={styles.metaValue}>{selectedPost.imageStyle}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div style={styles.modalActions}>
+                  <button
+                    style={{ ...styles.btn, ...styles.btnDanger }}
+                    onClick={() => handleDelete(selectedPost.id)}
+                    className="hover-btn"
+                  >
+                    Delete Post
+                  </button>
+                  <div style={{ flex: 1 }} />
+                  <button
+                    style={styles.btn}
+                    onClick={() => {
+                      handleCopy(`${selectedPost.caption}\n\n${selectedPost.hashtags}`, "all");
                     }}
-                  />
-                </div>
-                <button
-                  style={{
-                    ...styles.copyBtn,
-                    background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
-                    border: "none",
-                    color: "#fff",
-                  }}
-                  onClick={handleDownloadImage}
-                  className="hover-btn"
-                >
-                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  Download Image
-                </button>
-              </div>
-            )}
-
-            {/* Caption */}
-            <div style={styles.detailSection}>
-              <div style={styles.detailLabel}>Caption</div>
-              <div style={styles.detailContent}>{selectedPost.caption}</div>
-              <button
-                style={styles.copyBtn}
-                onClick={() => handleCopy(selectedPost.caption, "caption")}
-                className="hover-btn"
-              >
-                {copiedField === "caption" ? "✓ Copied!" : "Copy Caption"}
-              </button>
-            </div>
-
-            {/* Hashtags */}
-            <div style={styles.detailSection}>
-              <div style={styles.detailLabel}>Hashtags</div>
-              <div style={styles.detailContent}>{selectedPost.hashtags}</div>
-              <button
-                style={styles.copyBtn}
-                onClick={() => handleCopy(selectedPost.hashtags, "hashtags")}
-                className="hover-btn"
-              >
-                {copiedField === "hashtags" ? "✓ Copied!" : "Copy Hashtags"}
-              </button>
-            </div>
-
-            {/* Metadata */}
-            <div style={styles.detailSection}>
-              <div style={styles.detailLabel}>Post Details</div>
-              <div style={styles.metaGrid}>
-                <div style={styles.metaItem}>
-                  <div style={styles.metaLabel}>Niche</div>
-                  <div style={styles.metaValue}>{selectedPost.niche || "—"}</div>
-                </div>
-                <div style={styles.metaItem}>
-                  <div style={styles.metaLabel}>Audience</div>
-                  <div style={styles.metaValue}>{selectedPost.audience || "—"}</div>
-                </div>
-                <div style={styles.metaItem}>
-                  <div style={styles.metaLabel}>Tone</div>
-                  <div style={styles.metaValue}>{selectedPost.tone}</div>
-                </div>
-                <div style={styles.metaItem}>
-                  <div style={styles.metaLabel}>Image Style</div>
-                  <div style={styles.metaValue}>{selectedPost.imageStyle}</div>
+                    className="hover-btn"
+                  >
+                    {copiedField === "all" ? "✓ Copied!" : "Copy All"}
+                  </button>
                 </div>
               </div>
-            </div>
-
-            {/* Actions */}
-            <div style={styles.modalActions}>
-              <button
-                style={{ ...styles.btn, ...styles.btnDanger }}
-                onClick={() => handleDelete(selectedPost.id)}
-                className="hover-btn"
-              >
-                Delete Post
-              </button>
-              <div style={{ flex: 1 }} />
-              <button
-                style={styles.btn}
-                onClick={() => {
-                  handleCopy(`${selectedPost.caption}\n\n${selectedPost.hashtags}`, "all");
-                }}
-                className="hover-btn"
-              >
-                {copiedField === "all" ? "✓ Copied!" : "Copy All"}
-              </button>
             </div>
           </div>
         </div>
@@ -693,6 +707,8 @@ export default function GalleryPage() {
 
         @media (max-width: 768px) {
           .ath-galleryGrid { grid-template-columns: repeat(2, 1fr) !important; }
+          .modal-two-col { flex-direction: column !important; }
+          .modal-left-col { flex: 1 !important; }
         }
         @media (max-width: 480px) {
           .ath-galleryGrid { grid-template-columns: 1fr !important; }
