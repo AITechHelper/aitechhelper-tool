@@ -53,6 +53,9 @@ export default function DashboardPage() {
 
   // Load profiles and posts from localStorage
   useEffect(() => {
+    // Scroll to top on page load
+    window.scrollTo(0, 0);
+
     try {
       const savedProfiles = localStorage.getItem("ath_profiles");
       const setupSkipped = localStorage.getItem("ath_profile_setup_skipped");

@@ -357,6 +357,11 @@ export default function Page() {
   const [isDragging, setIsDragging] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
 
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Load saved form from localStorage
   useEffect(() => {
     try {

@@ -34,6 +34,9 @@ export default function GalleryPage() {
 
   // Load posts from localStorage and images from IndexedDB
   useEffect(() => {
+    // Scroll to top on page load
+    window.scrollTo(0, 0);
+
     async function loadPosts() {
       try {
         // Check for profileId filter in URL

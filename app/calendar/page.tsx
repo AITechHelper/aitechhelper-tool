@@ -426,6 +426,9 @@ export default function CalendarPage() {
   const [activeBrandProfile, setActiveBrandProfile] = useState<any>(null);
 
   useEffect(() => {
+    // Scroll to top on page load
+    window.scrollTo(0, 0);
+
     setQs(window.location.search ? window.location.search.slice(1) : "");
 
     // Load active brand profile
@@ -890,8 +893,8 @@ export default function CalendarPage() {
         {/* Header */}
         <div style={styles.header}>
           <div>
-            <h1 style={styles.h1}>Plan Your Month</h1>
-            <p style={styles.subtitle}>
+            <h1 style={styles.h1} className="ath-page-title">Plan Your Month</h1>
+            <p style={styles.subtitle} className="ath-page-subtitle">
               <span style={{ fontSize: 18 }}>📅</span>
               Click any day to preview and generate that post. Holidays are
               auto-detected!
@@ -917,23 +920,23 @@ export default function CalendarPage() {
         </div>
 
         {/* Calendar Card */}
-        <div style={styles.card}>
+        <div style={styles.card} className="ath-card">
           <div style={styles.monthNav}>
-            <div style={styles.monthLabel}>
+            <div style={styles.monthLabel} className="ath-month-label">
               {MONTHS[currentMonth]} {currentYear}
             </div>
             <div style={styles.navBtns}>
               <button
                 style={styles.navBtn}
                 onClick={prevMonth}
-                className="hover-btn"
+                className="hover-btn ath-nav-btn"
               >
                 ← Prev
               </button>
               <button
                 style={styles.navBtn}
                 onClick={nextMonth}
-                className="hover-btn"
+                className="hover-btn ath-nav-btn"
               >
                 Next →
               </button>
@@ -942,7 +945,7 @@ export default function CalendarPage() {
 
           <div style={styles.weekdayRow}>
             {WEEKDAYS.map((day) => (
-              <div key={day} style={styles.weekdayLabel}>
+              <div key={day} style={styles.weekdayLabel} className="ath-weekday-label">
                 {day}
               </div>
             ))}
@@ -967,13 +970,14 @@ export default function CalendarPage() {
                 >
                   <div
                     style={isToday(p.day) ? styles.dayToday : styles.dayNumber}
+                    className={isToday(p.day) ? "day-today" : "day-number"}
                   >
                     {p.day}
                   </div>
                   {p.isHoliday && (
-                    <div style={styles.holidayLabel}>{p.holidayName}</div>
+                    <div style={styles.holidayLabel} className="holiday-label">{p.holidayName}</div>
                   )}
-                  <div style={styles.postType}>{p.postType}</div>
+                  <div style={styles.postType} className="post-type-label">{p.postType}</div>
                   <div
                     style={{
                       ...styles.badge,
@@ -981,6 +985,7 @@ export default function CalendarPage() {
                       display: "flex",
                       alignItems: "center",
                     }}
+                    className="image-badge"
                     title={imageStyleOption?.tooltip || ""}
                   >
                     <svg
@@ -1001,7 +1006,7 @@ export default function CalendarPage() {
             })}
           </div>
 
-          <div style={styles.legend}>
+          <div style={styles.legend} className="ath-legend">
             <div style={styles.legendTitle}>Content Rotation</div>
             <div style={styles.legendGrid}>
               {WEEKDAYS.map((day, idx) => (
@@ -1255,16 +1260,57 @@ export default function CalendarPage() {
           border-color: rgba(44, 107, 237, 0.4) !important;
           transform: translateY(-2px);
         }
-        
-        @media (max-width: 900px) { .ath-cal-grid { gap: 6px !important; } }
+
+        /* Tablet */
+        @media (max-width: 900px) {
+          .ath-cal-grid { gap: 6px !important; }
+          .ath-day-cell { min-height: 90px !important; padding: 8px !important; }
+          .ath-day-cell .post-type-label { font-size: 9px !important; }
+          .ath-day-cell .image-badge { font-size: 8px !important; padding: 2px 4px !important; }
+        }
+
+        /* Small tablet / large phone */
         @media (max-width: 768px) {
           .calendar-modal-body {
             display: block !important;
             padding: 16px 20px !important;
           }
+          .ath-cal-grid { gap: 4px !important; }
+          .ath-day-cell { min-height: 80px !important; padding: 6px !important; }
+          .ath-day-cell .post-type-label { font-size: 8px !important; line-height: 1.2 !important; }
+          .ath-day-cell .image-badge { display: none !important; }
+          .ath-day-cell .holiday-label { font-size: 7px !important; }
+          .ath-weekday-label { font-size: 9px !important; }
+          .ath-legend { display: none !important; }
+          .ath-month-label { font-size: 18px !important; }
+          .ath-nav-btn { padding: 8px 12px !important; font-size: 12px !important; }
         }
-        @media (max-width: 700px) { .ath-cal-grid { gap: 4px !important; } }
-        @media (max-width: 500px) { .ath-cal-grid { grid-template-columns: repeat(7, 1fr) !important; } }
+
+        /* Phone */
+        @media (max-width: 600px) {
+          .ath-cal-grid { gap: 3px !important; }
+          .ath-day-cell { min-height: 65px !important; padding: 4px !important; border-radius: 6px !important; }
+          .ath-day-cell .day-number { font-size: 12px !important; }
+          .ath-day-cell .day-today { width: 22px !important; height: 22px !important; font-size: 11px !important; }
+          .ath-day-cell .post-type-label { font-size: 7px !important; letter-spacing: 0 !important; }
+          .ath-day-cell .holiday-label { font-size: 6px !important; }
+          .ath-weekday-label { font-size: 8px !important; padding: 4px 0 !important; }
+          .ath-card { padding: 12px !important; border-radius: 12px !important; }
+          .ath-page-title { font-size: 24px !important; }
+          .ath-page-subtitle { font-size: 13px !important; }
+        }
+
+        /* Very small phone */
+        @media (max-width: 400px) {
+          .ath-cal-grid { gap: 2px !important; }
+          .ath-day-cell { min-height: 55px !important; padding: 3px !important; }
+          .ath-day-cell .day-number { font-size: 11px !important; }
+          .ath-day-cell .day-today { width: 20px !important; height: 20px !important; font-size: 10px !important; }
+          .ath-day-cell .post-type-label { font-size: 6px !important; }
+          .ath-day-cell .holiday-label { display: none !important; }
+          .ath-weekday-label { font-size: 7px !important; }
+          .ath-nav-btn { padding: 6px 10px !important; font-size: 11px !important; }
+        }
       `}</style>
     </div>
   );

@@ -72,6 +72,11 @@ export default function PostPage() {
 
   const SHOW_DEBUG_PROMPT = false;
 
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Update edited values when post changes
   useEffect(() => {
     if (post?.caption) setEditedCaption(post.caption);
