@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { getImage } from "./lib/imageStorage";
 
 // localStorage keys
 const ACTIVE_BRAND_KEY = "ath_active_brand_profile";
@@ -50,6 +51,7 @@ export default function DashboardPage() {
     useState("#ffffff");
   const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [postImages, setPostImages] = useState<Record<string, string>>({});
 
   // Load profiles and posts from localStorage
   useEffect(() => {
@@ -83,7 +85,18 @@ export default function DashboardPage() {
       const savedPosts = localStorage.getItem("ath_gallery");
       if (savedPosts) {
         const posts = JSON.parse(savedPosts) as SavedPost[];
-        setRecentPosts(posts.slice(0, 4)); // Show last 4
+        // Sort by date, newest first
+        posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        const recent = posts.slice(0, 3); // Show last 3
+        setRecentPosts(recent);
+
+        // Load images for recent posts
+        recent.forEach(async (post) => {
+          const img = await getImage(post.id);
+          if (img) {
+            setPostImages((prev) => ({ ...prev, [post.id]: img }));
+          }
+        });
       }
     } catch {}
   }, []);
@@ -1515,60 +1528,155 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Bottom Action Buttons */}
+        {/* Recent Posts & Gallery Section */}
         <div
           style={{
-            display: "flex",
-            gap: 16,
-            justifyContent: "center",
+            background: "linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%)",
+            border: "1px solid rgba(124, 58, 237, 0.2)",
+            borderRadius: 16,
+            padding: 24,
             marginTop: 40,
-            flexWrap: "wrap",
           }}
         >
           <div
-            onClick={() => router.push(`/gallery?profileId=${activeProfile?.id}`)}
             style={{
-              background: "linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(99, 102, 241, 0.1) 100%)",
-              border: "1px solid rgba(124, 58, 237, 0.3)",
-              borderRadius: 12,
-              padding: "16px 32px",
-              cursor: "pointer",
               display: "flex",
+              justifyContent: "space-between",
               alignItems: "center",
-              gap: 10,
-              transition: "all 0.2s ease",
+              marginBottom: 20,
             }}
-            className="hover-card"
           >
-            <svg width="20" height="20" fill="none" stroke="#a78bfa" strokeWidth="2" viewBox="0 0 24 24">
-              <rect x="3" y="3" width="7" height="7" rx="1" />
-              <rect x="14" y="3" width="7" height="7" rx="1" />
-              <rect x="3" y="14" width="7" height="7" rx="1" />
-              <rect x="14" y="14" width="7" height="7" rx="1" />
-            </svg>
-            <span style={{ fontWeight: 600, color: "#a78bfa" }}>View Gallery</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <svg width="20" height="20" fill="none" stroke="#a78bfa" strokeWidth="2" viewBox="0 0 24 24">
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+              </svg>
+              <span style={{ fontWeight: 700, fontSize: 16, color: "#e6edf7" }}>Recent Posts</span>
+            </div>
+            <div
+              onClick={() => router.push(`/gallery?profileId=${activeProfile?.id}`)}
+              style={{
+                background: "rgba(124, 58, 237, 0.2)",
+                border: "1px solid rgba(124, 58, 237, 0.4)",
+                borderRadius: 8,
+                padding: "8px 16px",
+                cursor: "pointer",
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#a78bfa",
+                transition: "all 0.2s ease",
+              }}
+              className="hover-card"
+            >
+              View All →
+            </div>
           </div>
 
-          <div
-            onClick={() => router.push(`/post?profileId=${activeProfile?.id}`)}
-            style={{
-              background: "linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(22, 163, 74, 0.1) 100%)",
-              border: "1px solid rgba(34, 197, 94, 0.3)",
-              borderRadius: 12,
-              padding: "16px 32px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              transition: "all 0.2s ease",
-            }}
-            className="hover-card"
-          >
-            <svg width="20" height="20" fill="none" stroke="#4ade80" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span style={{ fontWeight: 600, color: "#4ade80" }}>Recent Posts</span>
-          </div>
+          {recentPosts.length > 0 ? (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+                gap: 16,
+              }}
+            >
+              {recentPosts.map((post) => (
+                <div
+                  key={post.id}
+                  onClick={() => router.push(`/gallery?profileId=${activeProfile?.id}`)}
+                  style={{
+                    background: "#0b1220",
+                    borderRadius: 12,
+                    overflow: "hidden",
+                    cursor: "pointer",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    transition: "all 0.2s ease",
+                  }}
+                  className="hover-card"
+                >
+                  {postImages[post.id] ? (
+                    <div
+                      style={{
+                        width: "100%",
+                        aspectRatio: "1",
+                        backgroundImage: `url(${postImages[post.id]})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: "100%",
+                        aspectRatio: "1",
+                        background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <svg width="32" height="32" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <circle cx="8.5" cy="8.5" r="1.5" />
+                        <path d="M21 15l-5-5L5 21" />
+                      </svg>
+                    </div>
+                  )}
+                  <div style={{ padding: 10 }}>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: "#a78bfa",
+                        marginBottom: 4,
+                      }}
+                    >
+                      {post.postType}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: "rgba(255,255,255,0.5)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {post.caption.slice(0, 40)}...
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "40px 20px",
+                color: "rgba(255,255,255,0.5)",
+              }}
+            >
+              <svg
+                width="48"
+                height="48"
+                fill="none"
+                stroke="rgba(255,255,255,0.2)"
+                strokeWidth="1.5"
+                viewBox="0 0 24 24"
+                style={{ margin: "0 auto 12px" }}
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <path d="M21 15l-5-5L5 21" />
+              </svg>
+              <div style={{ fontSize: 14, marginBottom: 8 }}>No posts yet</div>
+              <div style={{ fontSize: 12, opacity: 0.7 }}>
+                Generate your first post to see it here
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
