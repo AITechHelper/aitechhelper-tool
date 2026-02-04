@@ -1,7 +1,7 @@
 "use client";
 
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -103,7 +103,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
 };
 
-export default function SubscribePage() {
+function SubscribeContent() {
   const searchParams = useSearchParams();
   const canceled = searchParams.get("canceled");
   const [selectedPlan, setSelectedPlan] = useState<"monthly" | "yearly">("monthly");
@@ -183,5 +183,13 @@ export default function SubscribePage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function SubscribePage() {
+  return (
+    <Suspense fallback={<div style={styles.container}>Loading...</div>}>
+      <SubscribeContent />
+    </Suspense>
   );
 }
