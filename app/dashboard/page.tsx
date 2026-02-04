@@ -680,6 +680,27 @@ export default function DashboardPage() {
           >
             What would you like to do today?
           </p>
+          <button
+            onClick={async () => {
+              try {
+                const res = await fetch("/api/stripe/portal", { method: "POST" });
+                const data = await res.json();
+                if (data.url) window.location.href = data.url;
+              } catch {}
+            }}
+            style={{
+              marginTop: 16,
+              padding: "8px 16px",
+              background: "transparent",
+              border: "1px solid rgba(255,255,255,0.2)",
+              borderRadius: 8,
+              color: "#8fa3bf",
+              fontSize: 14,
+              cursor: "pointer",
+            }}
+          >
+            Manage Billing
+          </button>
         </div>
 
         {/* Show compact profile bar when profiles exist */}

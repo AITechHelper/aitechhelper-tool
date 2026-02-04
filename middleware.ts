@@ -1,0 +1,78 @@
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+// Public routes that don't require auth
+const isPublicRoute = createRouteMatcher([
+  "/",
+  "/landing",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/subscribe",
+  "/api/stripe/webhook",
+]);
+
+// Routes that require subscription (protected app routes)
+const isProtectedAppRoute = createRouteMatcher([
+  "/dashboard(.*)",
+  "/generator(.*)",
+  "/calendar(.*)",
+  "/gallery(.*)",
+  "/post(.*)",
+  "/api/generate(.*)",
+]);
+
+export default clerkMiddleware(async (auth, req: NextRequest) => {
+  const { userId } = await auth();
+  const { pathname } = req.nextUrl;
+
+  // Allow public routes
+  if (isPublicRoute(req)) {
+    return NextResponse.next();
+  }
+
+  // If not logged in, redirect to sign-in
+  if (!userId) {
+    const signInUrl = new URL("/sign-in", req.url);
+    signInUrl.searchParams.set("redirect_url", pathname);
+    return NextResponse.redirect(signInUrl);
+  }
+
+  // For protected app routes, check subscription status
+  if (isProtectedAppRoute(req)) {
+    // Check subscription via API call to avoid direct DB access in edge middleware
+    const checkUrl = new URL("/api/check-subscription", req.url);
+    try {
+      const response = await fetch(checkUrl, {
+        headers: {
+          cookie: req.headers.get("cookie") || "",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.status !== "active") {
+          return NextResponse.redirect(new URL("/subscribe", req.url));
+        }
+      } else {
+        // If check fails, redirect to subscribe as fallback
+        return NextResponse.redirect(new URL("/subscribe", req.url));
+      }
+    } catch {
+      // On error, let the request through - page will handle auth
+      // This prevents blocking if the API is temporarily unavailable
+      return NextResponse.next();
+    }
+  }
+
+  return NextResponse.next();
+});
+
+export const config = {
+  matcher: [
+    // Skip Next.js internals and static files
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    // Always run for API routes
+    "/(api|trpc)(.*)",
+  ],
+};
