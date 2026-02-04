@@ -1,6 +1,15 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
 export default function Header() {
+  const pathname = usePathname();
+  
+  // Hide header on landing page
+  if (pathname === "/") {
+    return null;
+  }
+
   return (
     <header
       style={{

@@ -1071,222 +1071,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* How It Works Section - Enhanced */}
-        <div style={{ ...styles.section, marginBottom: 28 }}>
-          <div
-            style={{
-              background: "linear-gradient(135deg, #15233d 0%, #1a1a2e 100%)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: 20,
-              padding: "28px 32px",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
-            }}
-          >
-            {/* Section Header */}
-            <div style={{ textAlign: "center" as const, marginBottom: 28 }}>
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "#7eb3ff",
-                  marginBottom: 6,
-                  textTransform: "uppercase" as const,
-                  letterSpacing: 2,
-                }}
-              >
-                Simple 4-Step Process
-              </div>
-              <div style={{ fontSize: 22, fontWeight: 700 }}>How It Works</div>
-            </div>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(4, 1fr)",
-                gap: 16,
-              }}
-              className="how-it-works-grid"
-            >
-              {/* Step 1 */}
-              <div
-                style={{
-                  background: "rgba(44, 107, 237, 0.08)",
-                  border: "1px solid rgba(44, 107, 237, 0.2)",
-                  borderRadius: 16,
-                  padding: "20px 16px",
-                  textAlign: "center" as const,
-                  position: "relative" as const,
-                }}
-              >
-                <div
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 12,
-                    background:
-                      "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    margin: "0 auto 14px",
-                    fontSize: 22,
-                    fontWeight: 700,
-                    color: "#fff",
-                    boxShadow: "0 4px 12px rgba(44, 107, 237, 0.4)",
-                  }}
-                >
-                  1
-                </div>
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 700,
-                    marginBottom: 6,
-                    color: "#e6edf7",
-                  }}
-                >
-                  Create Profile
-                </div>
-                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
-                  Save your brand colors, tone & audience once
-                </div>
-              </div>
-
-              {/* Step 2 */}
-              <div
-                style={{
-                  background: "rgba(124, 58, 237, 0.08)",
-                  border: "1px solid rgba(124, 58, 237, 0.2)",
-                  borderRadius: 16,
-                  padding: "20px 16px",
-                  textAlign: "center" as const,
-                }}
-              >
-                <div
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 12,
-                    background:
-                      "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    margin: "0 auto 14px",
-                    fontSize: 22,
-                    fontWeight: 700,
-                    color: "#fff",
-                    boxShadow: "0 4px 12px rgba(124, 58, 237, 0.4)",
-                  }}
-                >
-                  2
-                </div>
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 700,
-                    marginBottom: 6,
-                    color: "#e6edf7",
-                  }}
-                >
-                  Choose Post Type
-                </div>
-                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
-                  Quick tip, promo, testimonial, behind-the-scenes
-                </div>
-              </div>
-
-              {/* Step 3 */}
-              <div
-                style={{
-                  background: "rgba(236, 72, 153, 0.08)",
-                  border: "1px solid rgba(236, 72, 153, 0.2)",
-                  borderRadius: 16,
-                  padding: "20px 16px",
-                  textAlign: "center" as const,
-                }}
-              >
-                <div
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 12,
-                    background:
-                      "linear-gradient(135deg, #ec4899 0%, #be185d 100%)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    margin: "0 auto 14px",
-                    fontSize: 22,
-                    fontWeight: 700,
-                    color: "#fff",
-                    boxShadow: "0 4px 12px rgba(236, 72, 153, 0.4)",
-                  }}
-                >
-                  3
-                </div>
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 700,
-                    marginBottom: 6,
-                    color: "#e6edf7",
-                  }}
-                >
-                  AI Generates
-                </div>
-                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
-                  Custom image + caption + hashtags instantly
-                </div>
-              </div>
-
-              {/* Step 4 */}
-              <div
-                style={{
-                  background: "rgba(34, 197, 94, 0.08)",
-                  border: "1px solid rgba(34, 197, 94, 0.2)",
-                  borderRadius: 16,
-                  padding: "20px 16px",
-                  textAlign: "center" as const,
-                }}
-              >
-                <div
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 12,
-                    background:
-                      "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    margin: "0 auto 14px",
-                    fontSize: 22,
-                    fontWeight: 700,
-                    color: "#fff",
-                    boxShadow: "0 4px 12px rgba(34, 197, 94, 0.4)",
-                  }}
-                >
-                  ✓
-                </div>
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 700,
-                    marginBottom: 6,
-                    color: "#e6edf7",
-                  }}
-                >
-                  Post & Save
-                </div>
-                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
-                  Download image & copy caption to post
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Main Actions - Enhanced Cards */}
         <div style={styles.section}>
           <div style={styles.actionGrid} className="ath-actionGrid">
@@ -1544,6 +1328,222 @@ export default function DashboardPage() {
                   }}
                 >
                   Open Calendar →
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* How It Works Section - Enhanced */}
+        <div style={{ ...styles.section, marginBottom: 28, marginTop: 28 }}>
+          <div
+            style={{
+              background: "linear-gradient(135deg, #15233d 0%, #1a1a2e 100%)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 20,
+              padding: "28px 32px",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+            }}
+          >
+            {/* Section Header */}
+            <div style={{ textAlign: "center" as const, marginBottom: 28 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#7eb3ff",
+                  marginBottom: 6,
+                  textTransform: "uppercase" as const,
+                  letterSpacing: 2,
+                }}
+              >
+                Simple 4-Step Process
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 700 }}>How It Works</div>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                gap: 16,
+              }}
+              className="how-it-works-grid"
+            >
+              {/* Step 1 */}
+              <div
+                style={{
+                  background: "rgba(44, 107, 237, 0.08)",
+                  border: "1px solid rgba(44, 107, 237, 0.2)",
+                  borderRadius: 16,
+                  padding: "20px 16px",
+                  textAlign: "center" as const,
+                  position: "relative" as const,
+                }}
+              >
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 12,
+                    background:
+                      "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 14px",
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: "#fff",
+                    boxShadow: "0 4px 12px rgba(44, 107, 237, 0.4)",
+                  }}
+                >
+                  1
+                </div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    marginBottom: 6,
+                    color: "#e6edf7",
+                  }}
+                >
+                  Create Profile
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
+                  Save your brand colors, tone & audience once
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div
+                style={{
+                  background: "rgba(124, 58, 237, 0.08)",
+                  border: "1px solid rgba(124, 58, 237, 0.2)",
+                  borderRadius: 16,
+                  padding: "20px 16px",
+                  textAlign: "center" as const,
+                }}
+              >
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 12,
+                    background:
+                      "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 14px",
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: "#fff",
+                    boxShadow: "0 4px 12px rgba(124, 58, 237, 0.4)",
+                  }}
+                >
+                  2
+                </div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    marginBottom: 6,
+                    color: "#e6edf7",
+                  }}
+                >
+                  Choose Post Type
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
+                  Quick tip, promo, testimonial, behind-the-scenes
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div
+                style={{
+                  background: "rgba(236, 72, 153, 0.08)",
+                  border: "1px solid rgba(236, 72, 153, 0.2)",
+                  borderRadius: 16,
+                  padding: "20px 16px",
+                  textAlign: "center" as const,
+                }}
+              >
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 12,
+                    background:
+                      "linear-gradient(135deg, #ec4899 0%, #be185d 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 14px",
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: "#fff",
+                    boxShadow: "0 4px 12px rgba(236, 72, 153, 0.4)",
+                  }}
+                >
+                  3
+                </div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    marginBottom: 6,
+                    color: "#e6edf7",
+                  }}
+                >
+                  AI Generates
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
+                  Custom image + caption + hashtags instantly
+                </div>
+              </div>
+
+              {/* Step 4 */}
+              <div
+                style={{
+                  background: "rgba(34, 197, 94, 0.08)",
+                  border: "1px solid rgba(34, 197, 94, 0.2)",
+                  borderRadius: 16,
+                  padding: "20px 16px",
+                  textAlign: "center" as const,
+                }}
+              >
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 12,
+                    background:
+                      "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 14px",
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: "#fff",
+                    boxShadow: "0 4px 12px rgba(34, 197, 94, 0.4)",
+                  }}
+                >
+                  ✓
+                </div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    marginBottom: 6,
+                    color: "#e6edf7",
+                  }}
+                >
+                  Post & Save
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
+                  Download image & copy caption to post
                 </div>
               </div>
             </div>

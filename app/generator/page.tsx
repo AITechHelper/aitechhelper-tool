@@ -692,7 +692,8 @@ export default function Page() {
       border: "1px solid rgba(255,255,255,0.1)",
       borderRadius: 20,
       padding: 24,
-      boxShadow: "0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.05)",
+      boxShadow:
+        "0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.05)",
       marginBottom: 16,
       transition: "all 0.15s ease",
     },
@@ -1149,37 +1150,44 @@ export default function Page() {
   return (
     <div style={styles.page}>
       {/* Header - Enhanced with gradient */}
-      <div style={{
-        maxWidth: 900,
-        margin: "0 auto 24px auto",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 12,
-        flexWrap: "wrap" as const,
-        paddingTop: 50,
-      }}>
+      <div
+        style={{
+          maxWidth: 900,
+          margin: "0 auto 24px auto",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+          flexWrap: "wrap" as const,
+          paddingTop: 50,
+        }}
+      >
         <div>
-          <h1 style={{
-            fontSize: 32,
-            fontWeight: 800,
-            letterSpacing: 1,
-            margin: 0,
-            background: "linear-gradient(135deg, #2c6bed 0%, #7eb3ff 50%, #a78bfa 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-          }}>
+          <h1
+            style={{
+              fontSize: 32,
+              fontWeight: 800,
+              letterSpacing: 1,
+              margin: 0,
+              background:
+                "linear-gradient(135deg, #2c6bed 0%, #7eb3ff 50%, #a78bfa 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
             Generate a Post
           </h1>
-          <p style={{
-            margin: "8px 0 0 0",
-            opacity: 0.8,
-            fontSize: 15,
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-          }}>
+          <p
+            style={{
+              margin: "8px 0 0 0",
+              opacity: 0.8,
+              fontSize: 15,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
             <span style={{ fontSize: 18 }}>⚡</span>
             AI-powered image + caption + hashtags
           </p>
@@ -1188,7 +1196,8 @@ export default function Page() {
           <a
             href="/dashboard"
             style={{
-              background: "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(44, 107, 237, 0.1) 100%)",
+              background:
+                "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(44, 107, 237, 0.1) 100%)",
               border: "1px solid rgba(44, 107, 237, 0.3)",
               borderRadius: 10,
               padding: "10px 16px",
@@ -1222,7 +1231,8 @@ export default function Page() {
           </a>
           <button
             style={{
-              background: "linear-gradient(135deg, rgba(124, 58, 237, 0.2) 0%, rgba(124, 58, 237, 0.1) 100%)",
+              background:
+                "linear-gradient(135deg, rgba(124, 58, 237, 0.2) 0%, rgba(124, 58, 237, 0.1) 100%)",
               border: "1px solid rgba(124, 58, 237, 0.3)",
               borderRadius: 10,
               padding: "10px 16px",
