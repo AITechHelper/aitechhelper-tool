@@ -139,7 +139,7 @@ export default function Home() {
           <span style={{ fontSize: 18, fontWeight: 800 }}>AI Tech Helper</span>
         </div>
         <button
-          onClick={() => router.push("/generator")}
+          onClick={() => router.push("/dashboard")}
           style={{
             background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
             border: "none",
@@ -270,7 +270,7 @@ export default function Home() {
             {/* CTA Button */}
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
               <button
-                onClick={() => router.push("/generator")}
+                onClick={() => router.push("/dashboard")}
                 style={{
                   background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
                   border: "none",
@@ -749,7 +749,7 @@ export default function Home() {
             Join thousands of businesses creating stunning content in seconds. No design skills required.
           </p>
           <button
-            onClick={() => router.push("/generator")}
+            onClick={() => router.push("/dashboard")}
             style={{
               background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
               border: "none",
