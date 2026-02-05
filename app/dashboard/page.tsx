@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { SignOutButton } from "@clerk/nextjs";
 import { getImage } from "../lib/imageStorage";
 
 // localStorage keys
@@ -87,7 +88,10 @@ export default function DashboardPage() {
       if (savedPosts) {
         const posts = JSON.parse(savedPosts) as SavedPost[];
         // Sort by date, newest first
-        posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        posts.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
         const recent = posts.slice(0, 3); // Show last 3
         setRecentPosts(recent);
 
@@ -654,7 +658,13 @@ export default function DashboardPage() {
     <div style={styles.page}>
       <div style={styles.container}>
         {/* Header - Enhanced */}
-        <div style={{ marginBottom: 32, textAlign: "center" as const, paddingTop: 50 }}>
+        <div
+          style={{
+            marginBottom: 32,
+            textAlign: "center" as const,
+            paddingTop: 50,
+          }}
+        >
           <h1
             style={{
               fontSize: 36,
@@ -680,27 +690,52 @@ export default function DashboardPage() {
           >
             What would you like to do today?
           </p>
-          <button
-            onClick={async () => {
-              try {
-                const res = await fetch("/api/stripe/portal", { method: "POST" });
-                const data = await res.json();
-                if (data.url) window.location.href = data.url;
-              } catch {}
-            }}
+          <div
             style={{
+              display: "flex",
+              gap: 12,
+              justifyContent: "center",
               marginTop: 16,
-              padding: "8px 16px",
-              background: "transparent",
-              border: "1px solid rgba(255,255,255,0.2)",
-              borderRadius: 8,
-              color: "#8fa3bf",
-              fontSize: 14,
-              cursor: "pointer",
             }}
           >
-            Manage Billing
-          </button>
+            <button
+              onClick={async () => {
+                try {
+                  const res = await fetch("/api/stripe/portal", {
+                    method: "POST",
+                  });
+                  const data = await res.json();
+                  if (data.url) window.location.href = data.url;
+                } catch {}
+              }}
+              style={{
+                padding: "8px 16px",
+                background: "transparent",
+                border: "1px solid rgba(255,255,255,0.2)",
+                borderRadius: 8,
+                color: "#8fa3bf",
+                fontSize: 14,
+                cursor: "pointer",
+              }}
+            >
+              Manage Billing
+            </button>
+            <SignOutButton redirectUrl="/landing">
+              <button
+                style={{
+                  padding: "8px 16px",
+                  background: "transparent",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  borderRadius: 8,
+                  color: "#8fa3bf",
+                  fontSize: 14,
+                  cursor: "pointer",
+                }}
+              >
+                Sign out
+              </button>
+            </SignOutButton>
+          </div>
         </div>
 
         {/* Show compact profile bar when profiles exist */}
@@ -720,7 +755,10 @@ export default function DashboardPage() {
                 "0 4px 20px rgba(0,0,0,0.3), 0 0 30px rgba(34, 197, 94, 0.08)",
             }}
           >
-            <div className="profile-bar-left" style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <div
+              className="profile-bar-left"
+              style={{ display: "flex", alignItems: "center", gap: 16 }}
+            >
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: 16, fontWeight: 700 }}>
@@ -773,7 +811,10 @@ export default function DashboardPage() {
                 View Posts
               </button>
             </div>
-            <div className="profile-bar-right" style={styles.profileBarDropdown}>
+            <div
+              className="profile-bar-right"
+              style={styles.profileBarDropdown}
+            >
               <button
                 style={{
                   background:
@@ -1574,7 +1615,8 @@ export default function DashboardPage() {
         {/* Recent Posts & Gallery Section */}
         <div
           style={{
-            background: "linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%)",
+            background:
+              "linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%)",
             border: "1px solid rgba(124, 58, 237, 0.2)",
             borderRadius: 16,
             padding: 24,
@@ -1590,16 +1632,31 @@ export default function DashboardPage() {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <svg width="20" height="20" fill="none" stroke="#a78bfa" strokeWidth="2" viewBox="0 0 24 24">
+              <svg
+                width="20"
+                height="20"
+                fill="none"
+                stroke="#a78bfa"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
                 <rect x="3" y="3" width="7" height="7" rx="1" />
                 <rect x="14" y="3" width="7" height="7" rx="1" />
                 <rect x="3" y="14" width="7" height="7" rx="1" />
                 <rect x="14" y="14" width="7" height="7" rx="1" />
               </svg>
-              <span style={{ fontWeight: 700, fontSize: 16, color: "#e6edf7" }}>Recent Posts</span>
+              <span style={{ fontWeight: 700, fontSize: 16, color: "#e6edf7" }}>
+                Recent Posts
+              </span>
             </div>
             <div
-              onClick={() => router.push(activeProfile?.id ? `/gallery?profileId=${activeProfile.id}` : '/gallery')}
+              onClick={() =>
+                router.push(
+                  activeProfile?.id
+                    ? `/gallery?profileId=${activeProfile.id}`
+                    : "/gallery"
+                )
+              }
               style={{
                 background: "rgba(124, 58, 237, 0.2)",
                 border: "1px solid rgba(124, 58, 237, 0.4)",
@@ -1628,7 +1685,13 @@ export default function DashboardPage() {
               {recentPosts.map((post) => (
                 <div
                   key={post.id}
-                  onClick={() => router.push(activeProfile?.id ? `/gallery?profileId=${activeProfile.id}` : '/gallery')}
+                  onClick={() =>
+                    router.push(
+                      activeProfile?.id
+                        ? `/gallery?profileId=${activeProfile.id}`
+                        : "/gallery"
+                    )
+                  }
                   style={{
                     background: "#0b1220",
                     borderRadius: 12,
@@ -1654,13 +1717,21 @@ export default function DashboardPage() {
                       style={{
                         width: "100%",
                         aspectRatio: "1",
-                        background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
+                        background:
+                          "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                       }}
                     >
-                      <svg width="32" height="32" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" viewBox="0 0 24 24">
+                      <svg
+                        width="32"
+                        height="32"
+                        fill="none"
+                        stroke="rgba(255,255,255,0.2)"
+                        strokeWidth="1.5"
+                        viewBox="0 0 24 24"
+                      >
                         <rect x="3" y="3" width="18" height="18" rx="2" />
                         <circle cx="8.5" cy="8.5" r="1.5" />
                         <path d="M21 15l-5-5L5 21" />
