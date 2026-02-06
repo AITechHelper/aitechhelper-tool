@@ -15,6 +15,7 @@ export default function SignUpPage() {
   return (
     <div style={styles.container}>
       <SignUp
+        afterSignUpUrl="/dashboard"
         appearance={{
           elements: {
             rootBox: { width: "100%", maxWidth: "400px" },
