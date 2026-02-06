@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { SignOutButton, useUser } from "@clerk/nextjs";
 import { getImage } from "../lib/imageStorage";
@@ -56,6 +56,8 @@ export default function DashboardPage() {
   const [postImages, setPostImages] = useState<Record<string, string>>({});
   const [hasLoadedProfiles, setHasLoadedProfiles] = useState(false);
   const [billingLoading, setBillingLoading] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Load profiles and posts from localStorage
   useEffect(() => {
@@ -109,6 +111,52 @@ export default function DashboardPage() {
 
     setHasLoadedProfiles(true);
   }, []);
+
+  // Handle click outside menu to close it
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+
+    function handleEscKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    }
+
+    if (menuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleEscKey);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscKey);
+    };
+  }, [menuOpen]);
+
+  // Handle billing portal
+  const handleBilling = async () => {
+    setBillingLoading(true);
+    setMenuOpen(false);
+    try {
+      const res = await fetch("/api/billing-portal", {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else if (data.error) {
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      alert("Failed to open billing portal. Please try again.");
+    } finally {
+      setBillingLoading(false);
+    }
+  };
 
   // Save profiles to localStorage (only after initial load)
   useEffect(() => {
@@ -686,28 +734,106 @@ export default function DashboardPage() {
           {/* User Identity Pill - Top Right */}
           {user && (
             <div
-              style={{
-                position: "fixed",
-                top: 16,
-                right: 16,
-                zIndex: 1000,
-                background: "rgba(44, 107, 237, 0.1)",
-                border: "1px solid rgba(44, 107, 237, 0.2)",
-                borderRadius: 20,
-                padding: "6px 14px",
-                fontSize: 12,
-                color: "#7eb3ff",
-                fontWeight: 600,
-                fontFamily: "Verdana, Geneva, sans-serif",
-                maxWidth: 220,
-                textOverflow: "ellipsis",
-                overflow: "hidden",
-                whiteSpace: "nowrap",
-              }}
+              ref={menuRef}
+              style={{ position: "fixed", top: 16, right: 16, zIndex: 1000 }}
             >
-              {user.primaryEmailAddress?.emailAddress ||
-                user.username ||
-                "Signed in"}
+              <div
+                onClick={() => setMenuOpen(!menuOpen)}
+                style={{
+                  background: "rgba(44, 107, 237, 0.1)",
+                  border: "1px solid rgba(44, 107, 237, 0.2)",
+                  borderRadius: 20,
+                  padding: "6px 14px",
+                  fontSize: 12,
+                  color: "#7eb3ff",
+                  fontWeight: 600,
+                  fontFamily: "Verdana, Geneva, sans-serif",
+                  maxWidth: 220,
+                  textOverflow: "ellipsis",
+                  overflow: "hidden",
+                  whiteSpace: "nowrap",
+                  cursor: "pointer",
+                  transition: "opacity 0.2s ease",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+              >
+                {user.primaryEmailAddress?.emailAddress ||
+                  user.username ||
+                  "Signed in"}
+              </div>
+
+              {/* Dropdown Menu */}
+              {menuOpen && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 48,
+                    right: 0,
+                    background: "rgba(10, 18, 32, 0.98)",
+                    border: "1px solid rgba(255,255,255,0.10)",
+                    borderRadius: 14,
+                    minWidth: 200,
+                    boxShadow: "0 12px 40px rgba(0,0,0,0.45)",
+                    padding: 8,
+                  }}
+                >
+                  <button
+                    onClick={handleBilling}
+                    disabled={billingLoading}
+                    style={{
+                      width: "100%",
+                      background: "transparent",
+                      border: "none",
+                      color: "#ffffff",
+                      padding: "10px 12px",
+                      borderRadius: 8,
+                      fontSize: 14,
+                      fontWeight: 500,
+                      cursor: billingLoading ? "not-allowed" : "pointer",
+                      textAlign: "left" as const,
+                      transition: "background 0.2s ease",
+                    }}
+                    onMouseEnter={(e) =>
+                      !billingLoading &&
+                      (e.currentTarget.style.background =
+                        "rgba(255,255,255,0.05)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background = "transparent")
+                    }
+                  >
+                    {billingLoading ? "Loading..." : "Manage Billing"}
+                  </button>
+
+                  <SignOutButton redirectUrl="/">
+                    <button
+                      style={{
+                        width: "100%",
+                        background: "transparent",
+                        border: "none",
+                        color: "#ffffff",
+                        padding: "10px 12px",
+                        borderRadius: 8,
+                        fontSize: 14,
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        textAlign: "left" as const,
+                        transition: "background 0.2s ease",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background =
+                          "rgba(255,255,255,0.05)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background = "transparent")
+                      }
+                    >
+                      Sign Out
+                    </button>
+                  </SignOutButton>
+                </div>
+              )}
             </div>
           )}
 
