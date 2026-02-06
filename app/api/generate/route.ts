@@ -2,13 +2,13 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import OpenAI from "openai";
-import { 
-  getTokenKey, 
-  getDefaultTokenData, 
-  resetTokensIfNewMonth, 
-  decrementToken, 
+import {
+  getTokenKey,
+  getDefaultTokenData,
+  resetTokensIfNewMonth,
+  decrementToken,
   canUseToken,
-  type TokenData 
+  type TokenData,
 } from "../../lib/tokens";
 
 export const runtime = "nodejs";
@@ -798,7 +798,7 @@ Audience="${audience}"
 export async function POST(req: Request) {
   try {
     const { userId } = await auth();
-    
+
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -808,7 +808,7 @@ export async function POST(req: Request) {
     // Check and decrement tokens (skip for refinements)
     if (!body.refinementText) {
       const tokenKey = getTokenKey(userId);
-      
+
       // Get current token data (this would be from a database in production)
       let tokenData: TokenData;
       try {
@@ -818,22 +818,27 @@ export async function POST(req: Request) {
       } catch {
         tokenData = getDefaultTokenData();
       }
-      
+
       // Reset tokens if new month
       tokenData = resetTokensIfNewMonth(tokenData);
-      
+
       // Check if user has tokens
       if (!canUseToken(tokenData)) {
         return NextResponse.json(
-          { error: "No tokens remaining. You have used all 60 tokens for this month." }, 
+          {
+            error:
+              "No tokens remaining. You have used all 60 tokens for this month.",
+          },
           { status: 402 }
         );
       }
-      
+
       // Decrement token (we'll save this back to database in production)
       tokenData = decrementToken(tokenData);
-      
-      console.log(`Token used for user ${userId}. Remaining: ${tokenData.totalMonthlyTokens - tokenData.tokensUsedThisMonth}`);
+
+      console.log(
+        `Token used for user ${userId}. Remaining: ${tokenData.totalMonthlyTokens - tokenData.tokensUsedThisMonth}`
+      );
     }
 
     // Check for existing generation with same requestId

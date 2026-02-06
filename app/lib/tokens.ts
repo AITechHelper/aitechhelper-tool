@@ -1,6 +1,6 @@
 // Token management utilities for user token tracking
 
-export const TOKENS_PER_MONTH = 60;
+export const TOKENS_PER_MONTH = 1;
 
 export type TokenData = {
   tokensUsedThisMonth: number;
@@ -10,7 +10,7 @@ export type TokenData = {
 
 export function getCurrentMonth(): string {
   const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
 export function getTokenKey(userId: string): string {
@@ -27,7 +27,7 @@ export function getDefaultTokenData(): TokenData {
 
 export function resetTokensIfNewMonth(tokenData: TokenData): TokenData {
   const currentMonth = getCurrentMonth();
-  
+
   if (tokenData.tokenMonth !== currentMonth) {
     return {
       tokensUsedThisMonth: 0,
@@ -35,7 +35,7 @@ export function resetTokensIfNewMonth(tokenData: TokenData): TokenData {
       totalMonthlyTokens: TOKENS_PER_MONTH,
     };
   }
-  
+
   return tokenData;
 }
 
@@ -50,11 +50,11 @@ export function canUseToken(tokenData: TokenData): boolean {
 
 export function decrementToken(tokenData: TokenData): TokenData {
   const resetData = resetTokensIfNewMonth(tokenData);
-  
+
   if (!canUseToken(resetData)) {
     return resetData; // Don't decrement if no tokens left
   }
-  
+
   return {
     ...resetData,
     tokensUsedThisMonth: resetData.tokensUsedThisMonth + 1,

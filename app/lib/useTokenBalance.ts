@@ -31,7 +31,7 @@ export function useTokenBalance(): TokenBalance {
 
   useEffect(() => {
     if (!user?.id) {
-      setBalance(prev => ({ ...prev, isLoading: false }));
+      setBalance((prev) => ({ ...prev, isLoading: false }));
       return;
     }
 
@@ -39,18 +39,20 @@ export function useTokenBalance(): TokenBalance {
       try {
         const tokenKey = getTokenKey(user.id);
         const stored = localStorage.getItem(tokenKey);
-        let tokenData: TokenData = stored ? JSON.parse(stored) : getDefaultTokenData();
-        
+        let tokenData: TokenData = stored
+          ? JSON.parse(stored)
+          : getDefaultTokenData();
+
         // Reset tokens if it's a new month
         const resetData = resetTokensIfNewMonth(tokenData);
-        
+
         // Save back if reset occurred
         if (resetData.tokenMonth !== tokenData.tokenMonth) {
           localStorage.setItem(tokenKey, JSON.stringify(resetData));
         }
-        
+
         const remainingTokens = calculateRemainingTokens(resetData);
-        
+
         setBalance({
           tokensUsed: resetData.tokensUsedThisMonth,
           tokensRemaining: remainingTokens,
@@ -60,7 +62,7 @@ export function useTokenBalance(): TokenBalance {
         });
       } catch (error) {
         console.error("Error fetching token balance:", error);
-        setBalance(prev => ({
+        setBalance((prev) => ({
           ...prev,
           isLoading: false,
           error: "Failed to load token balance",

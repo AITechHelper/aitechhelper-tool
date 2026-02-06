@@ -763,102 +763,75 @@ export default function DashboardPage() {
                     : `Tokens: ${tokenBalance.tokensRemaining}/${tokenBalance.totalMonthlyTokens}`}
                 </div>
               </div>
-              
+
               {/* User Email Pill */}
               <div
                 ref={menuRef}
                 style={{ position: "fixed", top: 16, right: 16, zIndex: 1000 }}
               >
-              <div
-                onClick={() => setMenuOpen(!menuOpen)}
-                style={{
-                  background: "rgba(44, 107, 237, 0.1)",
-                  border: "1px solid rgba(44, 107, 237, 0.2)",
-                  borderRadius: 20,
-                  padding: "6px 14px",
-                  fontSize: 12,
-                  color: "#7eb3ff",
-                  fontWeight: 600,
-                  fontFamily: "Verdana, Geneva, sans-serif",
-                  maxWidth: 220,
-                  cursor: "pointer",
-                  transition: "opacity 0.2s ease",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-              >
-                <span
-                  style={{
-                    textOverflow: "ellipsis",
-                    overflow: "hidden",
-                    whiteSpace: "nowrap",
-                    flex: 1,
-                  }}
-                >
-                  {user.primaryEmailAddress?.emailAddress ||
-                    user.username ||
-                    "Signed in"}
-                </span>
-                <span
-                  style={{
-                    fontSize: 10,
-                    transition: "transform 0.2s ease",
-                    transform: menuOpen ? "rotate(180deg)" : "rotate(0deg)",
-                    flexShrink: 0,
-                  }}
-                >
-                  ▼
-                </span>
-              </div>
-
-              {/* Dropdown Menu */}
-              {menuOpen && (
                 <div
+                  onClick={() => setMenuOpen(!menuOpen)}
                   style={{
-                    position: "absolute",
-                    top: 48,
-                    right: 0,
-                    background: "rgba(10, 18, 32, 0.98)",
-                    border: "1px solid rgba(255,255,255,0.10)",
-                    borderRadius: 14,
-                    minWidth: 200,
-                    boxShadow: "0 12px 40px rgba(0,0,0,0.45)",
-                    padding: 8,
+                    background: "rgba(44, 107, 237, 0.1)",
+                    border: "1px solid rgba(44, 107, 237, 0.2)",
+                    borderRadius: 20,
+                    padding: "6px 14px",
+                    fontSize: 12,
+                    color: "#7eb3ff",
+                    fontWeight: 600,
+                    fontFamily: "Verdana, Geneva, sans-serif",
+                    maxWidth: 220,
+                    cursor: "pointer",
+                    transition: "opacity 0.2s ease",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
                   }}
+                  onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+                  onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
                 >
-                  <button
-                    onClick={handleBilling}
-                    disabled={billingLoading}
+                  <span
                     style={{
-                      width: "100%",
-                      background: "transparent",
-                      border: "none",
-                      color: "#ffffff",
-                      padding: "10px 12px",
-                      borderRadius: 8,
-                      fontSize: 14,
-                      fontWeight: 500,
-                      cursor: billingLoading ? "not-allowed" : "pointer",
-                      textAlign: "left" as const,
-                      transition: "background 0.2s ease",
+                      textOverflow: "ellipsis",
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                      flex: 1,
                     }}
-                    onMouseEnter={(e) =>
-                      !billingLoading &&
-                      (e.currentTarget.style.background =
-                        "rgba(255,255,255,0.05)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.background = "transparent")
-                    }
                   >
-                    {billingLoading ? "Loading..." : "Manage Billing"}
-                  </button>
+                    {user.primaryEmailAddress?.emailAddress ||
+                      user.username ||
+                      "Signed in"}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 10,
+                      transition: "transform 0.2s ease",
+                      transform: menuOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    ▼
+                  </span>
+                </div>
 
-                  <SignOutButton redirectUrl="/">
+                {/* Dropdown Menu */}
+                {menuOpen && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 48,
+                      right: 0,
+                      background: "rgba(10, 18, 32, 0.98)",
+                      border: "1px solid rgba(255,255,255,0.10)",
+                      borderRadius: 14,
+                      minWidth: 200,
+                      boxShadow: "0 12px 40px rgba(0,0,0,0.45)",
+                      padding: 8,
+                    }}
+                  >
                     <button
+                      onClick={handleBilling}
+                      disabled={billingLoading}
                       style={{
                         width: "100%",
                         background: "transparent",
@@ -868,11 +841,12 @@ export default function DashboardPage() {
                         borderRadius: 8,
                         fontSize: 14,
                         fontWeight: 500,
-                        cursor: "pointer",
+                        cursor: billingLoading ? "not-allowed" : "pointer",
                         textAlign: "left" as const,
                         transition: "background 0.2s ease",
                       }}
                       onMouseEnter={(e) =>
+                        !billingLoading &&
                         (e.currentTarget.style.background =
                           "rgba(255,255,255,0.05)")
                       }
@@ -880,12 +854,38 @@ export default function DashboardPage() {
                         (e.currentTarget.style.background = "transparent")
                       }
                     >
-                      Sign Out
+                      {billingLoading ? "Loading..." : "Manage Billing"}
                     </button>
-                  </SignOutButton>
-                </div>
-              )}
-            </div>
+
+                    <SignOutButton redirectUrl="/">
+                      <button
+                        style={{
+                          width: "100%",
+                          background: "transparent",
+                          border: "none",
+                          color: "#ffffff",
+                          padding: "10px 12px",
+                          borderRadius: 8,
+                          fontSize: 14,
+                          fontWeight: 500,
+                          cursor: "pointer",
+                          textAlign: "left" as const,
+                          transition: "background 0.2s ease",
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.background =
+                            "rgba(255,255,255,0.05)")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.background = "transparent")
+                        }
+                      >
+                        Sign Out
+                      </button>
+                    </SignOutButton>
+                  </div>
+                )}
+              </div>
             </>
           ) : (
             <button

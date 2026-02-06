@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { saveImage } from "../lib/imageStorage";
+import { useTokenBalance } from "../lib/useTokenBalance";
 
 // Idempotency utilities
 function createRequestId(payload: any): string {
@@ -153,6 +154,7 @@ type PostResult = {
 export default function PostPage() {
   const router = useRouter();
   const hasStarted = useRef(false);
+  const tokenBalance = useTokenBalance();
 
   const [form, setForm] = useState<FormState>({
     niche: "",
@@ -309,6 +311,13 @@ export default function PostPage() {
       return;
     }
 
+    // Prevent auto-generation if no tokens remaining
+    if (!tokenBalance.isLoading && tokenBalance.tokensRemaining === 0) {
+      console.log("❌ No tokens remaining, skipping auto-generation");
+      setErrorMsg("You've hit your token limit for this month. Resets on the 1st of next month.");
+      return;
+    }
+
     // Start new generation
     console.log("🚀 Starting new generation for genId:", genId);
     generatePost();
@@ -321,6 +330,8 @@ export default function PostPage() {
     dayContext,
     formReady,
     router,
+    tokenBalance.tokensRemaining,
+    tokenBalance.isLoading,
   ]);
 
   // Loading progress simulation
@@ -358,6 +369,13 @@ export default function PostPage() {
 
   async function generatePost(refinementOverride?: string) {
     if (isLoading) return;
+    
+    // Check tokens before starting generation (skip for refinements)
+    if (!refinementOverride && !tokenBalance.isLoading && tokenBalance.tokensRemaining === 0) {
+      setErrorMsg("You've hit your token limit for this month. Resets on the 1st of next month.");
+      return;
+    }
+    
     setIsLoading(true);
     setErrorMsg("");
     setStatusMsg(refinementOverride ? "Regenerating…" : "Generating…");

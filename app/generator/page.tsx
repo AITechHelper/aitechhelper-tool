@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { imageStyles } from "../lib/imageStyleOptions";
+import { useTokenBalance } from "../lib/useTokenBalance";
 
 type FormState = {
   niche: string;
@@ -316,6 +317,7 @@ function Tooltip({
 }
 
 export default function Page() {
+  const tokenBalance = useTokenBalance();
   const [form, setForm] = useState<FormState>({
     niche: "",
     audience: "",
@@ -473,8 +475,12 @@ export default function Page() {
   }, [form.niche]);
 
   const canGenerate = useMemo(
-    () => form.niche.trim().length > 0 && form.audience.trim().length > 0,
-    [form.niche, form.audience]
+    () => {
+      const hasRequiredFields = form.niche.trim().length > 0 && form.audience.trim().length > 0;
+      const hasTokens = !tokenBalance.isLoading && tokenBalance.tokensRemaining > 0;
+      return hasRequiredFields && hasTokens;
+    },
+    [form.niche, form.audience, tokenBalance.isLoading, tokenBalance.tokensRemaining]
   );
 
   // Step definitions: 0=Business, 1=PostType, 2=ImageStyle, 3=CaptionSettings, 4=BrandColors, 5=ReferenceImage
@@ -2117,7 +2123,9 @@ export default function Page() {
                 >
                   {isLoading
                     ? "Generating…"
-                    : canGenerate
+                    : tokenBalance.tokensRemaining === 0
+                      ? "Token limit reached - resets next month"
+                      : canGenerate
                       ? "Generate Post"
                       : "Fill in Niche & Audience"}
                   <svg
