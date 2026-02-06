@@ -659,57 +659,54 @@ export default function DashboardPage() {
   return (
     <div style={styles.page}>
       <div style={{ ...styles.container, position: "relative" }}>
-        {/* Top Header with Logo and Email Pill */}
-        <div
+        {/* Logo - Top Left */}
+        <h1
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "20px 0",
-            marginBottom: 20,
+            fontSize: 36,
+            fontWeight: 800,
+            letterSpacing: 1,
+            margin: 0,
+            position: "absolute",
+            top: 20,
+            left: 20,
+            zIndex: 10,
+            background:
+              "linear-gradient(135deg, #e6edf7 0%, #7eb3ff 50%, #a78bfa 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
           }}
         >
-          {/* Logo - Left */}
-          <h1
+          AI TECH HELPER
+        </h1>
+
+        {/* User Identity Pill - Top Right */}
+        {user && (
+          <div
             style={{
-              fontSize: 36,
-              fontWeight: 800,
-              letterSpacing: 1,
-              margin: 0,
-              background:
-                "linear-gradient(135deg, #e6edf7 0%, #7eb3ff 50%, #a78bfa 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
+              position: "absolute",
+              top: 20,
+              right: 20,
+              zIndex: 10,
+              background: "rgba(44, 107, 237, 0.1)",
+              border: "1px solid rgba(44, 107, 237, 0.2)",
+              borderRadius: 20,
+              padding: "6px 14px",
+              fontSize: 12,
+              color: "#7eb3ff",
+              fontWeight: 600,
+              fontFamily: "Verdana, Geneva, sans-serif",
+              maxWidth: 220,
+              textOverflow: "ellipsis",
+              overflow: "hidden",
+              whiteSpace: "nowrap",
             }}
           >
-            AI TECH HELPER
-          </h1>
-
-          {/* User Identity Pill - Right */}
-          {user && (
-            <div
-              style={{
-                background: "rgba(44, 107, 237, 0.1)",
-                border: "1px solid rgba(44, 107, 237, 0.2)",
-                borderRadius: 20,
-                padding: "6px 14px",
-                fontSize: 12,
-                color: "#7eb3ff",
-                fontWeight: 600,
-                fontFamily: "Verdana, Geneva, sans-serif",
-                maxWidth: 200,
-                textOverflow: "ellipsis",
-                overflow: "hidden",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {user.primaryEmailAddress?.emailAddress ||
-                user.username ||
-                "Signed in"}
-            </div>
-          )}
-        </div>
+            {user.primaryEmailAddress?.emailAddress ||
+              user.username ||
+              "Signed in"}
+          </div>
+        )}
 
         {/* Header - Enhanced */}
         <div
