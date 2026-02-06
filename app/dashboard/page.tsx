@@ -731,8 +731,8 @@ export default function DashboardPage() {
             AI TECH HELPER
           </h1>
 
-          {/* User Identity Pill - Top Right */}
-          {user && (
+          {/* User Identity Pill or Sign In Button - Top Right */}
+          {user ? (
             <div
               ref={menuRef}
               style={{ position: "fixed", top: 16, right: 16, zIndex: 1000 }}
@@ -749,18 +749,37 @@ export default function DashboardPage() {
                   fontWeight: 600,
                   fontFamily: "Verdana, Geneva, sans-serif",
                   maxWidth: 220,
-                  textOverflow: "ellipsis",
-                  overflow: "hidden",
-                  whiteSpace: "nowrap",
                   cursor: "pointer",
                   transition: "opacity 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
                 onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
               >
-                {user.primaryEmailAddress?.emailAddress ||
-                  user.username ||
-                  "Signed in"}
+                <span
+                  style={{
+                    textOverflow: "ellipsis",
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                    flex: 1,
+                  }}
+                >
+                  {user.primaryEmailAddress?.emailAddress ||
+                    user.username ||
+                    "Signed in"}
+                </span>
+                <span
+                  style={{
+                    fontSize: 10,
+                    transition: "transform 0.2s ease",
+                    transform: menuOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    flexShrink: 0,
+                  }}
+                >
+                  ▼
+                </span>
               </div>
 
               {/* Dropdown Menu */}
@@ -835,6 +854,31 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
+          ) : (
+            /* Sign In Button for non-authenticated users */
+            <button
+              onClick={() => router.push("/sign-in")}
+              style={{
+                position: "fixed",
+                top: 16,
+                right: 16,
+                zIndex: 1000,
+                background: "rgba(44, 107, 237, 0.1)",
+                border: "1px solid rgba(44, 107, 237, 0.2)",
+                borderRadius: 20,
+                padding: "6px 14px",
+                fontSize: 12,
+                color: "#7eb3ff",
+                fontWeight: 600,
+                fontFamily: "Verdana, Geneva, sans-serif",
+                cursor: "pointer",
+                transition: "opacity 0.2s ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+            >
+              Sign In
+            </button>
           )}
 
           {/* Header - Enhanced */}
@@ -854,63 +898,6 @@ export default function DashboardPage() {
             >
               What would you like to do today?
             </p>
-            <div
-              style={{
-                display: "flex",
-                gap: 12,
-                justifyContent: "center",
-                marginTop: 16,
-              }}
-            >
-              <button
-                onClick={async () => {
-                  setBillingLoading(true);
-                  try {
-                    const res = await fetch("/api/billing-portal", {
-                      method: "POST",
-                    });
-                    const data = await res.json();
-                    if (data.url) {
-                      window.location.href = data.url;
-                    } else if (data.error) {
-                      alert(`Error: ${data.error}`);
-                    }
-                  } catch (error) {
-                    alert("Failed to open billing portal. Please try again.");
-                  } finally {
-                    setBillingLoading(false);
-                  }
-                }}
-                disabled={billingLoading}
-                style={{
-                  padding: "8px 16px",
-                  background: "transparent",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                  borderRadius: 8,
-                  color: billingLoading ? "#555" : "#8fa3bf",
-                  fontSize: 14,
-                  cursor: billingLoading ? "not-allowed" : "pointer",
-                  opacity: billingLoading ? 0.6 : 1,
-                }}
-              >
-                {billingLoading ? "Loading..." : "Manage Billing"}
-              </button>
-              <SignOutButton redirectUrl="/">
-                <button
-                  style={{
-                    padding: "8px 16px",
-                    background: "transparent",
-                    border: "1px solid rgba(255,255,255,0.2)",
-                    borderRadius: 8,
-                    color: "#8fa3bf",
-                    fontSize: 14,
-                    cursor: "pointer",
-                  }}
-                >
-                  Sign out
-                </button>
-              </SignOutButton>
-            </div>
           </div>
 
           {/* Show compact profile bar when profiles exist */}
