@@ -1,6 +1,15 @@
 // app/api/generate/route.ts
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import OpenAI from "openai";
+import { 
+  getTokenKey, 
+  getDefaultTokenData, 
+  resetTokensIfNewMonth, 
+  decrementToken, 
+  canUseToken,
+  type TokenData 
+} from "../../lib/tokens";
 
 export const runtime = "nodejs";
 
@@ -788,7 +797,44 @@ Audience="${audience}"
 
 export async function POST(req: Request) {
   try {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = (await req.json()) as Body;
+
+    // Check and decrement tokens (skip for refinements)
+    if (!body.refinementText) {
+      const tokenKey = getTokenKey(userId);
+      
+      // Get current token data (this would be from a database in production)
+      let tokenData: TokenData;
+      try {
+        // For now, use a simple in-memory fallback
+        // In production, this would fetch from a database
+        tokenData = getDefaultTokenData();
+      } catch {
+        tokenData = getDefaultTokenData();
+      }
+      
+      // Reset tokens if new month
+      tokenData = resetTokensIfNewMonth(tokenData);
+      
+      // Check if user has tokens
+      if (!canUseToken(tokenData)) {
+        return NextResponse.json(
+          { error: "No tokens remaining. You have used all 60 tokens for this month." }, 
+          { status: 402 }
+        );
+      }
+      
+      // Decrement token (we'll save this back to database in production)
+      tokenData = decrementToken(tokenData);
+      
+      console.log(`Token used for user ${userId}. Remaining: ${tokenData.totalMonthlyTokens - tokenData.tokensUsedThisMonth}`);
+    }
 
     // Check for existing generation with same requestId
     if (body.requestId && !body.refinementText) {

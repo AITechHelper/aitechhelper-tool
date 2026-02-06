@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { SignOutButton, useUser } from "@clerk/nextjs";
 import { getImage } from "../lib/imageStorage";
+import { useTokenBalance } from "../lib/useTokenBalance";
 
 // localStorage keys
 const ACTIVE_BRAND_KEY = "ath_active_brand_profile";
@@ -38,6 +39,7 @@ type SavedPost = {
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useUser();
+  const tokenBalance = useTokenBalance();
   const [profiles, setProfiles] = useState<BrandProfile[]>([]);
   const [recentPosts, setRecentPosts] = useState<SavedPost[]>([]);
   const [showNewProfile, setShowNewProfile] = useState(false);
@@ -733,10 +735,40 @@ export default function DashboardPage() {
 
           {/* User Identity Pill or Sign In Button - Top Right */}
           {user ? (
-            <div
-              ref={menuRef}
-              style={{ position: "fixed", top: 16, right: 16, zIndex: 1000 }}
-            >
+            <>
+              {/* Token Balance Pill */}
+              <div
+                style={{
+                  position: "fixed",
+                  top: 16,
+                  right: 240, // Position to the left of user email pill
+                  zIndex: 999,
+                }}
+              >
+                <div
+                  style={{
+                    background: "rgba(34, 197, 94, 0.1)",
+                    border: "1px solid rgba(34, 197, 94, 0.2)",
+                    borderRadius: 20,
+                    padding: "6px 14px",
+                    fontSize: 12,
+                    color: "#22c55e",
+                    fontWeight: 600,
+                    fontFamily: "Verdana, Geneva, sans-serif",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {tokenBalance.isLoading
+                    ? "Loading..."
+                    : `Tokens: ${tokenBalance.tokensRemaining}/${tokenBalance.totalMonthlyTokens}`}
+                </div>
+              </div>
+              
+              {/* User Email Pill */}
+              <div
+                ref={menuRef}
+                style={{ position: "fixed", top: 16, right: 16, zIndex: 1000 }}
+              >
               <div
                 onClick={() => setMenuOpen(!menuOpen)}
                 style={{
@@ -854,6 +886,7 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
+            </>
           ) : (
             <button
               onClick={() => router.push("/sign-in")}
