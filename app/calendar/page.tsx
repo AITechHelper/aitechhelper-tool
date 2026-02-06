@@ -497,7 +497,7 @@ export default function CalendarPage() {
     if (!selectedDay) return;
     const p = selectedDay;
     const href =
-      `/generate?day=${p.day}` +
+      `/generator?day=${p.day}` +
       `&title=${encodeURIComponent(p.holidayName || p.postType)}` +
       `&detail=${encodeURIComponent(p.detail)}` +
       `&autogen=1` +

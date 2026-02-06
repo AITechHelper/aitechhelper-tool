@@ -659,43 +659,17 @@ export default function DashboardPage() {
   return (
     <div style={styles.page}>
       <div style={{ ...styles.container, position: "relative" }}>
-        {/* User Identity Pill - Top Right */}
-        {user && (
-          <div
-            style={{
-              position: "absolute",
-              top: 20,
-              right: 40,
-              zIndex: 10,
-            }}
-            className="user-identity-pill"
-          >
-            <div
-              style={{
-                background: "rgba(44, 107, 237, 0.1)",
-                border: "1px solid rgba(44, 107, 237, 0.2)",
-                borderRadius: 20,
-                padding: "6px 14px",
-                fontSize: 12,
-                color: "#7eb3ff",
-                fontWeight: 600,
-                fontFamily: "Verdana, Geneva, sans-serif",
-              }}
-            >
-              {user.primaryEmailAddress?.emailAddress ||
-                user.username ||
-                "Signed in"}
-            </div>
-          </div>
-        )}
-        {/* Header - Enhanced */}
+        {/* Top Header with Logo and Email Pill */}
         <div
           style={{
-            marginBottom: 32,
-            textAlign: "center" as const,
-            paddingTop: 50,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "20px 0",
+            marginBottom: 20,
           }}
         >
+          {/* Logo - Left */}
           <h1
             style={{
               fontSize: 36,
@@ -711,6 +685,39 @@ export default function DashboardPage() {
           >
             AI TECH HELPER
           </h1>
+
+          {/* User Identity Pill - Right */}
+          {user && (
+            <div
+              style={{
+                background: "rgba(44, 107, 237, 0.1)",
+                border: "1px solid rgba(44, 107, 237, 0.2)",
+                borderRadius: 20,
+                padding: "6px 14px",
+                fontSize: 12,
+                color: "#7eb3ff",
+                fontWeight: 600,
+                fontFamily: "Verdana, Geneva, sans-serif",
+                maxWidth: 200,
+                textOverflow: "ellipsis",
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {user.primaryEmailAddress?.emailAddress ||
+                user.username ||
+                "Signed in"}
+            </div>
+          )}
+        </div>
+
+        {/* Header - Enhanced */}
+        <div
+          style={{
+            marginBottom: 32,
+            textAlign: "center" as const,
+          }}
+        >
           <p
             style={{
               margin: "12px 0 0 0",
