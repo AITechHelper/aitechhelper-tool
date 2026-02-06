@@ -617,6 +617,11 @@ export default function Page() {
         } catch {}
       }
       sp.set("autogen", "1");
+      // Generate unique genId for this post generation
+      const genId =
+        Math.random().toString(36).substring(2, 15) +
+        Math.random().toString(36).substring(2, 15);
+      sp.set("genId", genId);
       window.location.href = `/post?${sp.toString()}`;
     } catch (err: any) {
       setStatusMsg("");

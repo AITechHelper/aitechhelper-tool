@@ -881,224 +881,265 @@ export default function DashboardPage() {
           )}
         </div>
 
-          {/* Brand Profiles section - always show */}
-          <div style={styles.heroSection} className="primary-section">
-            <div style={styles.sectionHeader}>
-              <div>
-                <h2 style={styles.sectionTitle}>
-                  Your Brand Profiles
-                  <span style={styles.stepPill}>Step 1</span>
-                </h2>
-                <p style={styles.instructionText}>
-                  {profiles.length === 0 
-                    ? "Start here — create a profile so every post matches your brand."
-                    : "Manage your brand profiles and switch between them."
-                  }
-                </p>
-              </div>
+        {/* Brand Profiles section - always show */}
+        <div style={styles.heroSection} className="primary-section">
+          <div style={styles.sectionHeader}>
+            <div>
+              <h2 style={styles.sectionTitle}>
+                Your Brand Profiles
+                <span style={styles.stepPill}>Step 1</span>
+              </h2>
+              <p style={styles.instructionText}>
+                {profiles.length === 0
+                  ? "Start here — create a profile so every post matches your brand."
+                  : "Manage your brand profiles and switch between them."}
+              </p>
             </div>
+          </div>
 
-            {profiles.length === 0 ? (
-              <div style={styles.emptyState}>
-                {/* Centered Content Container */}
+          {profiles.length === 0 ? (
+            <div style={styles.emptyState}>
+              {/* Centered Content Container */}
+              <div
+                style={{
+                  maxWidth: 820,
+                  margin: "0 auto",
+                  width: "100%",
+                }}
+              >
+                {/* Title */}
                 <div
                   style={{
-                    maxWidth: 820,
-                    margin: "0 auto",
-                    width: "100%",
+                    ...styles.emptyText,
+                    textAlign: "center" as const,
                   }}
                 >
-                  {/* Title */}
-                  <div
-                    style={{
-                      ...styles.emptyText,
-                      textAlign: "center" as const,
-                    }}
-                  >
-                    Create your first brand profile to get started:
-                  </div>
-
-                  {/* What you'll save - 3-column pill grid */}
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                      gap: 14,
-                      marginBottom: 24,
-                      alignItems: "center",
-                    }}
-                    className="profile-benefits-pill-grid"
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 10,
-                        padding: "10px 12px",
-                        borderRadius: 14,
-                        border: "1px solid rgba(126,179,255,0.18)",
-                        background: "rgba(16,26,51,0.35)",
-                        color: "#cbd6ea",
-                        fontWeight: 700,
-                        fontSize: 16,
-                        whiteSpace: "nowrap" as const,
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: 999,
-                          background: "#7eb3ff",
-                          opacity: 0.9,
-                          flexShrink: 0,
-                        }}
-                      />
-                      Brand colors
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 10,
-                        padding: "10px 12px",
-                        borderRadius: 14,
-                        border: "1px solid rgba(126,179,255,0.18)",
-                        background: "rgba(16,26,51,0.35)",
-                        color: "#cbd6ea",
-                        fontWeight: 700,
-                        fontSize: 16,
-                        whiteSpace: "nowrap" as const,
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: 999,
-                          background: "#7eb3ff",
-                          opacity: 0.9,
-                          flexShrink: 0,
-                        }}
-                      />
-                      Audience + niche
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 10,
-                        padding: "10px 12px",
-                        borderRadius: 14,
-                        border: "1px solid rgba(126,179,255,0.18)",
-                        background: "rgba(16,26,51,0.35)",
-                        color: "#cbd6ea",
-                        fontWeight: 700,
-                        fontSize: 16,
-                        whiteSpace: "nowrap" as const,
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: 999,
-                          background: "#7eb3ff",
-                          opacity: 0.9,
-                          flexShrink: 0,
-                        }}
-                      />
-                      Tone of voice
-                    </div>
-                  </div>
-
-                  {/* Benefit line */}
-                  <div
-                    style={{
-                      fontSize: 13,
-                      opacity: 0.7,
-                      marginBottom: 24,
-                      fontStyle: "italic" as const,
-                      textAlign: "center" as const,
-                    }}
-                  >
-                    Takes 30 seconds. Saves time on every post.
-                  </div>
-
-                  {/* Enhanced CTA */}
-                  <button
-                    style={{
-                      ...styles.primaryCta,
-                      height: 56,
-                      fontSize: 15,
-                      fontWeight: 700,
-                      boxShadow:
-                        "0 8px 20px rgba(44,107,237,0.35), 0 2px 8px rgba(44,107,237,0.2)",
-                      transition: "all 0.2s ease",
-                    }}
-                    onClick={() => setShowNewProfile(true)}
-                    className="hover-btn-primary enhanced-cta"
-                  >
-                    Create Your First Profile
-                  </button>
+                  Create your first brand profile to get started:
                 </div>
+
+                {/* What you'll save - 3-column pill grid */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                    gap: 14,
+                    marginBottom: 24,
+                    alignItems: "center",
+                  }}
+                  className="profile-benefits-pill-grid"
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 10,
+                      padding: "10px 12px",
+                      borderRadius: 14,
+                      border: "1px solid rgba(126,179,255,0.18)",
+                      background: "rgba(16,26,51,0.35)",
+                      color: "#cbd6ea",
+                      fontWeight: 700,
+                      fontSize: 16,
+                      whiteSpace: "nowrap" as const,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 999,
+                        background: "#7eb3ff",
+                        opacity: 0.9,
+                        flexShrink: 0,
+                      }}
+                    />
+                    Brand colors
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 10,
+                      padding: "10px 12px",
+                      borderRadius: 14,
+                      border: "1px solid rgba(126,179,255,0.18)",
+                      background: "rgba(16,26,51,0.35)",
+                      color: "#cbd6ea",
+                      fontWeight: 700,
+                      fontSize: 16,
+                      whiteSpace: "nowrap" as const,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 999,
+                        background: "#7eb3ff",
+                        opacity: 0.9,
+                        flexShrink: 0,
+                      }}
+                    />
+                    Audience + niche
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 10,
+                      padding: "10px 12px",
+                      borderRadius: 14,
+                      border: "1px solid rgba(126,179,255,0.18)",
+                      background: "rgba(16,26,51,0.35)",
+                      color: "#cbd6ea",
+                      fontWeight: 700,
+                      fontSize: 16,
+                      whiteSpace: "nowrap" as const,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 999,
+                        background: "#7eb3ff",
+                        opacity: 0.9,
+                        flexShrink: 0,
+                      }}
+                    />
+                    Tone of voice
+                  </div>
+                </div>
+
+                {/* Benefit line */}
+                <div
+                  style={{
+                    fontSize: 13,
+                    opacity: 0.7,
+                    marginBottom: 24,
+                    fontStyle: "italic" as const,
+                    textAlign: "center" as const,
+                  }}
+                >
+                  Takes 30 seconds. Saves time on every post.
+                </div>
+
+                {/* Enhanced CTA */}
+                <button
+                  style={{
+                    ...styles.primaryCta,
+                    height: 56,
+                    fontSize: 15,
+                    fontWeight: 700,
+                    boxShadow:
+                      "0 8px 20px rgba(44,107,237,0.35), 0 2px 8px rgba(44,107,237,0.2)",
+                    transition: "all 0.2s ease",
+                  }}
+                  onClick={() => setShowNewProfile(true)}
+                  className="hover-btn-primary enhanced-cta"
+                >
+                  Create Your First Profile
+                </button>
               </div>
-            ) : (
+            </div>
+          ) : (
             /* Show profiles list when profiles exist */
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-              gap: 20,
-              marginTop: 20
-            }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                gap: 20,
+                marginTop: 20,
+              }}
+            >
               {profiles.map((profile) => (
-                <div key={profile.id} style={{
-                  background: "linear-gradient(135deg, #15233d 0%, #1a1a2e 100%)",
-                  border: profile.id === activeProfileId ? "2px solid #22c55e" : "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: 16,
-                  padding: 20,
-                  position: "relative",
-                  transition: "all 0.2s ease"
-                }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#e6edf7" }}>
+                <div
+                  key={profile.id}
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #15233d 0%, #1a1a2e 100%)",
+                    border:
+                      profile.id === activeProfileId
+                        ? "2px solid #22c55e"
+                        : "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 16,
+                    padding: 20,
+                    position: "relative",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      marginBottom: 12,
+                    }}
+                  >
+                    <h3
+                      style={{
+                        margin: 0,
+                        fontSize: 16,
+                        fontWeight: 700,
+                        color: "#e6edf7",
+                      }}
+                    >
                       {profile.name}
                     </h3>
                     {profile.id === activeProfileId && (
-                      <span style={{
-                        background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
-                        padding: "2px 8px",
-                        borderRadius: 12,
-                        fontSize: 9,
-                        fontWeight: 700,
-                        color: "#fff",
-                        textTransform: "uppercase",
-                        letterSpacing: 0.5
-                      }}>
+                      <span
+                        style={{
+                          background:
+                            "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                          padding: "2px 8px",
+                          borderRadius: 12,
+                          fontSize: 9,
+                          fontWeight: 700,
+                          color: "#fff",
+                          textTransform: "uppercase",
+                          letterSpacing: 0.5,
+                        }}
+                      >
                         Active
                       </span>
                     )}
                   </div>
-                  <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 16, lineHeight: 1.5 }}>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      opacity: 0.7,
+                      marginBottom: 16,
+                      lineHeight: 1.5,
+                    }}
+                  >
                     {profile.niche} • {profile.audience} • {profile.tone}
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button
                       onClick={() => handleActivateProfile(profile)}
                       style={{
-                        background: profile.id === activeProfileId ? "rgba(34, 197, 94, 0.2)" : "rgba(126, 179, 255, 0.1)",
-                        border: profile.id === activeProfileId ? "1px solid #22c55e" : "1px solid rgba(126, 179, 255, 0.2)",
+                        background:
+                          profile.id === activeProfileId
+                            ? "rgba(34, 197, 94, 0.2)"
+                            : "rgba(126, 179, 255, 0.1)",
+                        border:
+                          profile.id === activeProfileId
+                            ? "1px solid #22c55e"
+                            : "1px solid rgba(126, 179, 255, 0.2)",
                         borderRadius: 8,
                         padding: "8px 12px",
                         fontSize: 11,
                         fontWeight: 600,
-                        color: profile.id === activeProfileId ? "#22c55e" : "#7eb3ff",
+                        color:
+                          profile.id === activeProfileId
+                            ? "#22c55e"
+                            : "#7eb3ff",
                         cursor: "pointer",
                         flex: 1,
-                        transition: "all 0.2s ease"
+                        transition: "all 0.2s ease",
                       }}
                     >
                       {profile.id === activeProfileId ? "Active" : "Activate"}
@@ -1114,7 +1155,7 @@ export default function DashboardPage() {
                         fontWeight: 600,
                         color: "#ec4899",
                         cursor: "pointer",
-                        transition: "all 0.2s ease"
+                        transition: "all 0.2s ease",
                       }}
                     >
                       Edit
@@ -1130,7 +1171,7 @@ export default function DashboardPage() {
                         fontWeight: 600,
                         color: "#ef4444",
                         cursor: "pointer",
-                        transition: "all 0.2s ease"
+                        transition: "all 0.2s ease",
                       }}
                     >
                       Delete
@@ -1138,12 +1179,13 @@ export default function DashboardPage() {
                   </div>
                 </div>
               ))}
-              
+
               {/* Add New Profile Card */}
-              <div 
+              <div
                 onClick={() => setShowNewProfile(true)}
                 style={{
-                  background: "linear-gradient(135deg, rgba(126, 179, 255, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%)",
+                  background:
+                    "linear-gradient(135deg, rgba(126, 179, 255, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%)",
                   border: "2px dashed rgba(126, 179, 255, 0.3)",
                   borderRadius: 16,
                   padding: 20,
@@ -1153,501 +1195,497 @@ export default function DashboardPage() {
                   justifyContent: "center",
                   cursor: "pointer",
                   transition: "all 0.2s ease",
-                  minHeight: 120
+                  minHeight: 120,
                 }}
               >
                 <div style={{ fontSize: 24, marginBottom: 8 }}>+</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "#7eb3ff" }}>
+                <div
+                  style={{ fontSize: 14, fontWeight: 600, color: "#7eb3ff" }}
+                >
                   Add New Profile
                 </div>
               </div>
             </div>
           )}
-          </div>
+        </div>
 
-          {/* Main Actions - Enhanced Cards */}
-          <div style={styles.section}>
-            <div style={styles.actionGrid} className="ath-actionGrid">
-              {/* Generate a Post Card */}
-              <div
-                style={{
-                  ...styles.actionCard,
-                  padding: 0,
-                  overflow: "hidden",
-                  display: "flex",
-                  flexDirection: "column" as const,
-                }}
-                className="primary-action-card hover-card"
-                onClick={() => router.push("/generator")}
-              >
-                {/* Card Header with gradient */}
-                <div
-                  style={{
-                    background:
-                      "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
-                    padding: "24px 24px 20px",
-                    textAlign: "center" as const,
-                  }}
-                >
-                  <div style={{ fontSize: 48, marginBottom: 8 }}>⚡</div>
-                  <div
-                    style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}
-                  >
-                    Generate a Post
-                  </div>
-                  <div style={{ fontSize: 13, opacity: 0.85 }}>
-                    Quick single post creation
-                  </div>
-                </div>
-
-                {/* Card Body */}
-                <div
-                  style={{
-                    padding: "20px 24px 24px",
-                    flex: 1,
-                    display: "flex",
-                    flexDirection: "column" as const,
-                  }}
-                >
-                  {/* What you get */}
-                  <div
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      opacity: 0.5,
-                      marginBottom: 12,
-                      textTransform: "uppercase" as const,
-                      letterSpacing: 1,
-                    }}
-                  >
-                    What you get
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column" as const,
-                      gap: 10,
-                      marginBottom: 20,
-                    }}
-                  >
-                    <div
-                      style={{ display: "flex", alignItems: "center", gap: 10 }}
-                    >
-                      <span style={{ fontSize: 16 }}>🖼️</span>
-                      <span style={{ fontSize: 13, opacity: 0.9 }}>
-                        AI-generated custom image
-                      </span>
-                    </div>
-                    <div
-                      style={{ display: "flex", alignItems: "center", gap: 10 }}
-                    >
-                      <span style={{ fontSize: 16 }}>✍️</span>
-                      <span style={{ fontSize: 13, opacity: 0.9 }}>
-                        Engaging caption for your brand
-                      </span>
-                    </div>
-                    <div
-                      style={{ display: "flex", alignItems: "center", gap: 10 }}
-                    >
-                      <span style={{ fontSize: 16 }}>#️⃣</span>
-                      <span style={{ fontSize: 13, opacity: 0.9 }}>
-                        Optimized hashtags
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Best for */}
-                  <div
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      opacity: 0.5,
-                      marginBottom: 8,
-                      textTransform: "uppercase" as const,
-                      letterSpacing: 1,
-                    }}
-                  >
-                    Best for
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      opacity: 0.7,
-                      lineHeight: 1.5,
-                      marginBottom: 20,
-                    }}
-                  >
-                    Quick posts, one-off content, testing ideas, or when you
-                    need a single post right now.
-                  </div>
-
-                  {/* CTA Button */}
-                  <div
-                    style={{
-                      marginTop: "auto",
-                      background: "#2c6bed",
-                      borderRadius: 10,
-                      padding: "14px 20px",
-                      textAlign: "center" as const,
-                      fontWeight: 700,
-                      fontSize: 14,
-                      transition: "all 0.15s ease",
-                    }}
-                  >
-                    Create a Post →
-                  </div>
-                </div>
-              </div>
-
-              {/* Plan Your Month Card */}
-              <div
-                style={{
-                  ...styles.actionCard,
-                  padding: 0,
-                  overflow: "hidden",
-                  display: "flex",
-                  flexDirection: "column" as const,
-                }}
-                className="primary-action-card hover-card"
-                onClick={() => router.push("/calendar")}
-              >
-                {/* Card Header with gradient */}
-                <div
-                  style={{
-                    background:
-                      "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
-                    padding: "24px 24px 20px",
-                    textAlign: "center" as const,
-                  }}
-                >
-                  <div style={{ fontSize: 48, marginBottom: 8 }}>📅</div>
-                  <div
-                    style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}
-                  >
-                    Plan Your Month
-                  </div>
-                  <div style={{ fontSize: 13, opacity: 0.85 }}>
-                    Strategic content calendar
-                  </div>
-                </div>
-
-                {/* Card Body */}
-                <div
-                  style={{
-                    padding: "20px 24px 24px",
-                    flex: 1,
-                    display: "flex",
-                    flexDirection: "column" as const,
-                  }}
-                >
-                  {/* What you get */}
-                  <div
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      opacity: 0.5,
-                      marginBottom: 12,
-                      textTransform: "uppercase" as const,
-                      letterSpacing: 1,
-                    }}
-                  >
-                    What you get
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column" as const,
-                      gap: 10,
-                      marginBottom: 20,
-                    }}
-                  >
-                    <div
-                      style={{ display: "flex", alignItems: "center", gap: 10 }}
-                    >
-                      <span style={{ fontSize: 16 }}>🗓️</span>
-                      <span style={{ fontSize: 13, opacity: 0.9 }}>
-                        30-day visual content calendar
-                      </span>
-                    </div>
-                    <div
-                      style={{ display: "flex", alignItems: "center", gap: 10 }}
-                    >
-                      <span style={{ fontSize: 16 }}>💡</span>
-                      <span style={{ fontSize: 13, opacity: 0.9 }}>
-                        Smart post type suggestions
-                      </span>
-                    </div>
-                    <div
-                      style={{ display: "flex", alignItems: "center", gap: 10 }}
-                    >
-                      <span style={{ fontSize: 16 }}>🎯</span>
-                      <span style={{ fontSize: 13, opacity: 0.9 }}>
-                        Click any day to generate content
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Best for */}
-                  <div
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      opacity: 0.5,
-                      marginBottom: 8,
-                      textTransform: "uppercase" as const,
-                      letterSpacing: 1,
-                    }}
-                  >
-                    Best for
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      opacity: 0.7,
-                      lineHeight: 1.5,
-                      marginBottom: 20,
-                    }}
-                  >
-                    Consistent posting, content strategy, batching your content
-                    creation, and staying organized.
-                  </div>
-
-                  {/* CTA Button */}
-                  <div
-                    style={{
-                      marginTop: "auto",
-                      background: "#7c3aed",
-                      borderRadius: 10,
-                      padding: "14px 20px",
-                      textAlign: "center" as const,
-                      fontWeight: 700,
-                      fontSize: 14,
-                      transition: "all 0.15s ease",
-                    }}
-                  >
-                    Open Calendar →
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* How It Works Section - Enhanced */}
-          <div style={{ ...styles.section, marginBottom: 28, marginTop: 28 }}>
+        {/* Main Actions - Enhanced Cards */}
+        <div style={styles.section}>
+          <div style={styles.actionGrid} className="ath-actionGrid">
+            {/* Generate a Post Card */}
             <div
               style={{
-                background: "linear-gradient(135deg, #15233d 0%, #1a1a2e 100%)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: 20,
-                padding: "28px 32px",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+                ...styles.actionCard,
+                padding: 0,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column" as const,
               }}
+              className="primary-action-card hover-card"
+              onClick={() => router.push("/generator")}
             >
-              {/* Section Header */}
-              <div style={{ textAlign: "center" as const, marginBottom: 28 }}>
+              {/* Card Header with gradient */}
+              <div
+                style={{
+                  background:
+                    "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
+                  padding: "24px 24px 20px",
+                  textAlign: "center" as const,
+                }}
+              >
+                <div style={{ fontSize: 48, marginBottom: 8 }}>⚡</div>
+                <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
+                  Generate a Post
+                </div>
+                <div style={{ fontSize: 13, opacity: 0.85 }}>
+                  Quick single post creation
+                </div>
+              </div>
+
+              {/* Card Body */}
+              <div
+                style={{
+                  padding: "20px 24px 24px",
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column" as const,
+                }}
+              >
+                {/* What you get */}
                 <div
                   style={{
                     fontSize: 11,
                     fontWeight: 700,
-                    color: "#7eb3ff",
-                    marginBottom: 6,
+                    opacity: 0.5,
+                    marginBottom: 12,
                     textTransform: "uppercase" as const,
-                    letterSpacing: 2,
+                    letterSpacing: 1,
                   }}
                 >
-                  Simple 4-Step Process
+                  What you get
                 </div>
-                <div style={{ fontSize: 22, fontWeight: 700 }}>
-                  How It Works
-                </div>
-              </div>
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(4, 1fr)",
-                  gap: 16,
-                }}
-                className="how-it-works-grid"
-              >
-                {/* Step 1 */}
                 <div
                   style={{
-                    background: "rgba(44, 107, 237, 0.08)",
-                    border: "1px solid rgba(44, 107, 237, 0.2)",
-                    borderRadius: 16,
-                    padding: "20px 16px",
-                    textAlign: "center" as const,
-                    position: "relative" as const,
+                    display: "flex",
+                    flexDirection: "column" as const,
+                    gap: 10,
+                    marginBottom: 20,
                   }}
                 >
                   <div
-                    style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 12,
-                      background:
-                        "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      margin: "0 auto 14px",
-                      fontSize: 22,
-                      fontWeight: 700,
-                      color: "#fff",
-                      boxShadow: "0 4px 12px rgba(44, 107, 237, 0.4)",
-                    }}
+                    style={{ display: "flex", alignItems: "center", gap: 10 }}
                   >
-                    1
+                    <span style={{ fontSize: 16 }}>🖼️</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>
+                      AI-generated custom image
+                    </span>
                   </div>
                   <div
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 700,
-                      marginBottom: 6,
-                      color: "#e6edf7",
-                    }}
+                    style={{ display: "flex", alignItems: "center", gap: 10 }}
                   >
-                    Create Profile
+                    <span style={{ fontSize: 16 }}>✍️</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>
+                      Engaging caption for your brand
+                    </span>
                   </div>
-                  <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
-                    Save your brand colors, tone & audience once
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 10 }}
+                  >
+                    <span style={{ fontSize: 16 }}>#️⃣</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>
+                      Optimized hashtags
+                    </span>
                   </div>
                 </div>
 
-                {/* Step 2 */}
+                {/* Best for */}
                 <div
                   style={{
-                    background: "rgba(124, 58, 237, 0.08)",
-                    border: "1px solid rgba(124, 58, 237, 0.2)",
-                    borderRadius: 16,
-                    padding: "20px 16px",
-                    textAlign: "center" as const,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    opacity: 0.5,
+                    marginBottom: 8,
+                    textTransform: "uppercase" as const,
+                    letterSpacing: 1,
                   }}
                 >
-                  <div
-                    style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 12,
-                      background:
-                        "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      margin: "0 auto 14px",
-                      fontSize: 22,
-                      fontWeight: 700,
-                      color: "#fff",
-                      boxShadow: "0 4px 12px rgba(124, 58, 237, 0.4)",
-                    }}
-                  >
-                    2
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 700,
-                      marginBottom: 6,
-                      color: "#e6edf7",
-                    }}
-                  >
-                    Choose Post Type
-                  </div>
-                  <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
-                    Quick tip, promo, testimonial, behind-the-scenes
-                  </div>
+                  Best for
+                </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    opacity: 0.7,
+                    lineHeight: 1.5,
+                    marginBottom: 20,
+                  }}
+                >
+                  Quick posts, one-off content, testing ideas, or when you need
+                  a single post right now.
                 </div>
 
-                {/* Step 3 */}
+                {/* CTA Button */}
                 <div
                   style={{
-                    background: "rgba(236, 72, 153, 0.08)",
-                    border: "1px solid rgba(236, 72, 153, 0.2)",
-                    borderRadius: 16,
-                    padding: "20px 16px",
+                    marginTop: "auto",
+                    background: "#2c6bed",
+                    borderRadius: 10,
+                    padding: "14px 20px",
                     textAlign: "center" as const,
+                    fontWeight: 700,
+                    fontSize: 14,
+                    transition: "all 0.15s ease",
                   }}
                 >
-                  <div
-                    style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 12,
-                      background:
-                        "linear-gradient(135deg, #ec4899 0%, #be185d 100%)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      margin: "0 auto 14px",
-                      fontSize: 22,
-                      fontWeight: 700,
-                      color: "#fff",
-                      boxShadow: "0 4px 12px rgba(236, 72, 153, 0.4)",
-                    }}
-                  >
-                    3
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 700,
-                      marginBottom: 6,
-                      color: "#e6edf7",
-                    }}
-                  >
-                    AI Generates
-                  </div>
-                  <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
-                    Custom image + caption + hashtags instantly
-                  </div>
-                </div>
-
-                {/* Step 4 */}
-                <div
-                  style={{
-                    background: "rgba(34, 197, 94, 0.08)",
-                    border: "1px solid rgba(34, 197, 94, 0.2)",
-                    borderRadius: 16,
-                    padding: "20px 16px",
-                    textAlign: "center" as const,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 12,
-                      background:
-                        "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      margin: "0 auto 14px",
-                      fontSize: 22,
-                      fontWeight: 700,
-                      color: "#fff",
-                      boxShadow: "0 4px 12px rgba(34, 197, 94, 0.4)",
-                    }}
-                  >
-                    ✓
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 700,
-                      marginBottom: 6,
-                      color: "#e6edf7",
-                    }}
-                  >
-                    Post & Save
-                  </div>
-                  <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
-                    Download image & copy caption to post
-                  </div>
+                  Create a Post →
                 </div>
               </div>
             </div>
+
+            {/* Plan Your Month Card */}
+            <div
+              style={{
+                ...styles.actionCard,
+                padding: 0,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column" as const,
+              }}
+              className="primary-action-card hover-card"
+              onClick={() => router.push("/calendar")}
+            >
+              {/* Card Header with gradient */}
+              <div
+                style={{
+                  background:
+                    "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
+                  padding: "24px 24px 20px",
+                  textAlign: "center" as const,
+                }}
+              >
+                <div style={{ fontSize: 48, marginBottom: 8 }}>📅</div>
+                <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
+                  Plan Your Month
+                </div>
+                <div style={{ fontSize: 13, opacity: 0.85 }}>
+                  Strategic content calendar
+                </div>
+              </div>
+
+              {/* Card Body */}
+              <div
+                style={{
+                  padding: "20px 24px 24px",
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column" as const,
+                }}
+              >
+                {/* What you get */}
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    opacity: 0.5,
+                    marginBottom: 12,
+                    textTransform: "uppercase" as const,
+                    letterSpacing: 1,
+                  }}
+                >
+                  What you get
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column" as const,
+                    gap: 10,
+                    marginBottom: 20,
+                  }}
+                >
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 10 }}
+                  >
+                    <span style={{ fontSize: 16 }}>🗓️</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>
+                      30-day visual content calendar
+                    </span>
+                  </div>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 10 }}
+                  >
+                    <span style={{ fontSize: 16 }}>💡</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>
+                      Smart post type suggestions
+                    </span>
+                  </div>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 10 }}
+                  >
+                    <span style={{ fontSize: 16 }}>🎯</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>
+                      Click any day to generate content
+                    </span>
+                  </div>
+                </div>
+
+                {/* Best for */}
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    opacity: 0.5,
+                    marginBottom: 8,
+                    textTransform: "uppercase" as const,
+                    letterSpacing: 1,
+                  }}
+                >
+                  Best for
+                </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    opacity: 0.7,
+                    lineHeight: 1.5,
+                    marginBottom: 20,
+                  }}
+                >
+                  Consistent posting, content strategy, batching your content
+                  creation, and staying organized.
+                </div>
+
+                {/* CTA Button */}
+                <div
+                  style={{
+                    marginTop: "auto",
+                    background: "#7c3aed",
+                    borderRadius: 10,
+                    padding: "14px 20px",
+                    textAlign: "center" as const,
+                    fontWeight: 700,
+                    fontSize: 14,
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  Open Calendar →
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* How It Works Section - Enhanced */}
+        <div style={{ ...styles.section, marginBottom: 28, marginTop: 28 }}>
+          <div
+            style={{
+              background: "linear-gradient(135deg, #15233d 0%, #1a1a2e 100%)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 20,
+              padding: "28px 32px",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+            }}
+          >
+            {/* Section Header */}
+            <div style={{ textAlign: "center" as const, marginBottom: 28 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#7eb3ff",
+                  marginBottom: 6,
+                  textTransform: "uppercase" as const,
+                  letterSpacing: 2,
+                }}
+              >
+                Simple 4-Step Process
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 700 }}>How It Works</div>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                gap: 16,
+              }}
+              className="how-it-works-grid"
+            >
+              {/* Step 1 */}
+              <div
+                style={{
+                  background: "rgba(44, 107, 237, 0.08)",
+                  border: "1px solid rgba(44, 107, 237, 0.2)",
+                  borderRadius: 16,
+                  padding: "20px 16px",
+                  textAlign: "center" as const,
+                  position: "relative" as const,
+                }}
+              >
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 12,
+                    background:
+                      "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 14px",
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: "#fff",
+                    boxShadow: "0 4px 12px rgba(44, 107, 237, 0.4)",
+                  }}
+                >
+                  1
+                </div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    marginBottom: 6,
+                    color: "#e6edf7",
+                  }}
+                >
+                  Create Profile
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
+                  Save your brand colors, tone & audience once
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div
+                style={{
+                  background: "rgba(124, 58, 237, 0.08)",
+                  border: "1px solid rgba(124, 58, 237, 0.2)",
+                  borderRadius: 16,
+                  padding: "20px 16px",
+                  textAlign: "center" as const,
+                }}
+              >
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 12,
+                    background:
+                      "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 14px",
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: "#fff",
+                    boxShadow: "0 4px 12px rgba(124, 58, 237, 0.4)",
+                  }}
+                >
+                  2
+                </div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    marginBottom: 6,
+                    color: "#e6edf7",
+                  }}
+                >
+                  Choose Post Type
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
+                  Quick tip, promo, testimonial, behind-the-scenes
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div
+                style={{
+                  background: "rgba(236, 72, 153, 0.08)",
+                  border: "1px solid rgba(236, 72, 153, 0.2)",
+                  borderRadius: 16,
+                  padding: "20px 16px",
+                  textAlign: "center" as const,
+                }}
+              >
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 12,
+                    background:
+                      "linear-gradient(135deg, #ec4899 0%, #be185d 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 14px",
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: "#fff",
+                    boxShadow: "0 4px 12px rgba(236, 72, 153, 0.4)",
+                  }}
+                >
+                  3
+                </div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    marginBottom: 6,
+                    color: "#e6edf7",
+                  }}
+                >
+                  AI Generates
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
+                  Custom image + caption + hashtags instantly
+                </div>
+              </div>
+
+              {/* Step 4 */}
+              <div
+                style={{
+                  background: "rgba(34, 197, 94, 0.08)",
+                  border: "1px solid rgba(34, 197, 94, 0.2)",
+                  borderRadius: 16,
+                  padding: "20px 16px",
+                  textAlign: "center" as const,
+                }}
+              >
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 12,
+                    background:
+                      "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 14px",
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: "#fff",
+                    boxShadow: "0 4px 12px rgba(34, 197, 94, 0.4)",
+                  }}
+                >
+                  ✓
+                </div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    marginBottom: 6,
+                    color: "#e6edf7",
+                  }}
+                >
+                  Post & Save
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
+                  Download image & copy caption to post
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Recent Posts & Gallery Section */}
           <div
