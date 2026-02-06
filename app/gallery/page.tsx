@@ -22,6 +22,129 @@ type SavedPost = {
 
 export default function GalleryPage() {
   const router = useRouter();
+
+  // Helper function to get image style metadata
+  const getImageStyleMeta = (imageStyle: string) => {
+    const style = imageStyle?.toLowerCase() || "";
+
+    if (
+      style.includes("lifestyle") ||
+      style.includes("natural") ||
+      style === "lifestyle_photo"
+    ) {
+      return {
+        label: "Natural Lifestyle",
+        svg: (
+          <svg
+            width="28"
+            height="28"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21,15 16,10 5,21" />
+          </svg>
+        ),
+      };
+    }
+
+    if (
+      style.includes("branded_photo") ||
+      style.includes("branding_text") ||
+      style.includes("photo_with_brand")
+    ) {
+      return {
+        label: "Branded Photo",
+        svg: (
+          <svg
+            width="28"
+            height="28"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <rect x="7" y="7" width="3" height="3" />
+            <rect x="14" y="7" width="3" height="3" />
+            <rect x="7" y="14" width="10" height="3" />
+          </svg>
+        ),
+      };
+    }
+
+    if (
+      style.includes("branded_plus_text") ||
+      style.includes("branded_text") ||
+      style.includes("text_on_photo")
+    ) {
+      return {
+        label: "Branded + Text",
+        svg: (
+          <svg
+            width="28"
+            height="28"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14,2 14,8 20,8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+            <polyline points="10,9 9,9 8,9" />
+          </svg>
+        ),
+      };
+    }
+
+    if (
+      style.includes("graphic_design") ||
+      style.includes("typography") ||
+      style.includes("no_photo")
+    ) {
+      return {
+        label: "Graphic Design",
+        svg: (
+          <svg
+            width="28"
+            height="28"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="15" y2="18" />
+          </svg>
+        ),
+      };
+    }
+
+    // Default fallback
+    return {
+      label: "Image",
+      svg: (
+        <svg
+          width="28"
+          height="28"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+        >
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+          <circle cx="8.5" cy="8.5" r="1.5" />
+          <polyline points="21,15 16,10 5,21" />
+        </svg>
+      ),
+    };
+  };
   const [posts, setPosts] = useState<SavedPost[]>([]);
   const [allPosts, setAllPosts] = useState<SavedPost[]>([]);
   const [selectedPost, setSelectedPost] = useState<SavedPost | null>(null);
@@ -30,7 +153,9 @@ export default function GalleryPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loadingImages, setLoadingImages] = useState(true);
   const [filterProfileId, setFilterProfileId] = useState<string | null>(null);
-  const [filterProfileName, setFilterProfileName] = useState<string | null>(null);
+  const [filterProfileName, setFilterProfileName] = useState<string | null>(
+    null
+  );
 
   // Load posts from localStorage and images from IndexedDB
   useEffect(() => {
@@ -62,7 +187,10 @@ export default function GalleryPage() {
         if (savedPosts) {
           const parsed = JSON.parse(savedPosts) as SavedPost[];
           // Sort by date, newest first
-          parsed.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          parsed.sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
           setAllPosts(parsed);
 
           // Filter by profileId if provided
@@ -70,18 +198,6 @@ export default function GalleryPage() {
             ? parsed.filter((p) => p.profileId === profileIdParam)
             : parsed;
           setPosts(filtered);
-
-          // Load images from IndexedDB
-          const images: Record<string, string> = {};
-          for (const post of filtered) {
-            if (post.hasImage) {
-              const img = await getImage(post.id);
-              if (img) {
-                images[post.id] = img;
-              }
-            }
-          }
-          setPostImages(images);
         }
       } catch (err) {
         console.error("Error loading posts:", err);
@@ -179,7 +295,8 @@ export default function GalleryPage() {
       display: "flex",
       alignItems: "center",
       gap: 8,
-      background: "linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%)",
+      background:
+        "linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%)",
       border: "1px solid rgba(236, 72, 153, 0.3)",
       borderRadius: 10,
       padding: "10px 18px",
@@ -195,7 +312,8 @@ export default function GalleryPage() {
       fontWeight: 800,
       letterSpacing: 1,
       margin: 0,
-      background: "linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #a78bfa 100%)",
+      background:
+        "linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #a78bfa 100%)",
       WebkitBackgroundClip: "text",
       WebkitTextFillColor: "transparent",
       backgroundClip: "text",
@@ -398,8 +516,19 @@ export default function GalleryPage() {
               onClick={() => router.push("/dashboard")}
               className="hover-btn"
             >
-              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              <svg
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
               Dashboard
             </button>
@@ -485,66 +614,42 @@ export default function GalleryPage() {
                 className="hover-card"
                 onClick={() => setSelectedPost(post)}
               >
-                {/* Image Thumbnail */}
-                {postImages[post.id] ? (
-                  <div
-                    style={{
-                      width: "100%",
-                      aspectRatio: "1",
-                      borderRadius: 10,
-                      overflow: "hidden",
-                      marginBottom: 12,
-                      background: "#0b1220",
-                    }}
-                  >
-                    <img
-                      src={postImages[post.id]}
-                      alt="Post"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                    />
+                {/* Image Style Icon */}
+                <div
+                  style={{
+                    width: "100%",
+                    aspectRatio: "1",
+                    borderRadius: 10,
+                    marginBottom: 12,
+                    background:
+                      "linear-gradient(135deg, rgba(44, 107, 237, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexDirection: "column",
+                    gap: 8,
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                  }}
+                >
+                  <div style={{ color: "rgba(255, 255, 255, 0.6)" }}>
+                    {getImageStyleMeta(post.imageStyle).svg}
                   </div>
-                ) : post.hasImage && loadingImages ? (
                   <div
                     style={{
-                      width: "100%",
-                      aspectRatio: "1",
-                      borderRadius: 10,
-                      marginBottom: 12,
-                      background: "rgba(255,255,255,0.05)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "rgba(255,255,255,0.3)",
                       fontSize: 12,
-                    }}
-                  >
-                    Loading...
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      width: "100%",
-                      aspectRatio: "1",
-                      borderRadius: 10,
-                      marginBottom: 12,
-                      background: "linear-gradient(135deg, rgba(44, 107, 237, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 32,
                       opacity: 0.5,
+                      fontWeight: 600,
+                      textAlign: "center",
                     }}
                   >
-                    🖼️
+                    {getImageStyleMeta(post.imageStyle).label}
                   </div>
-                )}
+                </div>
 
                 <div style={styles.postHeader}>
-                  <div style={styles.postDate}>{formatDate(post.createdAt)}</div>
+                  <div style={styles.postDate}>
+                    {formatDate(post.createdAt)}
+                  </div>
                   <div style={styles.postType}>{post.postType}</div>
                 </div>
                 <div style={styles.postCaption}>{post.caption}</div>
@@ -569,7 +674,8 @@ export default function GalleryPage() {
                 <div style={styles.modalTitle}>{selectedPost.postType}</div>
                 <div style={{ fontSize: 12, opacity: 0.5, marginTop: 4 }}>
                   {formatDate(selectedPost.createdAt)}
-                  {selectedPost.calendarDay && ` • Day ${selectedPost.calendarDay}`}
+                  {selectedPost.calendarDay &&
+                    ` • Day ${selectedPost.calendarDay}`}
                 </div>
               </div>
               <button
@@ -581,13 +687,19 @@ export default function GalleryPage() {
             </div>
 
             {/* Two-column layout */}
-            <div className="modal-two-col" style={{
-              display: "flex",
-              gap: 24,
-              flexDirection: "row",
-            }}>
+            <div
+              className="modal-two-col"
+              style={{
+                display: "flex",
+                gap: 24,
+                flexDirection: "row",
+              }}
+            >
               {/* Left column - Image */}
-              <div className="modal-left-col" style={{ flex: "0 0 45%", minWidth: 0 }}>
+              <div
+                className="modal-left-col"
+                style={{ flex: "0 0 45%", minWidth: 0 }}
+              >
                 {selectedImage && (
                   <div>
                     <div
@@ -611,7 +723,8 @@ export default function GalleryPage() {
                     <button
                       style={{
                         ...styles.copyBtn,
-                        background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                        background:
+                          "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
                         border: "none",
                         color: "#fff",
                         width: "100%",
@@ -620,8 +733,19 @@ export default function GalleryPage() {
                       onClick={handleDownloadImage}
                       className="hover-btn"
                     >
-                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      <svg
+                        width="14"
+                        height="14"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                        />
                       </svg>
                       Download Image
                     </button>
@@ -647,10 +771,14 @@ export default function GalleryPage() {
                 {/* Hashtags */}
                 <div style={{ marginBottom: 20 }}>
                   <div style={styles.detailLabel}>Hashtags</div>
-                  <div style={styles.detailContent}>{selectedPost.hashtags}</div>
+                  <div style={styles.detailContent}>
+                    {selectedPost.hashtags}
+                  </div>
                   <button
                     style={styles.copyBtn}
-                    onClick={() => handleCopy(selectedPost.hashtags, "hashtags")}
+                    onClick={() =>
+                      handleCopy(selectedPost.hashtags, "hashtags")
+                    }
                     className="hover-btn"
                   >
                     {copiedField === "hashtags" ? "✓ Copied!" : "Copy Hashtags"}
@@ -663,11 +791,15 @@ export default function GalleryPage() {
                   <div style={styles.metaGrid}>
                     <div style={styles.metaItem}>
                       <div style={styles.metaLabel}>Niche</div>
-                      <div style={styles.metaValue}>{selectedPost.niche || "—"}</div>
+                      <div style={styles.metaValue}>
+                        {selectedPost.niche || "—"}
+                      </div>
                     </div>
                     <div style={styles.metaItem}>
                       <div style={styles.metaLabel}>Audience</div>
-                      <div style={styles.metaValue}>{selectedPost.audience || "—"}</div>
+                      <div style={styles.metaValue}>
+                        {selectedPost.audience || "—"}
+                      </div>
                     </div>
                     <div style={styles.metaItem}>
                       <div style={styles.metaLabel}>Tone</div>
@@ -675,7 +807,9 @@ export default function GalleryPage() {
                     </div>
                     <div style={styles.metaItem}>
                       <div style={styles.metaLabel}>Image Style</div>
-                      <div style={styles.metaValue}>{selectedPost.imageStyle}</div>
+                      <div style={styles.metaValue}>
+                        {selectedPost.imageStyle}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -693,7 +827,10 @@ export default function GalleryPage() {
                   <button
                     style={styles.btn}
                     onClick={() => {
-                      handleCopy(`${selectedPost.caption}\n\n${selectedPost.hashtags}`, "all");
+                      handleCopy(
+                        `${selectedPost.caption}\n\n${selectedPost.hashtags}`,
+                        "all"
+                      );
                     }}
                     className="hover-btn"
                   >

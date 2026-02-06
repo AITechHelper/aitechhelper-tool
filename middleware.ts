@@ -5,7 +5,6 @@ import type { NextRequest } from "next/server";
 // Public routes that don't require auth
 const isPublicRoute = createRouteMatcher([
   "/",
-  "/landing",
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/subscribe",
@@ -24,10 +23,10 @@ const isProtectedAppRoute = createRouteMatcher([
 
 export default clerkMiddleware(async (auth, req: NextRequest) => {
   // Development-only auth bypass - NEVER bypasses in production
-  const isDevBypass = process.env.NODE_ENV === "development" && 
-                      process.env.DEV_BYPASS_AUTH === "true";
-  
-  if (isDevBypass) {
+  if (
+    process.env.NODE_ENV === "development" &&
+    process.env.DEV_BYPASS_AUTH === "true"
+  ) {
     return NextResponse.next();
   }
 

@@ -54,7 +54,6 @@ export default function DashboardPage() {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [postImages, setPostImages] = useState<Record<string, string>>({});
   const [hasLoadedProfiles, setHasLoadedProfiles] = useState(false);
-  const [isBillingLoading, setIsBillingLoading] = useState(false);
 
   // Load profiles and posts from localStorage
   useEffect(() => {
@@ -701,34 +700,27 @@ export default function DashboardPage() {
           >
             <button
               onClick={async () => {
-                if (isBillingLoading) return;
-                setIsBillingLoading(true);
                 try {
                   const res = await fetch("/api/stripe/portal", {
                     method: "POST",
                   });
                   const data = await res.json();
                   if (data.url) window.location.href = data.url;
-                } catch {
-                } finally {
-                  setIsBillingLoading(false);
-                }
+                } catch {}
               }}
-              disabled={isBillingLoading}
               style={{
                 padding: "8px 16px",
                 background: "transparent",
                 border: "1px solid rgba(255,255,255,0.2)",
                 borderRadius: 8,
-                color: isBillingLoading ? "#5a6574" : "#8fa3bf",
+                color: "#8fa3bf",
                 fontSize: 14,
-                cursor: isBillingLoading ? "not-allowed" : "pointer",
-                opacity: isBillingLoading ? 0.6 : 1,
+                cursor: "pointer",
               }}
             >
-              {isBillingLoading ? "Loading..." : "Manage Billing"}
+              Manage Billing
             </button>
-            <SignOutButton redirectUrl="/landing">
+            <SignOutButton redirectUrl="/">
               <button
                 style={{
                   padding: "8px 16px",
