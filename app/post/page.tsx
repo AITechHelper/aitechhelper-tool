@@ -3,6 +3,89 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { saveImage } from "../lib/imageStorage";
 
+// Idempotency utilities
+function createRequestId(payload: any): string {
+  const normalizedPayload = {
+    niche: payload.niche?.trim().toLowerCase(),
+    audience: payload.audience?.trim().toLowerCase(),
+    postType: payload.postType,
+    tone: payload.tone,
+    imageStyle: payload.imageStyle,
+    specificRequest: payload.specificRequest?.trim(),
+    captionLength: payload.captionLength,
+    hashtagCount: payload.hashtagCount,
+    primaryColor: payload.primaryColor,
+    secondaryColor: payload.secondaryColor,
+    dayContext: payload.dayContext,
+    profileId: payload.profileId || 'default'
+  };
+  
+  // Simple hash function (no external dependency needed)
+  let hash = 0;
+  const str = JSON.stringify(normalizedPayload);
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash).toString(36);
+}
+
+function getStoredGeneration(requestId: string) {
+  try {
+    const stored = localStorage.getItem(`generated:${requestId}`);
+    console.log('🔍 Checking storage for:', requestId, 'Found:', !!stored);
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+}
+
+function storeGeneration(requestId: string, result: any) {
+  try {
+    const dataToStore = {
+      ...result,
+      createdAt: Date.now()
+    };
+    localStorage.setItem(`generated:${requestId}`, JSON.stringify(dataToStore));
+    console.log('💾 Stored generation result for:', requestId);
+  } catch {}
+}
+
+function clearGeneratingFlag(requestId: string) {
+  try {
+    localStorage.removeItem(`generating:${requestId}`);
+  } catch {}
+}
+
+function isCurrentlyGenerating(requestId: string): boolean {
+  try {
+    const generating = localStorage.getItem(`generating:${requestId}`);
+    if (!generating) return false;
+    
+    // Check if the generating flag is stale (older than 5 minutes)
+    const timestamp = parseInt(generating);
+    const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
+    
+    if (timestamp < fiveMinutesAgo) {
+      // Remove stale flag
+      localStorage.removeItem(`generating:${requestId}`);
+      console.log('🧹 Cleared stale generating flag for:', requestId);
+      return false;
+    }
+    
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function setGeneratingFlag(requestId: string) {
+  try {
+    localStorage.setItem(`generating:${requestId}`, Date.now().toString());
+  } catch {}
+}
+
 type FormState = {
   niche: string;
   audience: string;
@@ -51,6 +134,10 @@ export default function PostPage() {
     detail: string;
   } | null>(null);
   const [post, setPost] = useState<PostResult | null>(null);
+  const [currentRequestId, setCurrentRequestId] = useState<string | null>(null);
+  const [showRegenerateOption, setShowRegenerateOption] = useState(false);
+  const [profileId, setProfileId] = useState<string | null>(null);
+  const [formReady, setFormReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string>("Preparing…");
   const [errorMsg, setErrorMsg] = useState<string>("");
@@ -72,9 +159,24 @@ export default function PostPage() {
 
   const SHOW_DEBUG_PROMPT = false;
 
-  // Scroll to top on page load
+  // Scroll to top on page load and cleanup stale flags
   useEffect(() => {
     window.scrollTo(0, 0);
+    
+    // Cleanup any stale generating flags on page load
+    try {
+      const keys = Object.keys(localStorage);
+      const generatingKeys = keys.filter(key => key.startsWith('generating:'));
+      const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
+      
+      generatingKeys.forEach(key => {
+        const timestamp = parseInt(localStorage.getItem(key) || '0');
+        if (timestamp < fiveMinutesAgo) {
+          localStorage.removeItem(key);
+          console.log('🧹 Cleaned up stale generating flag:', key);
+        }
+      });
+    } catch {}
   }, []);
 
   // Update edited values when post changes
@@ -127,16 +229,62 @@ export default function PostPage() {
         title = params.get("title"),
         detail = params.get("detail");
       if (day && title && detail) setDayContext({ day, title, detail });
+      
+      // Mark form as ready after URL params are loaded
+      setFormReady(true);
     } catch {}
   }, []);
 
-  // Auto-generate
+  // Auto-generate with idempotency
   useEffect(() => {
+    // Wait for form to be ready from URL params
+    if (!formReady) return;
+    
     const params = new URLSearchParams(window.location.search);
     const autogen = params.get("autogen") === "1";
-    if (!autogen || post || !form.niche.trim() || !form.audience.trim()) return;
+    if (!autogen || !form.niche.trim() || !form.audience.trim()) return;
+
+    // Get active profile ID
+    let activeProfileId: string | undefined;
+    try {
+      const activeProfile = localStorage.getItem("ath_active_brand_profile");
+      if (activeProfile) {
+        activeProfileId = JSON.parse(activeProfile).profileId;
+      }
+    } catch {}
+
+    // Create request ID from form data (using the profileId from localStorage)
+    const payload = {
+      ...form,
+      dayContext,
+      profileId: activeProfileId || 'default'
+    };
+    const requestId = createRequestId(payload);
+    setCurrentRequestId(requestId);
+
+    console.log('🔍 Idempotency check:', { requestId, payload: { niche: payload.niche, audience: payload.audience, profileId: payload.profileId } });
+
+    // Check if already generated
+    const existingResult = getStoredGeneration(requestId);
+    if (existingResult) {
+      console.log('✅ Found existing result, using cached version');
+      setPost(existingResult);
+      setShowRegenerateOption(true);
+      return;
+    }
+
+    // Check if currently generating
+    if (isCurrentlyGenerating(requestId)) {
+      console.log('⏳ Already generating this request');
+      setIsLoading(true);
+      setStatusMsg("Generation in progress...");
+      return;
+    }
+
+    // Start new generation
+    console.log('🚀 Starting new generation');
     generatePost();
-  }, [form.niche, form.audience]);
+  }, [form.niche, form.audience, form.postType, form.tone, form.imageStyle, dayContext, formReady]);
 
   // Loading progress simulation
   useEffect(() => {
@@ -171,33 +319,59 @@ export default function PostPage() {
     [post, hasRefined, refinementText]
   );
 
-  async function generatePost(refinementOverride?: string) {
+  async function generatePost(refinementOverride?: string, forceRegenerate: boolean = false) {
     if (isLoading) return;
     setIsLoading(true);
     setErrorMsg("");
     setStatusMsg(refinementOverride ? "Regenerating…" : "Generating…");
     setLoadingProgress(5);
     setLoadingStage("Starting generation...");
+    setShowRegenerateOption(false);
+
+    // Get active profile ID consistently
+    let activeProfileId: string | undefined;
+    try {
+      const activeProfile = localStorage.getItem("ath_active_brand_profile");
+      if (activeProfile) {
+        activeProfileId = JSON.parse(activeProfile).profileId;
+      }
+    } catch {}
+
+    const payload = {
+      ...form,
+      dayContext,
+      goal: form.postType,
+      callToAction: "Comment, Share, Like, Follow, DM us",
+      referenceImageDataUrl: uploadRef?.dataUrl || null,
+      referenceImageName: uploadRef?.name || null,
+      referenceImageMime: uploadRef?.mime || null,
+      profileId: activeProfileId || 'default',
+      ...(refinementOverride
+        ? {
+            refinementText: refinementOverride,
+            previousCaption: post?.caption,
+            previousHashtags: post?.hashtags,
+          }
+        : {}),
+    };
+
+    const requestId = currentRequestId || createRequestId(payload);
+    if (!currentRequestId) setCurrentRequestId(requestId);
+
+    console.log('🎯 Generate payload:', { requestId, profileId: payload.profileId });
+
+    // Set generating flag if not refinement
+    if (!refinementOverride && !forceRegenerate) {
+      setGeneratingFlag(requestId);
+    }
 
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...form,
-          dayContext,
-          goal: form.postType,
-          callToAction: "Comment, Share, Like, Follow, DM us",
-          referenceImageDataUrl: uploadRef?.dataUrl || null,
-          referenceImageName: uploadRef?.name || null,
-          referenceImageMime: uploadRef?.mime || null,
-          ...(refinementOverride
-            ? {
-                refinementText: refinementOverride,
-                previousCaption: post?.caption,
-                previousHashtags: post?.hashtags,
-              }
-            : {}),
+          ...payload,
+          requestId: refinementOverride || forceRegenerate ? undefined : requestId,
         }),
       });
 
@@ -228,6 +402,12 @@ export default function PostPage() {
       setLoadingProgress(100);
       if (refinementOverride) setHasRefined(true);
       setStatusMsg("Done ✅");
+
+      // Store result for idempotency (only for new generations, not refinements)
+      if (!refinementOverride && currentRequestId) {
+        storeGeneration(currentRequestId, result);
+        setShowRegenerateOption(true);
+      }
 
       // Save to gallery (metadata in localStorage, image in IndexedDB)
       try {
@@ -276,6 +456,11 @@ export default function PostPage() {
     } finally {
       setIsLoading(false);
       setTimeout(() => setStatusMsg(""), 1500);
+      
+      // Clear generating flag
+      if (currentRequestId) {
+        clearGeneratingFlag(currentRequestId);
+      }
     }
   }
 
@@ -792,6 +977,21 @@ export default function PostPage() {
 
             {/* Actions */}
             <div style={styles.buttonRow} className="ath-buttonRow">
+              {showRegenerateOption && (
+                <button
+                  style={{
+                    ...styles.secondaryBtn,
+                    background: "linear-gradient(135deg, #ec4899 0%, #be185d 100%)",
+                    border: "1px solid #ec4899",
+                    color: "#ffffff",
+                  }}
+                  onClick={() => generatePost(undefined, true)}
+                  disabled={isLoading}
+                  className="hover-btn"
+                >
+                  {isLoading ? "Generating..." : "Regenerate"}
+                </button>
+              )}
               <button
                 style={{
                   ...styles.secondaryBtn,

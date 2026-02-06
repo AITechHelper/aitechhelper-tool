@@ -36,8 +36,8 @@ export default function GalleryPage() {
         label: "Natural Lifestyle",
         svg: (
           <svg
-            width="28"
-            height="28"
+            width="48"
+            height="48"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
@@ -60,8 +60,8 @@ export default function GalleryPage() {
         label: "Branded Photo",
         svg: (
           <svg
-            width="28"
-            height="28"
+            width="48"
+            height="48"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
@@ -85,8 +85,8 @@ export default function GalleryPage() {
         label: "Branded + Text",
         svg: (
           <svg
-            width="28"
-            height="28"
+            width="48"
+            height="48"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
@@ -111,8 +111,8 @@ export default function GalleryPage() {
         label: "Graphic Design",
         svg: (
           <svg
-            width="28"
-            height="28"
+            width="48"
+            height="48"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
@@ -131,8 +131,8 @@ export default function GalleryPage() {
       label: "Image",
       svg: (
         <svg
-          width="28"
-          height="28"
+          width="48"
+          height="48"
           fill="none"
           stroke="currentColor"
           strokeWidth="2"

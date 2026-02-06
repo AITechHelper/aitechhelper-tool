@@ -855,7 +855,6 @@ export default function DashboardPage() {
               )}
             </div>
           ) : (
-            /* Sign In Button for non-authenticated users */
             <button
               onClick={() => router.push("/sign-in")}
               style={{
@@ -880,273 +879,26 @@ export default function DashboardPage() {
               Sign In
             </button>
           )}
+        </div>
 
-          {/* Header - Enhanced */}
-          <div
-            style={{
-              marginBottom: 32,
-              textAlign: "center" as const,
-            }}
-          >
-            <p
-              style={{
-                margin: "12px 0 0 0",
-                fontSize: 17,
-                opacity: 0.8,
-                fontWeight: 500,
-              }}
-            >
-              What would you like to do today?
-            </p>
-          </div>
-
-          {/* Show compact profile bar when profiles exist */}
-          {profiles.length > 0 && activeProfile && (
-            <div
-              className="profile-bar"
-              style={{
-                background: "linear-gradient(135deg, #15233d 0%, #1a1a2e 100%)",
-                border: "1px solid rgba(34, 197, 94, 0.3)",
-                borderRadius: 16,
-                padding: "16px 20px",
-                marginBottom: 28,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                boxShadow:
-                  "0 4px 20px rgba(0,0,0,0.3), 0 0 30px rgba(34, 197, 94, 0.08)",
-              }}
-            >
-              <div
-                className="profile-bar-left"
-                style={{ display: "flex", alignItems: "center", gap: 16 }}
-              >
-                <div>
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 10 }}
-                  >
-                    <span style={{ fontSize: 16, fontWeight: 700 }}>
-                      {activeProfile.name}
-                    </span>
-                    <span
-                      style={{
-                        background:
-                          "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
-                        padding: "3px 10px",
-                        borderRadius: 20,
-                        fontSize: 10,
-                        fontWeight: 700,
-                        color: "#fff",
-                        textTransform: "uppercase" as const,
-                        letterSpacing: 0.5,
-                      }}
-                    >
-                      Active
-                    </span>
-                  </div>
-                  <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>
-                    {activeProfile.niche || "No niche"} • {activeProfile.tone} •{" "}
-                    {activeProfile.audience || "No audience"}
-                  </div>
-                </div>
-                {/* View Posts Button */}
-                <button
-                  onClick={() =>
-                    router.push(`/gallery?profileId=${activeProfile.id}`)
+          {/* Brand Profiles section - always show */}
+          <div style={styles.heroSection} className="primary-section">
+            <div style={styles.sectionHeader}>
+              <div>
+                <h2 style={styles.sectionTitle}>
+                  Your Brand Profiles
+                  <span style={styles.stepPill}>Step 1</span>
+                </h2>
+                <p style={styles.instructionText}>
+                  {profiles.length === 0 
+                    ? "Start here — create a profile so every post matches your brand."
+                    : "Manage your brand profiles and switch between them."
                   }
-                  style={{
-                    background:
-                      "linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%)",
-                    border: "1px solid rgba(236, 72, 153, 0.3)",
-                    borderRadius: 8,
-                    padding: "8px 14px",
-                    color: "#f472b6",
-                    cursor: "pointer",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    transition: "all 0.15s ease",
-                  }}
-                  className="hover-btn view-posts-btn"
-                >
-                  <span>🖼️</span>
-                  View Posts
-                </button>
-              </div>
-              <div
-                className="profile-bar-right"
-                style={styles.profileBarDropdown}
-              >
-                <button
-                  style={{
-                    background:
-                      "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)",
-                    border: "1px solid rgba(255,255,255,0.15)",
-                    borderRadius: 10,
-                    padding: "10px 16px",
-                    color: "#e6edf7",
-                    cursor: "pointer",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    transition: "all 0.15s ease",
-                  }}
-                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                  className="hover-btn"
-                >
-                  <span>Switch Profile</span>
-                  <span style={{ fontSize: 10, opacity: 0.7 }}>
-                    {showProfileDropdown ? "▲" : "▼"}
-                  </span>
-                </button>
-                {showProfileDropdown && (
-                  <div style={styles.dropdownMenu}>
-                    {profiles.map((profile) => (
-                      <div
-                        key={profile.id}
-                        style={{
-                          ...styles.dropdownItem,
-                          background:
-                            profile.id === activeProfileId
-                              ? "rgba(34, 197, 94, 0.15)"
-                              : "transparent",
-                          justifyContent: "flex-start",
-                        }}
-                        onClick={() => {
-                          handleActivateProfile(profile);
-                          setShowProfileDropdown(false);
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.background =
-                            profile.id === activeProfileId
-                              ? "rgba(34, 197, 94, 0.2)"
-                              : "rgba(255,255,255,0.05)")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.background =
-                            profile.id === activeProfileId
-                              ? "rgba(34, 197, 94, 0.15)"
-                              : "transparent")
-                        }
-                      >
-                        <div
-                          style={{
-                            width: 10,
-                            height: 10,
-                            borderRadius: "50%",
-                            background: profile.primaryColor,
-                            border: "1px solid rgba(255,255,255,0.2)",
-                            flexShrink: 0,
-                          }}
-                        />
-                        <span style={{ flex: 1 }}>{profile.name}</span>
-                        <button
-                          style={{
-                            background: "rgba(126, 179, 255, 0.1)",
-                            border: "1px solid rgba(126, 179, 255, 0.2)",
-                            borderRadius: 4,
-                            padding: "2px 6px",
-                            color: "#7eb3ff",
-                            fontSize: 10,
-                            cursor: "pointer",
-                            marginRight: 6,
-                            transition: "all 0.15s ease",
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditProfile(profile);
-                            setShowProfileDropdown(false);
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background =
-                              "rgba(126, 179, 255, 0.2)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background =
-                              "rgba(126, 179, 255, 0.1)";
-                          }}
-                        >
-                          edit
-                        </button>
-                        {profile.id === activeProfileId && (
-                          <span style={{ color: "#22c55e", fontSize: 12 }}>
-                            ✓
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                    <div style={styles.dropdownDivider} />
-                    <div
-                      style={{
-                        ...styles.dropdownItem,
-                        color: "#7eb3ff",
-                      }}
-                      onClick={() => {
-                        setShowNewProfile(true);
-                        setShowProfileDropdown(false);
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.background =
-                          "rgba(255,255,255,0.05)")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.background = "transparent")
-                      }
-                    >
-                      <span style={{ fontSize: 16 }}>+</span>
-                      <span>Add New Profile</span>
-                    </div>
-                    <div style={styles.dropdownDivider} />
-                    {profiles.map((profile) => (
-                      <div
-                        key={`delete-${profile.id}`}
-                        style={{
-                          ...styles.dropdownItem,
-                          color: "#ef4444",
-                          fontSize: 12,
-                        }}
-                        onClick={() => {
-                          handleDeleteProfile(profile.id);
-                          setShowProfileDropdown(false);
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.background =
-                            "rgba(239, 68, 68, 0.1)")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.background = "transparent")
-                        }
-                      >
-                        <span style={{ fontSize: 12 }}>🗑</span>
-                        <span>Delete {profile.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                </p>
               </div>
             </div>
-          )}
 
-          {/* Show hero section only when no profiles exist */}
-          {profiles.length === 0 && (
-            <div style={styles.heroSection} className="primary-section">
-              <div style={styles.sectionHeader}>
-                <div>
-                  <h2 style={styles.sectionTitle}>
-                    Your Brand Profiles
-                    <span style={styles.stepPill}>Step 1</span>
-                  </h2>
-                  <p style={styles.instructionText}>
-                    Start here — create a profile so every post matches your
-                    brand.
-                  </p>
-                </div>
-              </div>
-
+            {profiles.length === 0 ? (
               <div style={styles.emptyState}>
                 {/* Centered Content Container */}
                 <div
@@ -1294,8 +1046,124 @@ export default function DashboardPage() {
                   </button>
                 </div>
               </div>
+            ) : (
+            /* Show profiles list when profiles exist */
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+              gap: 20,
+              marginTop: 20
+            }}>
+              {profiles.map((profile) => (
+                <div key={profile.id} style={{
+                  background: "linear-gradient(135deg, #15233d 0%, #1a1a2e 100%)",
+                  border: profile.id === activeProfileId ? "2px solid #22c55e" : "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: 16,
+                  padding: 20,
+                  position: "relative",
+                  transition: "all 0.2s ease"
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#e6edf7" }}>
+                      {profile.name}
+                    </h3>
+                    {profile.id === activeProfileId && (
+                      <span style={{
+                        background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                        padding: "2px 8px",
+                        borderRadius: 12,
+                        fontSize: 9,
+                        fontWeight: 700,
+                        color: "#fff",
+                        textTransform: "uppercase",
+                        letterSpacing: 0.5
+                      }}>
+                        Active
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 16, lineHeight: 1.5 }}>
+                    {profile.niche} • {profile.audience} • {profile.tone}
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button
+                      onClick={() => handleActivateProfile(profile)}
+                      style={{
+                        background: profile.id === activeProfileId ? "rgba(34, 197, 94, 0.2)" : "rgba(126, 179, 255, 0.1)",
+                        border: profile.id === activeProfileId ? "1px solid #22c55e" : "1px solid rgba(126, 179, 255, 0.2)",
+                        borderRadius: 8,
+                        padding: "8px 12px",
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: profile.id === activeProfileId ? "#22c55e" : "#7eb3ff",
+                        cursor: "pointer",
+                        flex: 1,
+                        transition: "all 0.2s ease"
+                      }}
+                    >
+                      {profile.id === activeProfileId ? "Active" : "Activate"}
+                    </button>
+                    <button
+                      onClick={() => handleEditProfile(profile)}
+                      style={{
+                        background: "rgba(236, 72, 153, 0.1)",
+                        border: "1px solid rgba(236, 72, 153, 0.2)",
+                        borderRadius: 8,
+                        padding: "8px 12px",
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: "#ec4899",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease"
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProfile(profile.id)}
+                      style={{
+                        background: "rgba(239, 68, 68, 0.1)",
+                        border: "1px solid rgba(239, 68, 68, 0.2)",
+                        borderRadius: 8,
+                        padding: "8px 12px",
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: "#ef4444",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease"
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+              
+              {/* Add New Profile Card */}
+              <div 
+                onClick={() => setShowNewProfile(true)}
+                style={{
+                  background: "linear-gradient(135deg, rgba(126, 179, 255, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%)",
+                  border: "2px dashed rgba(126, 179, 255, 0.3)",
+                  borderRadius: 16,
+                  padding: 20,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  minHeight: 120
+                }}
+              >
+                <div style={{ fontSize: 24, marginBottom: 8 }}>+</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "#7eb3ff" }}>
+                  Add New Profile
+                </div>
+              </div>
             </div>
           )}
+          </div>
 
           {/* Main Actions - Enhanced Cards */}
           <div style={styles.section}>
@@ -1780,7 +1648,6 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-          </div>
 
           {/* Recent Posts & Gallery Section */}
           <div
@@ -1874,28 +1741,22 @@ export default function DashboardPage() {
                     }}
                     className="hover-card"
                   >
-                    {postImages[post.id] ? (
-                      <div
-                        style={{
-                          width: "100%",
-                          aspectRatio: "1",
-                          backgroundImage: `url(${postImages[post.id]})`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                        }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          width: "100%",
-                          aspectRatio: "1",
-                          background:
-                            "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
+                    {/* Always show actual images when available */}
+                    <div
+                      style={{
+                        width: "100%",
+                        aspectRatio: "1",
+                        backgroundImage: postImages[post.id]
+                          ? `url(${postImages[post.id]})`
+                          : "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {!postImages[post.id] && (
                         <svg
                           width="32"
                           height="32"
@@ -1908,8 +1769,8 @@ export default function DashboardPage() {
                           <circle cx="8.5" cy="8.5" r="1.5" />
                           <path d="M21 15l-5-5L5 21" />
                         </svg>
-                      </div>
-                    )}
+                      )}
+                    </div>
                     <div style={{ padding: 10 }}>
                       <div
                         style={{

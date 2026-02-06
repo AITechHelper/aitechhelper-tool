@@ -12,7 +12,20 @@ type DayContext = {
   detail: string;
 };
 
+type GeneratedResult = {
+  caption: string;
+  hashtags: string;
+  imageBase64: string;
+  imagePrompt?: string;
+  why?: string;
+  createdAt: number;
+};
+
+// In-memory cache for idempotency (replace with DB in production)
+const generationCache = new Map<string, GeneratedResult>();
+
 type Body = {
+  requestId?: string;
   niche?: string;
   audience?: string;
 
@@ -777,6 +790,14 @@ export async function POST(req: Request) {
   try {
     const body = (await req.json()) as Body;
 
+    // Check for existing generation with same requestId
+    if (body.requestId && !body.refinementText) {
+      const cached = generationCache.get(body.requestId);
+      if (cached) {
+        return NextResponse.json(cached);
+      }
+    }
+
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       return jsonError(
@@ -1110,14 +1131,30 @@ Rules for scene_plan:
       }
     }
 
+    const result = {
+      caption,
+      hashtags,
+      why: "",
+      imageBase64: `data:image/png;base64,${b64}`,
+      imagePrompt: imageInstruction,
+      createdAt: Date.now(),
+    };
+
+    // Cache the result for future requests with same requestId
+    if (body.requestId && !body.refinementText) {
+      generationCache.set(body.requestId, result);
+      // Clean up old entries (keep only last 100)
+      if (generationCache.size > 100) {
+        const entries = Array.from(generationCache.entries());
+        const oldEntries = entries
+          .sort((a, b) => a[1].createdAt - b[1].createdAt)
+          .slice(0, entries.length - 100);
+        oldEntries.forEach(([key]) => generationCache.delete(key));
+      }
+    }
+
     return NextResponse.json({
-      result: {
-        caption,
-        hashtags,
-        why: "",
-        imageBase64: `data:image/png;base64,${b64}`,
-        imagePrompt: imageInstruction,
-      },
+      result,
     });
   } catch (err: any) {
     console.error("❌ /api/generate crashed:", err);
