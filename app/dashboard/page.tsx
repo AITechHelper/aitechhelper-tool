@@ -55,6 +55,7 @@ export default function DashboardPage() {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [postImages, setPostImages] = useState<Record<string, string>>({});
   const [hasLoadedProfiles, setHasLoadedProfiles] = useState(false);
+  const [billingLoading, setBillingLoading] = useState(false);
 
   // Load profiles and posts from localStorage
   useEffect(() => {
@@ -657,7 +658,36 @@ export default function DashboardPage() {
 
   return (
     <div style={styles.page}>
-      <div style={styles.container}>
+      <div style={{ ...styles.container, position: "relative" }}>
+        {/* User Identity Pill - Top Right */}
+        {user && (
+          <div
+            style={{
+              position: "absolute",
+              top: 20,
+              right: 40,
+              zIndex: 10,
+            }}
+            className="user-identity-pill"
+          >
+            <div
+              style={{
+                background: "rgba(44, 107, 237, 0.1)",
+                border: "1px solid rgba(44, 107, 237, 0.2)",
+                borderRadius: 20,
+                padding: "6px 14px",
+                fontSize: 12,
+                color: "#7eb3ff",
+                fontWeight: 600,
+                fontFamily: "Verdana, Geneva, sans-serif",
+              }}
+            >
+              {user.primaryEmailAddress?.emailAddress ||
+                user.username ||
+                "Signed in"}
+            </div>
+          </div>
+        )}
         {/* Header - Enhanced */}
         <div
           style={{
@@ -691,32 +721,6 @@ export default function DashboardPage() {
           >
             What would you like to do today?
           </p>
-          {user && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                marginTop: 12,
-              }}
-            >
-              <div
-                style={{
-                  background: "rgba(44, 107, 237, 0.1)",
-                  border: "1px solid rgba(44, 107, 237, 0.2)",
-                  borderRadius: 20,
-                  padding: "6px 14px",
-                  fontSize: 12,
-                  color: "#7eb3ff",
-                  fontWeight: 600,
-                  fontFamily: "Verdana, Geneva, sans-serif",
-                }}
-              >
-                {user.primaryEmailAddress?.emailAddress ||
-                  user.username ||
-                  "Signed in"}
-              </div>
-            </div>
-          )}
           <div
             style={{
               display: "flex",
@@ -727,25 +731,36 @@ export default function DashboardPage() {
           >
             <button
               onClick={async () => {
+                setBillingLoading(true);
                 try {
-                  const res = await fetch("/api/stripe/portal", {
+                  const res = await fetch("/api/billing-portal", {
                     method: "POST",
                   });
                   const data = await res.json();
-                  if (data.url) window.location.href = data.url;
-                } catch {}
+                  if (data.url) {
+                    window.location.href = data.url;
+                  } else if (data.error) {
+                    alert(`Error: ${data.error}`);
+                  }
+                } catch (error) {
+                  alert("Failed to open billing portal. Please try again.");
+                } finally {
+                  setBillingLoading(false);
+                }
               }}
+              disabled={billingLoading}
               style={{
                 padding: "8px 16px",
                 background: "transparent",
                 border: "1px solid rgba(255,255,255,0.2)",
                 borderRadius: 8,
-                color: "#8fa3bf",
+                color: billingLoading ? "#555" : "#8fa3bf",
                 fontSize: 14,
-                cursor: "pointer",
+                cursor: billingLoading ? "not-allowed" : "pointer",
+                opacity: billingLoading ? 0.6 : 1,
               }}
             >
-              Manage Billing
+              {billingLoading ? "Loading..." : "Manage Billing"}
             </button>
             <SignOutButton redirectUrl="/">
               <button
@@ -2114,6 +2129,7 @@ export default function DashboardPage() {
           .profile-bar { flex-wrap: wrap !important; gap: 12px !important; }
           .profile-bar-left { flex-wrap: wrap !important; gap: 10px !important; }
           .profile-bar-right { width: 100% !important; justify-content: flex-end !important; }
+          .user-identity-pill { right: 16px !important; top: 16px !important; }
         }
         @media (max-width: 700px) {
           .profile-form-grid { grid-template-columns: 1fr !important; }
