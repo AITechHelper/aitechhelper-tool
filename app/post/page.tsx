@@ -455,6 +455,18 @@ export default function PostPage() {
         throw new Error("API returned an unexpected response shape.");
       }
 
+      // Save token data to localStorage if provided
+      if (data?.tokenData && data?.userId) {
+        try {
+          const { getTokenKey } = await import("../lib/tokens");
+          const tokenKey = getTokenKey(data.userId);
+          localStorage.setItem(tokenKey, JSON.stringify(data.tokenData));
+          console.log("💾 Updated token data in localStorage", data.tokenData);
+        } catch (err) {
+          console.error("Failed to save token data:", err);
+        }
+      }
+
       setPost(result);
       setLoadingProgress(100);
       if (refinementOverride) setHasRefined(true);

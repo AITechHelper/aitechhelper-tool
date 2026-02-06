@@ -805,6 +805,9 @@ export async function POST(req: Request) {
 
     const body = (await req.json()) as Body;
 
+    // Initialize token data to return
+    let updatedTokenData: TokenData = getDefaultTokenData();
+
     // Check and decrement tokens (skip for refinements)
     if (!body.refinementText) {
       const tokenKey = getTokenKey(userId);
@@ -835,6 +838,7 @@ export async function POST(req: Request) {
 
       // Decrement token (we'll save this back to database in production)
       tokenData = decrementToken(tokenData);
+      updatedTokenData = tokenData;
 
       console.log(
         `Token used for user ${userId}. Remaining: ${tokenData.totalMonthlyTokens - tokenData.tokensUsedThisMonth}`
@@ -845,7 +849,15 @@ export async function POST(req: Request) {
     if (body.requestId && !body.refinementText) {
       const cached = generationCache.get(body.requestId);
       if (cached) {
-        return NextResponse.json(cached);
+        return NextResponse.json({
+          result: cached,
+          userId,
+          tokenData: {
+            tokensUsedThisMonth: updatedTokenData.tokensUsedThisMonth,
+            tokenMonth: updatedTokenData.tokenMonth,
+            totalMonthlyTokens: updatedTokenData.totalMonthlyTokens,
+          },
+        });
       }
     }
 
@@ -1206,6 +1218,12 @@ Rules for scene_plan:
 
     return NextResponse.json({
       result,
+      userId,
+      tokenData: {
+        tokensUsedThisMonth: updatedTokenData.tokensUsedThisMonth,
+        tokenMonth: updatedTokenData.tokenMonth,
+        totalMonthlyTokens: updatedTokenData.totalMonthlyTokens,
+      },
     });
   } catch (err: any) {
     console.error("❌ /api/generate crashed:", err);
