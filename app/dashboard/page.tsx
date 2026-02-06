@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { SignOutButton } from "@clerk/nextjs";
+import { SignOutButton, useUser } from "@clerk/nextjs";
 import { getImage } from "../lib/imageStorage";
 
 // localStorage keys
@@ -37,6 +37,7 @@ type SavedPost = {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { user } = useUser();
   const [profiles, setProfiles] = useState<BrandProfile[]>([]);
   const [recentPosts, setRecentPosts] = useState<SavedPost[]>([]);
   const [showNewProfile, setShowNewProfile] = useState(false);
@@ -690,6 +691,32 @@ export default function DashboardPage() {
           >
             What would you like to do today?
           </p>
+          {user && (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                marginTop: 12,
+              }}
+            >
+              <div
+                style={{
+                  background: "rgba(44, 107, 237, 0.1)",
+                  border: "1px solid rgba(44, 107, 237, 0.2)",
+                  borderRadius: 20,
+                  padding: "6px 14px",
+                  fontSize: 12,
+                  color: "#7eb3ff",
+                  fontWeight: 600,
+                  fontFamily: "Verdana, Geneva, sans-serif",
+                }}
+              >
+                {user.primaryEmailAddress?.emailAddress ||
+                  user.username ||
+                  "Signed in"}
+              </div>
+            </div>
+          )}
           <div
             style={{
               display: "flex",
