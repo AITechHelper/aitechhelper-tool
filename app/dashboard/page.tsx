@@ -147,7 +147,7 @@ export default function DashboardPage() {
     setBillingLoading(true);
     setMenuOpen(false);
     try {
-      const res = await fetch("/api/billing-portal", {
+      const res = await fetch("/api/stripe/portal", {
         method: "POST",
       });
       const data = await res.json();
