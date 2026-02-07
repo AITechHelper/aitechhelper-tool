@@ -154,6 +154,10 @@ export default function DashboardPage() {
       if (data.url) {
         addToast("Opening billing portal...", "info");
         window.location.href = data.url;
+      } else if (res.status === 404) {
+        // No subscription found — redirect to subscribe page
+        addToast("No active subscription found. Redirecting to plans...", "info");
+        window.location.href = "/subscribe";
       } else if (data.error) {
         addToast("Failed to open billing portal.", "error");
       }

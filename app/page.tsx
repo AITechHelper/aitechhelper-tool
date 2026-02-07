@@ -40,6 +40,9 @@ export default function LandingPage() {
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
+      } else if (res.status === 404) {
+        // No subscription — redirect to subscribe page
+        window.location.href = "/subscribe";
       }
     } catch {
       // silently fail on landing page
