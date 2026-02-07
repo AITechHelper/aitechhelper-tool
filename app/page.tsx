@@ -1,13 +1,52 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import { useUser, SignOutButton } from "@clerk/nextjs";
 
 export default function LandingPage() {
   const router = useRouter();
   const { user, isLoaded } = useUser();
   const isSignedIn = isLoaded && !!user;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [billingLoading, setBillingLoading] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu on click outside or Escape
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    function handleEscKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setMenuOpen(false);
+    }
+    if (menuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleEscKey);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscKey);
+    };
+  }, [menuOpen]);
+
+  const handleBilling = async () => {
+    setBillingLoading(true);
+    setMenuOpen(false);
+    try {
+      const res = await fetch("/api/billing-portal", { method: "POST" });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch {
+      // silently fail on landing page
+    } finally {
+      setBillingLoading(false);
+    }
+  };
 
   // Demo animation state
   const [demoPhase, setDemoPhase] = useState<
@@ -172,40 +211,6 @@ export default function LandingPage() {
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           {isSignedIn ? (
             <>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                {user.imageUrl ? (
-                  <img
-                    src={user.imageUrl}
-                    alt=""
-                    style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: "50%",
-                      border: "2px solid rgba(44, 107, 237, 0.5)",
-                    }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: "50%",
-                      background: "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 14,
-                      fontWeight: 700,
-                      color: "#fff",
-                    }}
-                  >
-                    {(user.firstName || user.emailAddresses?.[0]?.emailAddress || "U").charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <span style={{ fontSize: 13, fontWeight: 600, color: "#8fa3bf" }} className="nav-user-name">
-                  {user.firstName || "Welcome back"}
-                </span>
-              </div>
               <button
                 onClick={() => router.push("/dashboard")}
                 style={{
@@ -224,6 +229,122 @@ export default function LandingPage() {
               >
                 Go to Dashboard
               </button>
+              <div ref={menuRef} style={{ position: "relative" }}>
+                <div
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  style={{
+                    background: "rgba(44, 107, 237, 0.1)",
+                    border: "1px solid rgba(44, 107, 237, 0.2)",
+                    borderRadius: 20,
+                    padding: "6px 14px",
+                    fontSize: 12,
+                    color: "#7eb3ff",
+                    fontWeight: 600,
+                    fontFamily: "Verdana, Geneva, sans-serif",
+                    maxWidth: 220,
+                    cursor: "pointer",
+                    transition: "opacity 0.2s ease",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+                  onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+                >
+                  <span
+                    style={{
+                      textOverflow: "ellipsis",
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                      flex: 1,
+                    }}
+                  >
+                    {user.primaryEmailAddress?.emailAddress || user.username || "Signed in"}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 10,
+                      transition: "transform 0.2s ease",
+                      transform: menuOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    ▼
+                  </span>
+                </div>
+
+                {menuOpen && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 48,
+                      right: 0,
+                      background: "rgba(10, 18, 32, 0.98)",
+                      border: "1px solid rgba(255,255,255,0.10)",
+                      borderRadius: 14,
+                      minWidth: 200,
+                      boxShadow: "0 12px 40px rgba(0,0,0,0.45)",
+                      padding: 8,
+                      zIndex: 50,
+                    }}
+                  >
+                    <button
+                      onClick={handleBilling}
+                      disabled={billingLoading}
+                      style={{
+                        width: "100%",
+                        background: "transparent",
+                        border: "none",
+                        color: "#ffffff",
+                        padding: "10px 12px",
+                        borderRadius: 8,
+                        fontSize: 14,
+                        fontWeight: 500,
+                        cursor: billingLoading ? "not-allowed" : "pointer",
+                        textAlign: "left" as const,
+                        transition: "background 0.2s ease",
+                        fontFamily: "Verdana, Geneva, sans-serif",
+                      }}
+                      onMouseEnter={(e) =>
+                        !billingLoading &&
+                        (e.currentTarget.style.background = "rgba(255,255,255,0.05)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background = "transparent")
+                      }
+                    >
+                      {billingLoading ? "Loading..." : "Manage Billing"}
+                    </button>
+
+                    <SignOutButton redirectUrl="/">
+                      <button
+                        style={{
+                          width: "100%",
+                          background: "transparent",
+                          border: "none",
+                          color: "#ffffff",
+                          padding: "10px 12px",
+                          borderRadius: 8,
+                          fontSize: 14,
+                          fontWeight: 500,
+                          cursor: "pointer",
+                          textAlign: "left" as const,
+                          transition: "background 0.2s ease",
+                          fontFamily: "Verdana, Geneva, sans-serif",
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.background = "rgba(255,255,255,0.05)")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.background = "transparent")
+                        }
+                      >
+                        Sign Out
+                      </button>
+                    </SignOutButton>
+                  </div>
+                )}
+              </div>
             </>
           ) : (
             <>
