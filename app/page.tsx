@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 
 export default function LandingPage() {
   const router = useRouter();
+  const { user, isLoaded } = useUser();
+  const isSignedIn = isLoaded && !!user;
 
   // Demo animation state
   const [demoPhase, setDemoPhase] = useState<
@@ -167,41 +170,100 @@ export default function LandingPage() {
           <span style={{ fontSize: 18, fontWeight: 800 }}>AI Tech Helper</span>
         </div>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-          <button
-            onClick={() => router.push("/sign-in")}
-            style={{
-              background: "transparent",
-              border: "1px solid rgba(255,255,255,0.2)",
-              borderRadius: 10,
-              padding: "12px 24px",
-              color: "#8fa3bf",
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
-            className="nav-signin"
-          >
-            Sign In
-          </button>
-          <button
-            onClick={() => router.push("/dashboard")}
-            style={{
-              background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
-              border: "none",
-              borderRadius: 10,
-              padding: "12px 24px",
-              color: "#fff",
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: "pointer",
-              boxShadow: "0 4px 12px rgba(44, 107, 237, 0.3)",
-              transition: "all 0.2s ease",
-            }}
-            className="nav-cta"
-          >
-            Get Started
-          </button>
+          {isSignedIn ? (
+            <>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                {user.imageUrl ? (
+                  <img
+                    src={user.imageUrl}
+                    alt=""
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: "50%",
+                      border: "2px solid rgba(44, 107, 237, 0.5)",
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: "50%",
+                      background: "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: "#fff",
+                    }}
+                  >
+                    {(user.firstName || user.emailAddresses?.[0]?.emailAddress || "U").charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#8fa3bf" }} className="nav-user-name">
+                  {user.firstName || "Welcome back"}
+                </span>
+              </div>
+              <button
+                onClick={() => router.push("/dashboard")}
+                style={{
+                  background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "12px 24px",
+                  color: "#fff",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  boxShadow: "0 4px 12px rgba(44, 107, 237, 0.3)",
+                  transition: "all 0.2s ease",
+                }}
+                className="nav-cta"
+              >
+                Go to Dashboard
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => router.push("/sign-in")}
+                style={{
+                  background: "transparent",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  borderRadius: 10,
+                  padding: "12px 24px",
+                  color: "#8fa3bf",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+                className="nav-signin"
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => router.push("/dashboard")}
+                style={{
+                  background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "12px 24px",
+                  color: "#fff",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  boxShadow: "0 4px 12px rgba(44, 107, 237, 0.3)",
+                  transition: "all 0.2s ease",
+                }}
+                className="nav-cta"
+              >
+                Get Started
+              </button>
+            </>
+          )}
         </div>
       </nav>
 
@@ -338,7 +400,7 @@ export default function LandingPage() {
                 }}
                 className="hero-cta-primary"
               >
-                Start Creating Free →
+                {isSignedIn ? "Go to Dashboard →" : "Start Creating Free →"}
               </button>
             </div>
           </div>
@@ -851,44 +913,67 @@ export default function LandingPage() {
               flexWrap: "wrap",
             }}
           >
-            <button
-              onClick={() => router.push("/sign-in")}
-              style={{
-                background: "transparent",
-                border: "2px solid rgba(255,255,255,0.3)",
-                borderRadius: 14,
-                padding: "20px 48px",
-                color: "#8fa3bf",
-                fontSize: 18,
-                fontWeight: 700,
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-              }}
-              className="final-signin"
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => router.push("/dashboard")}
-              style={{
-                background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
-                border: "none",
-                borderRadius: 14,
-                padding: "20px 48px",
-                color: "#fff",
-                fontSize: 18,
-                fontWeight: 700,
-                cursor: "pointer",
-                boxShadow: "0 8px 32px rgba(44, 107, 237, 0.5)",
-                transition: "all 0.2s ease",
-              }}
-              className="final-cta"
-            >
-              Get Started Free →
-            </button>
+            {isSignedIn ? (
+              <button
+                onClick={() => router.push("/dashboard")}
+                style={{
+                  background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
+                  border: "none",
+                  borderRadius: 14,
+                  padding: "20px 48px",
+                  color: "#fff",
+                  fontSize: 18,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  boxShadow: "0 8px 32px rgba(44, 107, 237, 0.5)",
+                  transition: "all 0.2s ease",
+                }}
+                className="final-cta"
+              >
+                Go to Dashboard →
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => router.push("/sign-in")}
+                  style={{
+                    background: "transparent",
+                    border: "2px solid rgba(255,255,255,0.3)",
+                    borderRadius: 14,
+                    padding: "20px 48px",
+                    color: "#8fa3bf",
+                    fontSize: 18,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
+                  className="final-signin"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => router.push("/dashboard")}
+                  style={{
+                    background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
+                    border: "none",
+                    borderRadius: 14,
+                    padding: "20px 48px",
+                    color: "#fff",
+                    fontSize: 18,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    boxShadow: "0 8px 32px rgba(44, 107, 237, 0.5)",
+                    transition: "all 0.2s ease",
+                  }}
+                  className="final-cta"
+                >
+                  Get Started Free →
+                </button>
+              </>
+            )}
           </div>
           <p style={{ fontSize: 13, opacity: 0.5, marginTop: 16 }}>
-            No credit card required
+            {isSignedIn ? "Welcome back! Your dashboard is ready." : "No credit card required"}
           </p>
         </div>
       </section>
@@ -1008,6 +1093,9 @@ export default function LandingPage() {
           }
           .demo-phone-frame {
             max-width: 300px !important;
+          }
+          .nav-user-name {
+            display: none !important;
           }
           
           /* Mobile center alignment */
