@@ -1942,20 +1942,46 @@ export default function DashboardPage() {
         {showNewProfile && (
           <div style={styles.modal} onClick={() => setShowNewProfile(false)}>
             <div
-              style={styles.modalContent}
+              style={{
+                ...styles.modalContent,
+                ...(!editingProfile ? {
+                  background: "linear-gradient(180deg, #141f38 0%, #101a33 100%)",
+                  border: "1px solid rgba(44, 107, 237, 0.2)",
+                  boxShadow: "0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(44,107,237,0.08)",
+                } : {}),
+              }}
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Header */}
+              {!editingProfile && (
+                <div style={{ textAlign: "center" as const, marginBottom: 8 }}>
+                  <div style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 14,
+                    background: "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(124, 58, 237, 0.15) 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 24,
+                    margin: "0 auto 12px",
+                  }}>
+                    ✨
+                  </div>
+                </div>
+              )}
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
                   marginBottom: 16,
+                  justifyContent: !editingProfile ? "center" as const : "flex-start" as const,
                 }}
               >
                 <div style={styles.modalTitle}>
                   {editingProfile
                     ? "Edit Brand Profile"
-                    : "Create Your Brand Profile"}
+                    : "Welcome! Let\u2019s set up your brand"}
                 </div>
                 <span
                   style={{
@@ -1971,7 +1997,7 @@ export default function DashboardPage() {
                     letterSpacing: 0.5,
                   }}
                 >
-                  One-time setup
+                  {editingProfile ? "Editing" : "Takes 30 seconds"}
                 </span>
               </div>
 
@@ -1983,10 +2009,12 @@ export default function DashboardPage() {
                   lineHeight: 1.5,
                   paddingBottom: 16,
                   borderBottom: "1px solid rgba(255,255,255,0.08)",
+                  textAlign: !editingProfile ? "center" as const : "left" as const,
                 }}
               >
-                This is a one-time setup. We'll save your brand details so every
-                post is instantly pre-filled and consistent.
+                {editingProfile
+                  ? "Update your brand details below."
+                  : "Tell us a bit about your brand and we\u2019ll make sure every post feels on-brand and speaks to your audience."}
               </div>
 
               {/* Form Grid */}
@@ -2000,29 +2028,87 @@ export default function DashboardPage() {
                 className="profile-form-grid"
               >
                 {/* Profile Name - Full Width */}
-                <input
-                  style={{ ...styles.input, gridColumn: "1 / -1" }}
-                  placeholder="Profile name (e.g., Coffee Shop)"
-                  value={newProfileName}
-                  onChange={(e) => setNewProfileName(e.target.value)}
-                  autoFocus
-                />
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={{ fontSize: 13, fontWeight: 600, color: "#e6edf7", marginBottom: 4, display: "block" }}>
+                    Brand name
+                  </label>
+                  <input
+                    style={{ ...styles.input, marginBottom: 0 }}
+                    placeholder="e.g., Sunrise Coffee Co."
+                    value={newProfileName}
+                    onChange={(e) => setNewProfileName(e.target.value)}
+                    autoFocus
+                  />
+                  <div style={{ fontSize: 12, color: "#8fa3bf", marginTop: 4, lineHeight: 1.4 }}>
+                    The name of your business or brand. This helps personalize your posts.
+                  </div>
+                </div>
 
                 {/* Niche */}
-                <input
-                  style={styles.input}
-                  placeholder="Your niche (e.g., Coffee, Fitness, Tech)"
-                  value={newProfileNiche}
-                  onChange={(e) => setNewProfileNiche(e.target.value)}
-                />
+                <div>
+                  <label style={{ fontSize: 13, fontWeight: 600, color: "#e6edf7", marginBottom: 4, display: "block" }}>
+                    Niche
+                  </label>
+                  <input
+                    style={{ ...styles.input, marginBottom: 0 }}
+                    placeholder="e.g., Coffee, Fitness, Tech Startups"
+                    value={newProfileNiche}
+                    onChange={(e) => setNewProfileNiche(e.target.value)}
+                  />
+                  <div style={{ fontSize: 12, color: "#8fa3bf", marginTop: 4, lineHeight: 1.4 }}>
+                    Your industry or topic area. We&apos;ll use this to generate relevant content.
+                  </div>
+                </div>
 
                 {/* Audience */}
-                <input
-                  style={styles.input}
-                  placeholder="Your audience (e.g., Coffee lovers, Entrepreneurs)"
-                  value={newProfileAudience}
-                  onChange={(e) => setNewProfileAudience(e.target.value)}
-                />
+                <div>
+                  <label style={{ fontSize: 13, fontWeight: 600, color: "#e6edf7", marginBottom: 4, display: "block" }}>
+                    Target audience
+                  </label>
+                  <input
+                    style={{ ...styles.input, marginBottom: 0 }}
+                    placeholder="e.g., Small business owners aged 25-45"
+                    value={newProfileAudience}
+                    onChange={(e) => setNewProfileAudience(e.target.value)}
+                  />
+                  <div style={{ fontSize: 12, color: "#8fa3bf", marginTop: 4, lineHeight: 1.4 }}>
+                    Who are you trying to reach? This shapes the language and tone of your posts.
+                  </div>
+                </div>
+              </div>
+
+              {/* Default Tone Display */}
+              <div style={{
+                marginBottom: 24,
+                padding: "14px 16px",
+                background: "rgba(44, 107, 237, 0.08)",
+                border: "1px solid rgba(44, 107, 237, 0.2)",
+                borderRadius: 10,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+              }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>
+                    Default tone
+                  </div>
+                  <div style={{ fontSize: 12, color: "#8fa3bf" }}>
+                    Your posts will use a confident tone. You can change this per post anytime.
+                  </div>
+                </div>
+                <div style={{
+                  background: "rgba(44, 107, 237, 0.2)",
+                  border: "1px solid rgba(44, 107, 237, 0.3)",
+                  borderRadius: 8,
+                  padding: "6px 14px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "#7eb3ff",
+                  whiteSpace: "nowrap" as const,
+                }}>
+                  Confident
+                </div>
               </div>
 
               {/* Brand Colors */}
@@ -2031,11 +2117,14 @@ export default function DashboardPage() {
                   style={{
                     fontSize: 14,
                     fontWeight: 600,
-                    marginBottom: 12,
+                    marginBottom: 4,
                     opacity: 0.9,
                   }}
                 >
                   Brand Colors
+                </div>
+                <div style={{ fontSize: 12, color: "#8fa3bf", marginBottom: 12 }}>
+                  Optional. These colors will be used in your generated image backgrounds and overlays.
                 </div>
 
                 <div
@@ -2056,7 +2145,7 @@ export default function DashboardPage() {
                         display: "block",
                       }}
                     >
-                      Primary Color
+                      Primary Color <span style={{ fontSize: 11, color: "#8fa3bf" }}>(main brand color)</span>
                     </label>
                     <div
                       style={{ display: "flex", gap: 8, alignItems: "center" }}
@@ -2097,7 +2186,7 @@ export default function DashboardPage() {
                         display: "block",
                       }}
                     >
-                      Secondary Color
+                      Secondary Color <span style={{ fontSize: 11, color: "#8fa3bf" }}>(accent or background)</span>
                     </label>
                     <div
                       style={{ display: "flex", gap: 8, alignItems: "center" }}
@@ -2160,7 +2249,6 @@ export default function DashboardPage() {
                     style={styles.btn}
                     onClick={() => {
                       setShowNewProfile(false);
-                      // Reset form fields
                       setNewProfileName("");
                       setNewProfileNiche("");
                       setNewProfileAudience("");
@@ -2173,37 +2261,53 @@ export default function DashboardPage() {
                     Cancel
                   </button>
                   <button
-                    style={{ ...styles.btn, ...styles.btnPrimary }}
+                    style={{
+                      ...styles.btn,
+                      background: "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)",
+                      border: "none",
+                      color: "#fff",
+                      padding: "10px 24px",
+                      fontSize: 14,
+                    }}
                     onClick={handleCreateProfile}
-                    className="hover-btn"
+                    className="hover-btn-primary"
                   >
                     {editingProfile ? "Update Profile" : "Save Profile"}
                   </button>
                 </div>
 
-                <button
-                  style={{
-                    ...styles.btn,
-                    opacity: 0.7,
-                    fontSize: 12,
-                    padding: "8px 12px",
-                    alignSelf: "center" as const,
-                  }}
-                  onClick={() => {
-                    localStorage.setItem("ath_profile_setup_skipped", "1");
-                    setShowNewProfile(false);
-                    // Reset form fields
-                    setNewProfileName("");
-                    setNewProfileNiche("");
-                    setNewProfileAudience("");
-                    setNewProfilePrimaryColor("#000000");
-                    setNewProfileSecondaryColor("#ffffff");
-                    setEditingProfile(null);
-                  }}
-                  className="hover-btn"
-                >
-                  No thanks — continue without a profile
-                </button>
+                {!editingProfile && (
+                  <div style={{ textAlign: "center" as const, marginTop: 4 }}>
+                    <button
+                      style={{
+                        ...styles.btn,
+                        background: "transparent",
+                        border: "none",
+                        opacity: 0.7,
+                        fontSize: 13,
+                        padding: "8px 12px",
+                        color: "#8fa3bf",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => {
+                        localStorage.setItem("ath_profile_setup_skipped", "1");
+                        setShowNewProfile(false);
+                        setNewProfileName("");
+                        setNewProfileNiche("");
+                        setNewProfileAudience("");
+                        setNewProfilePrimaryColor("#000000");
+                        setNewProfileSecondaryColor("#ffffff");
+                        setEditingProfile(null);
+                      }}
+                      className="hover-btn"
+                    >
+                      I&apos;ll do this later
+                    </button>
+                    <div style={{ fontSize: 11, color: "#5a6a80", marginTop: 4 }}>
+                      You can always set up your brand profile from the dashboard.
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

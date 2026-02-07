@@ -13,12 +13,19 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { plan } = body as { plan: "monthly" | "yearly" };
+    const { plan } = body as { plan: "basic" | "pro" | "premium" };
 
-    const priceId =
-      plan === "yearly"
-        ? process.env.STRIPE_PRICE_ID_YEARLY!
-        : process.env.STRIPE_PRICE_ID_MONTHLY!;
+    const priceMap: Record<string, string | undefined> = {
+      basic: process.env.STRIPE_PRICE_BASIC,
+      pro: process.env.STRIPE_PRICE_PRO,
+      premium: process.env.STRIPE_PRICE_PREMIUM,
+    };
+
+    const priceId = priceMap[plan];
+
+    if (!priceId) {
+      return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+    }
 
     const appUrl = process.env.APP_URL || "http://localhost:3000";
 

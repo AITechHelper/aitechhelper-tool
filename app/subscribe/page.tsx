@@ -3,192 +3,433 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    minHeight: "100vh",
-    background: "#0b1220",
-    color: "#e6edf7",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "40px 20px",
+type PlanId = "basic" | "pro" | "premium";
+
+const PLANS: Array<{
+  id: PlanId;
+  name: string;
+  price: number;
+  tokens: number;
+  features: string[];
+  highlighted: boolean;
+  badge: string | null;
+}> = [
+  {
+    id: "basic",
+    name: "Basic",
+    price: 9,
+    tokens: 30,
+    features: [
+      "30 AI-generated posts per month",
+      "All post types",
+      "Brand profile support",
+      "AI image generation",
+      "Smart captions & hashtags",
+    ],
+    highlighted: false,
+    badge: null,
   },
-  card: {
-    background: "linear-gradient(135deg, #1a2332 0%, #0f1926 100%)",
-    borderRadius: "16px",
-    padding: "48px",
-    maxWidth: "600px",
-    width: "100%",
-    textAlign: "center" as const,
-    border: "1px solid rgba(255,255,255,0.1)",
+  {
+    id: "pro",
+    name: "Pro",
+    price: 19,
+    tokens: 60,
+    features: [
+      "60 AI-generated posts per month",
+      "All post types",
+      "Brand profile support",
+      "AI image generation",
+      "Smart captions & hashtags",
+      "Priority generation speed",
+    ],
+    highlighted: true,
+    badge: "Most Popular",
   },
-  title: {
-    fontSize: "32px",
-    fontWeight: 700,
-    marginBottom: "12px",
+  {
+    id: "premium",
+    name: "Premium",
+    price: 39,
+    tokens: 120,
+    features: [
+      "120 AI-generated posts per month",
+      "All post types",
+      "Brand profile support",
+      "AI image generation",
+      "Smart captions & hashtags",
+      "Priority generation speed",
+      "Early access to new features",
+    ],
+    highlighted: false,
+    badge: null,
   },
-  subtitle: {
-    fontSize: "16px",
-    color: "#8fa3bf",
-    marginBottom: "40px",
-  },
-  plansContainer: {
-    display: "flex",
-    gap: "20px",
-    marginBottom: "24px",
-    flexWrap: "wrap" as const,
-    justifyContent: "center",
-  },
-  planCard: {
-    flex: "1",
-    minWidth: "220px",
-    background: "rgba(255,255,255,0.05)",
-    borderRadius: "12px",
-    padding: "24px",
-    border: "1px solid rgba(255,255,255,0.1)",
-    cursor: "pointer",
-    transition: "all 0.2s ease",
-  },
-  planCardSelected: {
-    border: "2px solid #2c6bed",
-    background: "rgba(44,107,237,0.1)",
-  },
-  planName: {
-    fontSize: "18px",
-    fontWeight: 600,
-    marginBottom: "8px",
-  },
-  planPrice: {
-    fontSize: "28px",
-    fontWeight: 700,
-    color: "#2c6bed",
-  },
-  planPeriod: {
-    fontSize: "14px",
-    color: "#8fa3bf",
-  },
-  savingsBadge: {
-    background: "#22c55e",
-    color: "#fff",
-    fontSize: "12px",
-    padding: "4px 8px",
-    borderRadius: "4px",
-    marginTop: "8px",
-    display: "inline-block",
-  },
-  button: {
-    background: "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)",
-    color: "#fff",
-    border: "none",
-    borderRadius: "8px",
-    padding: "16px 32px",
-    fontSize: "16px",
-    fontWeight: 600,
-    cursor: "pointer",
-    width: "100%",
-    marginTop: "16px",
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-    cursor: "not-allowed",
-  },
-  canceledMessage: {
-    background: "rgba(239, 68, 68, 0.1)",
-    border: "1px solid rgba(239, 68, 68, 0.3)",
-    borderRadius: "8px",
-    padding: "12px",
-    marginBottom: "24px",
-    color: "#f87171",
-  },
-};
+];
 
 function SubscribeContent() {
   const searchParams = useSearchParams();
   const canceled = searchParams.get("canceled");
-  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "yearly">("monthly");
-  const [loading, setLoading] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState<PlanId | null>(null);
 
-  const handleSubscribe = async () => {
-    setLoading(true);
+  const handleSubscribe = async (plan: PlanId) => {
+    setLoadingPlan(plan);
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: selectedPlan }),
+        body: JSON.stringify({ plan }),
       });
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
       } else {
         alert(data.error || "Failed to create checkout session");
-        setLoading(false);
+        setLoadingPlan(null);
       }
     } catch {
       alert("Failed to create checkout session");
-      setLoading(false);
+      setLoadingPlan(null);
     }
   };
 
+  const styles: Record<string, React.CSSProperties> = {
+    page: {
+      minHeight: "100vh",
+      background: "linear-gradient(180deg, #0b1220 0%, #0d1829 50%, #111827 100%)",
+      color: "#e6edf7",
+      fontFamily: "Verdana, Geneva, sans-serif",
+      padding: "60px 20px 80px",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+    },
+    header: {
+      textAlign: "center" as const,
+      marginBottom: 48,
+      maxWidth: 600,
+      paddingTop: 40,
+    },
+    title: {
+      fontSize: 40,
+      fontWeight: 800,
+      lineHeight: 1.2,
+      marginBottom: 16,
+      background: "linear-gradient(135deg, #ffffff 0%, #e6edf7 50%, #7eb3ff 100%)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      backgroundClip: "text",
+    },
+    subtitle: {
+      fontSize: 16,
+      color: "#8fa3bf",
+      lineHeight: 1.6,
+      margin: 0,
+    },
+    canceledBanner: {
+      background: "rgba(239, 68, 68, 0.1)",
+      border: "1px solid rgba(239, 68, 68, 0.3)",
+      borderRadius: 12,
+      padding: "14px 20px",
+      marginBottom: 32,
+      color: "#f87171",
+      fontSize: 14,
+      maxWidth: 600,
+      width: "100%",
+      textAlign: "center" as const,
+    },
+    cardsRow: {
+      display: "flex",
+      gap: 24,
+      justifyContent: "center",
+      flexWrap: "wrap" as const,
+      maxWidth: 1060,
+      width: "100%",
+    },
+    card: {
+      flex: "1",
+      minWidth: 280,
+      maxWidth: 320,
+      background: "linear-gradient(135deg, #15233d 0%, #101a33 100%)",
+      border: "1px solid rgba(255,255,255,0.1)",
+      borderRadius: 20,
+      padding: "36px 28px 28px",
+      display: "flex",
+      flexDirection: "column" as const,
+      position: "relative" as const,
+      transition: "all 0.2s ease",
+    },
+    cardHighlighted: {
+      border: "2px solid #2c6bed",
+      background: "linear-gradient(135deg, #192a4a 0%, #101a33 100%)",
+      boxShadow: "0 0 40px rgba(44, 107, 237, 0.15), 0 8px 32px rgba(0,0,0,0.3)",
+      transform: "scale(1.04)",
+    },
+    badge: {
+      position: "absolute" as const,
+      top: -14,
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)",
+      color: "#fff",
+      padding: "6px 18px",
+      borderRadius: 20,
+      fontSize: 12,
+      fontWeight: 700,
+      whiteSpace: "nowrap" as const,
+      letterSpacing: 0.5,
+    },
+    planName: {
+      fontSize: 20,
+      fontWeight: 700,
+      marginBottom: 8,
+    },
+    priceRow: {
+      display: "flex",
+      alignItems: "baseline",
+      gap: 4,
+      marginBottom: 4,
+    },
+    price: {
+      fontSize: 44,
+      fontWeight: 800,
+      lineHeight: 1,
+    },
+    pricePeriod: {
+      fontSize: 16,
+      color: "#8fa3bf",
+      fontWeight: 500,
+    },
+    tokens: {
+      fontSize: 14,
+      color: "#8fa3bf",
+      marginBottom: 24,
+      paddingBottom: 24,
+      borderBottom: "1px solid rgba(255,255,255,0.08)",
+    },
+    featureList: {
+      listStyle: "none",
+      padding: 0,
+      margin: "0 0 28px 0",
+      flex: 1,
+    },
+    featureItem: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      fontSize: 14,
+      color: "#c5d0e0",
+      marginBottom: 12,
+      lineHeight: 1.4,
+    },
+    checkmark: {
+      width: 18,
+      height: 18,
+      borderRadius: "50%",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+    },
+    btn: {
+      width: "100%",
+      padding: "14px 20px",
+      borderRadius: 12,
+      fontSize: 15,
+      fontWeight: 700,
+      cursor: "pointer",
+      transition: "all 0.2s ease",
+      fontFamily: "Verdana, Geneva, sans-serif",
+      letterSpacing: 0.3,
+    },
+    btnPrimary: {
+      background: "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)",
+      border: "none",
+      color: "#fff",
+      boxShadow: "0 4px 16px rgba(44, 107, 237, 0.3)",
+    },
+    btnSecondary: {
+      background: "rgba(255,255,255,0.06)",
+      border: "1px solid rgba(255,255,255,0.15)",
+      color: "#e6edf7",
+    },
+    btnDisabled: {
+      opacity: 0.6,
+      cursor: "not-allowed",
+    },
+    footer: {
+      textAlign: "center" as const,
+      marginTop: 40,
+      maxWidth: 500,
+    },
+    footerText: {
+      fontSize: 13,
+      color: "#5a6a80",
+      lineHeight: 1.6,
+    },
+  };
+
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h1 style={styles.title}>Subscribe to AI Tech Helper</h1>
+    <div style={styles.page}>
+      <div style={styles.header}>
+        <h1 style={styles.title}>Choose Your Plan</h1>
         <p style={styles.subtitle}>
-          Unlock unlimited AI-powered social media content generation
+          Scale your social media content with AI-powered post generation.
+          Every plan includes brand-matched images, captions, and hashtags.
         </p>
-
-        {canceled && (
-          <div style={styles.canceledMessage}>
-            Checkout was canceled. You can try again when you&apos;re ready.
-          </div>
-        )}
-
-        <div style={styles.plansContainer}>
-          <div
-            style={{
-              ...styles.planCard,
-              ...(selectedPlan === "monthly" ? styles.planCardSelected : {}),
-            }}
-            onClick={() => setSelectedPlan("monthly")}
-          >
-            <div style={styles.planName}>Monthly</div>
-            <div style={styles.planPrice}>$19</div>
-            <div style={styles.planPeriod}>per month</div>
-          </div>
-
-          <div
-            style={{
-              ...styles.planCard,
-              ...(selectedPlan === "yearly" ? styles.planCardSelected : {}),
-            }}
-            onClick={() => setSelectedPlan("yearly")}
-          >
-            <div style={styles.planName}>Yearly</div>
-            <div style={styles.planPrice}>$190</div>
-            <div style={styles.planPeriod}>per year</div>
-            <div style={styles.savingsBadge}>Save $38/year</div>
-          </div>
-        </div>
-
-        <button
-          style={{
-            ...styles.button,
-            ...(loading ? styles.buttonDisabled : {}),
-          }}
-          onClick={handleSubscribe}
-          disabled={loading}
-        >
-          {loading ? "Redirecting to checkout..." : `Subscribe ${selectedPlan === "monthly" ? "Monthly" : "Yearly"}`}
-        </button>
       </div>
+
+      {canceled && (
+        <div style={styles.canceledBanner}>
+          Checkout was canceled. You can try again when you&apos;re ready.
+        </div>
+      )}
+
+      <div style={styles.cardsRow} className="tier-cards-row">
+        {PLANS.map((plan) => {
+          const isHighlighted = plan.highlighted;
+          const isLoading = loadingPlan === plan.id;
+          const isDisabled = loadingPlan !== null;
+
+          return (
+            <div
+              key={plan.id}
+              style={{
+                ...styles.card,
+                ...(isHighlighted ? styles.cardHighlighted : {}),
+              }}
+              className={isHighlighted ? "tier-card tier-card-highlighted" : "tier-card"}
+            >
+              {plan.badge && <div style={styles.badge}>{plan.badge}</div>}
+
+              <div style={styles.planName}>{plan.name}</div>
+
+              <div style={styles.priceRow}>
+                <span style={{
+                  ...styles.price,
+                  color: isHighlighted ? "#2c6bed" : "#e6edf7",
+                }}>
+                  ${plan.price}
+                </span>
+                <span style={styles.pricePeriod}>/mo</span>
+              </div>
+
+              <div style={styles.tokens}>
+                {plan.tokens} tokens / month
+              </div>
+
+              <ul style={styles.featureList}>
+                {plan.features.map((feature) => (
+                  <li key={feature} style={styles.featureItem}>
+                    <div style={{
+                      ...styles.checkmark,
+                      background: isHighlighted
+                        ? "rgba(44, 107, 237, 0.2)"
+                        : "rgba(34, 197, 94, 0.15)",
+                    }}>
+                      <svg
+                        width="10"
+                        height="10"
+                        fill="none"
+                        stroke={isHighlighted ? "#7eb3ff" : "#22c55e"}
+                        strokeWidth="3"
+                        viewBox="0 0 24 24"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </div>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+
+              <button
+                style={{
+                  ...styles.btn,
+                  ...(isHighlighted ? styles.btnPrimary : styles.btnSecondary),
+                  ...(isDisabled ? styles.btnDisabled : {}),
+                }}
+                onClick={() => handleSubscribe(plan.id)}
+                disabled={isDisabled}
+                className={isHighlighted ? "subscribe-btn-primary" : "subscribe-btn"}
+              >
+                {isLoading ? "Redirecting to checkout..." : `Get ${plan.name}`}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={styles.footer}>
+        <p style={styles.footerText}>
+          All plans are billed monthly. Cancel anytime from your dashboard.
+          <br />
+          Secure payment powered by Stripe.
+        </p>
+      </div>
+
+      <style>{`
+        .tier-card:hover {
+          transform: translateY(-4px);
+          border-color: rgba(255,255,255,0.2) !important;
+        }
+        .tier-card-highlighted:hover {
+          transform: scale(1.04) translateY(-4px) !important;
+        }
+        .subscribe-btn-primary:hover {
+          filter: brightness(1.1);
+          box-shadow: 0 6px 24px rgba(44, 107, 237, 0.5);
+        }
+        .subscribe-btn:hover {
+          background: rgba(255,255,255,0.1) !important;
+          border-color: rgba(255,255,255,0.25) !important;
+        }
+
+        @media (max-width: 900px) {
+          .tier-cards-row {
+            flex-direction: column !important;
+            align-items: center !important;
+          }
+          .tier-card {
+            max-width: 400px !important;
+            width: 100% !important;
+          }
+          .tier-card-highlighted {
+            transform: none !important;
+          }
+          .tier-card-highlighted:hover {
+            transform: translateY(-4px) !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .tier-card {
+            min-width: unset !important;
+            padding: 28px 20px 24px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
 
 export default function SubscribePage() {
   return (
-    <Suspense fallback={<div style={styles.container}>Loading...</div>}>
+    <Suspense
+      fallback={
+        <div
+          style={{
+            minHeight: "100vh",
+            background: "#0b1220",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#8fa3bf",
+            fontFamily: "Verdana, Geneva, sans-serif",
+            fontSize: 16,
+          }}
+        >
+          Loading...
+        </div>
+      }
+    >
       <SubscribeContent />
     </Suspense>
   );
