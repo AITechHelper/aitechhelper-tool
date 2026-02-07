@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getImageStyleOption } from "../lib/imageStyleOptions";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
+import { getImage } from "../lib/imageStorage";
 
 type ImageStyle =
   | "lifestyle_photo"
@@ -24,6 +25,22 @@ type DayPlan = {
   imageFormatLabel: string;
   isHoliday?: boolean;
   holidayName?: string;
+};
+
+type SavedPost = {
+  id: string;
+  profileId?: string;
+  calendarDay?: number;
+  month?: string;
+  hasImage?: boolean;
+  caption: string;
+  hashtags: string;
+  postType: string;
+  imageStyle: string;
+  tone: string;
+  niche: string;
+  audience: string;
+  createdAt: string;
 };
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -417,28 +434,60 @@ function buildMonthPlan(year: number, month: number): DayPlan[] {
   return plans;
 }
 
+/* ---------------- Helpers ---------------- */
+
+const HASHTAG_COUNT_MAP: Record<string, number> = { light: 5, standard: 12, heavy: 20 };
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 /* ----------------------------- Page ----------------------------- */
 
 export default function CalendarPage() {
   const router = useRouter();
   const tokenBalance = useTokenBalance();
   const { addToast } = useToast();
-  const [qs, setQs] = useState("");
   const today = new Date();
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [selectedDay, setSelectedDay] = useState<DayPlan | null>(null);
   const [activeBrandProfile, setActiveBrandProfile] = useState<any>(null);
-  const [generating, setGenerating] = useState(false);
   const [showOutOfTokens, setShowOutOfTokens] = useState(false);
 
+  // Drawer state
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [extraDetails, setExtraDetails] = useState("");
+  const [dayPostsMap, setDayPostsMap] = useState<Map<number, SavedPost>>(new Map());
+  const [drawerImage, setDrawerImage] = useState<string | null>(null);
+  const [drawerImageLoading, setDrawerImageLoading] = useState(false);
+  const [drawerView, setDrawerView] = useState<"plan" | "saved">("plan");
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  // Load gallery data for current month
+  const loadGalleryData = useCallback(() => {
+    try {
+      const gallery: SavedPost[] = JSON.parse(localStorage.getItem("ath_gallery") || "[]");
+      const monthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}`;
+      const map = new Map<number, SavedPost>();
+      gallery.forEach((p) => {
+        if (p.month === monthKey && p.calendarDay) {
+          const existing = map.get(p.calendarDay);
+          if (!existing || new Date(p.createdAt) > new Date(existing.createdAt)) {
+            map.set(p.calendarDay, p);
+          }
+        }
+      });
+      setDayPostsMap(map);
+    } catch {
+      setDayPostsMap(new Map());
+    }
+  }, [currentYear, currentMonth]);
+
   useEffect(() => {
-    // Scroll to top on page load
     window.scrollTo(0, 0);
 
-    setQs(window.location.search ? window.location.search.slice(1) : "");
-
-    // Load active brand profile (validate it has required fields)
+    // Load active brand profile
     try {
       const activeBrand = localStorage.getItem("ath_active_brand_profile");
       if (activeBrand) {
@@ -446,12 +495,25 @@ export default function CalendarPage() {
         if (parsed && parsed.niche && parsed.audience) {
           setActiveBrandProfile(parsed);
         } else {
-          // Stale/incomplete profile — clear it
           localStorage.removeItem("ath_active_brand_profile");
         }
       }
     } catch {}
   }, []);
+
+  // Load gallery on mount and month change
+  useEffect(() => {
+    loadGalleryData();
+  }, [loadGalleryData]);
+
+  // Re-read gallery when returning from /post page
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") loadGalleryData();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [loadGalleryData]);
 
   const plan = useMemo(
     () => buildMonthPlan(currentYear, currentMonth),
@@ -464,29 +526,6 @@ export default function CalendarPage() {
       .filter((p) => p.isHoliday)
       .map((p) => ({ day: p.day, name: p.holidayName }));
   }, [plan]);
-
-  const forwardedQs = useMemo(() => {
-    if (!qs) return "";
-    const sp = new URLSearchParams(qs);
-    [
-      "day",
-      "title",
-      "detail",
-      "autogen",
-      "goal",
-      "imageStyle",
-      "postType",
-      "captionLength",
-      "hashtagPack",
-      "niche",
-      "audience",
-      "tone",
-      "primaryColor",
-      "secondaryColor",
-    ].forEach((k) => sp.delete(k));
-    const out = sp.toString();
-    return out ? `&${out}` : "";
-  }, [qs]);
 
   function prevMonth() {
     if (currentMonth === 0) {
@@ -506,26 +545,118 @@ export default function CalendarPage() {
     }
   }
 
+  /* ---- Drawer open/close ---- */
+
+  function openDrawer(dayPlan: DayPlan) {
+    setSelectedDay(dayPlan);
+    setExtraDetails("");
+    setDrawerImage(null);
+    setCopiedField(null);
+
+    const savedPost = dayPostsMap.get(dayPlan.day);
+    if (savedPost) {
+      setDrawerView("saved");
+      if (savedPost.hasImage) {
+        setDrawerImageLoading(true);
+        const targetId = savedPost.id;
+        getImage(targetId).then((img) => {
+          // Only set if still viewing same post
+          setDrawerImage(img);
+          setDrawerImageLoading(false);
+        }).catch(() => {
+          setDrawerImageLoading(false);
+        });
+      }
+    } else {
+      setDrawerView("plan");
+    }
+
+    setDrawerOpen(true);
+  }
+
+  function closeDrawer() {
+    setDrawerOpen(false);
+    setTimeout(() => {
+      setSelectedDay(null);
+      setDrawerImage(null);
+      setDrawerView("plan");
+      setExtraDetails("");
+      setCopiedField(null);
+    }, 300);
+  }
+
+  /* ---- Generate — direct to /post ---- */
+
   function handleGenerate() {
-    if (!selectedDay || generating) return;
+    if (!selectedDay || !activeBrandProfile) return;
     if (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) {
       setShowOutOfTokens(true);
       addToast("You've used all your tokens this month.", "warning");
       return;
     }
-    setGenerating(true);
+
     const p = selectedDay;
-    const href =
-      `/generator?day=${p.day}` +
-      `&title=${encodeURIComponent(p.holidayName || p.postType)}` +
-      `&detail=${encodeURIComponent(p.detail)}` +
-      `&autogen=1` +
-      `&postType=${encodeURIComponent(p.postType)}` +
-      `&captionLength=${encodeURIComponent(p.captionLength)}` +
-      `&hashtagPack=${encodeURIComponent(p.hashtagPack)}` +
-      `&imageStyle=${encodeURIComponent(p.imageStyle)}` +
-      `${forwardedQs}`;
-    router.push(href);
+    const sp = new URLSearchParams();
+
+    // Brand profile data
+    sp.set("niche", activeBrandProfile.niche || "");
+    sp.set("audience", activeBrandProfile.audience || "");
+    sp.set("tone", activeBrandProfile.tone || "Confident");
+    sp.set("primaryColor", activeBrandProfile.primaryColor || "#000000");
+    sp.set("secondaryColor", activeBrandProfile.secondaryColor || "#ffffff");
+
+    // Day plan data
+    sp.set("postType", p.postType);
+    sp.set("goal", p.postType);
+    sp.set("imageStyle", p.imageStyle);
+    sp.set("captionLength", capitalize(p.captionLength));
+    sp.set("hashtagCount", String(HASHTAG_COUNT_MAP[p.hashtagPack] || 12));
+    sp.set("day", String(p.day));
+    sp.set("title", p.holidayName || p.postType);
+    sp.set("detail", p.detail);
+
+    // Extra details
+    if (extraDetails.trim()) {
+      sp.set("specificRequest", extraDetails.trim());
+    }
+
+    sp.set("autogen", "1");
+
+    // Unique genId for idempotency
+    const genId = Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15);
+    sp.set("genId", genId);
+
+    window.location.href = `/post?${sp.toString()}`;
+  }
+
+  /* ---- Copy/download for saved view ---- */
+
+  async function copyText(text: string, field: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
+    setCopiedField(field);
+    addToast(field === "caption" ? "Caption copied!" : field === "hashtags" ? "Hashtags copied!" : "Copied!", "success");
+    setTimeout(() => setCopiedField(null), 2000);
+  }
+
+  function downloadDrawerImage() {
+    if (!drawerImage) return;
+    const a = document.createElement("a");
+    a.href = drawerImage;
+    a.download = "ai-tech-helper.png";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    addToast("Image downloaded!", "success");
   }
 
   const isToday = (day: number) => {
@@ -544,6 +675,9 @@ export default function CalendarPage() {
   for (let day = 1; day <= getDaysInMonth(currentYear, currentMonth); day++) {
     calendarCells.push({ type: "day", plan: plan[day - 1] });
   }
+
+  // Get the saved post for the selected day (for drawer)
+  const savedPostForDay = selectedDay ? dayPostsMap.get(selectedDay.day) : null;
 
   const styles: Record<string, React.CSSProperties> = {
     page: {
@@ -608,32 +742,6 @@ export default function CalendarPage() {
       boxShadow:
         "0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.05)",
     },
-    holidayAlert: {
-      background:
-        "linear-gradient(135deg, rgba(255, 99, 132, 0.15) 0%, rgba(255, 159, 64, 0.15) 100%)",
-      border: "1px solid rgba(255, 99, 132, 0.3)",
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 20,
-    },
-    holidayAlertTitle: {
-      fontSize: 13,
-      fontWeight: 700,
-      textTransform: "uppercase",
-      marginBottom: 8,
-      display: "flex",
-      alignItems: "center",
-      gap: 8,
-    },
-    holidayList: { display: "flex", flexWrap: "wrap", gap: 8 },
-    holidayTag: {
-      background: "rgba(255, 99, 132, 0.2)",
-      border: "1px solid rgba(255, 99, 132, 0.3)",
-      borderRadius: 6,
-      padding: "4px 10px",
-      fontSize: 12,
-      fontWeight: 600,
-    },
     monthNav: {
       display: "flex",
       alignItems: "center",
@@ -697,6 +805,7 @@ export default function CalendarPage() {
       transition: "all 0.15s ease",
       display: "flex",
       flexDirection: "column",
+      position: "relative",
     },
     dayCellHoliday: {
       background:
@@ -769,7 +878,7 @@ export default function CalendarPage() {
     },
     // Mobile list styles
     mobileListContainer: {
-      display: "none", // Hidden by default, shown on mobile via CSS
+      display: "none",
     },
     mobileListItem: {
       background:
@@ -872,126 +981,6 @@ export default function CalendarPage() {
       opacity: 0.6,
       lineHeight: 1.5,
     },
-
-    // Modal
-    modalOverlay: {
-      position: "fixed",
-      inset: 0,
-      background: "rgba(0,0,0,0.75)",
-      display: "flex",
-      alignItems: "flex-start",
-      justifyContent: "center",
-      zIndex: 100,
-      padding: 20,
-      paddingTop: 60,
-      overflowY: "auto" as const,
-    },
-    modal: {
-      background: "#101a33",
-      border: "1px solid rgba(255,255,255,0.12)",
-      borderRadius: 20,
-      padding: 0,
-      maxWidth: 960,
-      width: "90vw",
-      overflow: "hidden",
-      boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
-    },
-    modalHeader: {
-      padding: "20px 24px",
-      borderBottom: "1px solid rgba(255,255,255,0.08)",
-    },
-    modalHeaderHoliday: {
-      background:
-        "linear-gradient(135deg, rgba(255, 99, 132, 0.15) 0%, rgba(255, 159, 64, 0.15) 100%)",
-    },
-    modalDate: { fontSize: 13, opacity: 0.6, marginBottom: 4 },
-    modalTitle: { fontSize: 22, fontWeight: 700, margin: 0 },
-    modalHolidayBadge: {
-      display: "inline-block",
-      background: "rgba(255, 99, 132, 0.2)",
-      border: "1px solid rgba(255, 99, 132, 0.3)",
-      borderRadius: 6,
-      padding: "4px 10px",
-      fontSize: 11,
-      fontWeight: 700,
-      marginTop: 8,
-      color: "#ff9999",
-    },
-    modalBody: {
-      padding: "20px 24px",
-      display: "grid",
-      gridTemplateColumns: "1.2fr 1fr",
-      gap: 24,
-      alignItems: "start",
-    },
-    modalBodyMobile: {
-      padding: "20px 24px",
-      display: "block",
-    },
-    modalSection: { marginBottom: 16 },
-    modalLeftColumn: {
-      display: "flex",
-      flexDirection: "column" as const,
-      gap: 16,
-    },
-    modalRightColumn: {
-      display: "flex",
-      flexDirection: "column" as const,
-      gap: 16,
-    },
-    modalSectionTitle: {
-      fontSize: 10,
-      fontWeight: 700,
-      textTransform: "uppercase",
-      letterSpacing: 1,
-      opacity: 0.5,
-      marginBottom: 8,
-    },
-    modalDetail: { fontSize: 14, lineHeight: 1.5, opacity: 0.9 },
-    modalGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
-    modalItem: {
-      background: "rgba(255,255,255,0.04)",
-      borderRadius: 10,
-      padding: "10px 12px",
-    },
-    modalItemLabel: {
-      fontSize: 10,
-      textTransform: "uppercase",
-      opacity: 0.5,
-      marginBottom: 4,
-      letterSpacing: 0.5,
-    },
-    modalItemValue: { fontSize: 14, fontWeight: 600 },
-    modalFooter: {
-      padding: "14px 24px",
-      borderTop: "1px solid rgba(255,255,255,0.08)",
-      display: "flex",
-      gap: 12,
-    },
-    modalBtn: {
-      flex: 1,
-      padding: "14px 20px",
-      borderRadius: 12,
-      border: "none",
-      fontSize: 14,
-      fontWeight: 700,
-      cursor: "pointer",
-      transition: "all 0.15s ease",
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
-    },
-    modalBtnCancel: {
-      background: "rgba(255,255,255,0.08)",
-      color: "#e6edf7",
-      border: "1px solid rgba(255,255,255,0.12)",
-    },
-    modalBtnGenerate: {
-      background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
-      color: "#fff",
-    },
-    modalBtnGenerateHoliday: {
-      background: "linear-gradient(135deg, #ff6384 0%, #ff9f64 100%)",
-    },
   };
 
   return (
@@ -1005,8 +994,7 @@ export default function CalendarPage() {
             </h1>
             <p style={styles.subtitle} className="ath-page-subtitle">
               <span style={{ fontSize: 18 }}>📅</span>
-              Click any day to preview and generate that post. Holidays are
-              auto-detected!
+              Click any day to see your content plan and generate posts.
             </p>
           </div>
           <a href="/dashboard" style={styles.backBtn} className="hover-btn">
@@ -1116,6 +1104,7 @@ export default function CalendarPage() {
 
               const p = cell.plan;
               const imageStyleOption = getImageStyleOption(p.imageStyle);
+              const hasPost = dayPostsMap.has(p.day);
               return (
                 <div
                   key={p.day}
@@ -1124,8 +1113,27 @@ export default function CalendarPage() {
                     ...(p.isHoliday ? styles.dayCellHoliday : {}),
                   }}
                   className="ath-day-cell"
-                  onClick={() => setSelectedDay(p)}
+                  onClick={() => openDrawer(p)}
                 >
+                  {hasPost && (
+                    <div style={{
+                      position: "absolute",
+                      top: 6,
+                      right: 6,
+                      width: 18,
+                      height: 18,
+                      borderRadius: "50%",
+                      background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxShadow: "0 2px 6px rgba(34, 197, 94, 0.4)",
+                    }}>
+                      <svg width="10" height="10" fill="none" stroke="#fff" strokeWidth="3" viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </div>
+                  )}
                   <div
                     style={isToday(p.day) ? styles.dayToday : styles.dayNumber}
                     className={isToday(p.day) ? "day-today" : "day-number"}
@@ -1170,11 +1178,12 @@ export default function CalendarPage() {
 
           {/* Mobile List View */}
           <div style={styles.mobileListContainer} className="mobile-calendar">
-            {plan.map((dayPlan, index) => {
+            {plan.map((dayPlan) => {
               const imageStyleOption = getImageStyleOption(dayPlan.imageStyle);
               const dayOfWeek = WEEKDAYS[dayPlan.date.getDay()];
               const monthName = MONTHS[dayPlan.date.getMonth()];
               const dayNum = dayPlan.day;
+              const hasPost = dayPostsMap.has(dayPlan.day);
 
               return (
                 <div
@@ -1184,7 +1193,7 @@ export default function CalendarPage() {
                     ...(dayPlan.isHoliday ? styles.mobileListItemHoliday : {}),
                   }}
                   className="mobile-list-item"
-                  onClick={() => setSelectedDay(dayPlan)}
+                  onClick={() => openDrawer(dayPlan)}
                 >
                   <div style={styles.mobileListLeft}>
                     <div
@@ -1200,6 +1209,26 @@ export default function CalendarPage() {
                       {dayPlan.postType}
                     </div>
                     <div style={styles.mobileListDetail}>{dayPlan.detail}</div>
+                    {hasPost && (
+                      <div style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                        background: "rgba(34, 197, 94, 0.15)",
+                        border: "1px solid rgba(34, 197, 94, 0.3)",
+                        borderRadius: 6,
+                        padding: "2px 8px",
+                        fontSize: 10,
+                        fontWeight: 600,
+                        color: "#22c55e",
+                        marginTop: 4,
+                      }}>
+                        <svg width="8" height="8" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Generated
+                      </div>
+                    )}
                   </div>
                   <div style={styles.mobileListRight}>
                     {dayPlan.isHoliday && (
@@ -1262,349 +1291,445 @@ export default function CalendarPage() {
         <div style={styles.helpText}>
           💡 Holidays are automatically detected and marked as Seasonal content.
           <br />
-          Click any day to preview what will be generated.
+          Click any day to see your content plan and generate posts.
         </div>
         </>)}
       </div>
 
-      {/* Preview Modal */}
-      {selectedDay && (
-        <div style={styles.modalOverlay} onClick={() => setSelectedDay(null)}>
-          <div
-            style={{ ...styles.modal, maxWidth: 520 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Colorful Header */}
+      {/* ============ DRAWER BACKDROP ============ */}
+      {drawerOpen && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            zIndex: 100,
+            transition: "opacity 0.3s ease",
+          }}
+          onClick={closeDrawer}
+        />
+      )}
+
+      {/* ============ DRAWER PANEL ============ */}
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          right: 0,
+          bottom: 0,
+          width: 480,
+          maxWidth: "100vw",
+          background: "#101a33",
+          borderLeft: "1px solid rgba(255,255,255,0.1)",
+          zIndex: 101,
+          transform: drawerOpen ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 0.3s ease",
+          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: drawerOpen ? "-10px 0 40px rgba(0,0,0,0.4)" : "none",
+          fontFamily: "Verdana, Geneva, sans-serif",
+          color: "#e6edf7",
+        }}
+        className="calendar-drawer"
+      >
+        {selectedDay && (
+          <>
+            {/* Drawer Header */}
             <div
               style={{
-                padding: "28px 28px 24px",
+                padding: "24px 24px 20px",
                 background: selectedDay.isHoliday
                   ? "linear-gradient(135deg, rgba(255, 99, 132, 0.2) 0%, rgba(255, 159, 64, 0.15) 100%)"
                   : "linear-gradient(135deg, rgba(124, 58, 237, 0.2) 0%, rgba(44, 107, 237, 0.15) 100%)",
                 borderBottom: "1px solid rgba(255,255,255,0.08)",
-                textAlign: "center" as const,
+                position: "relative",
               }}
             >
-              <div style={{ fontSize: 13, opacity: 0.6, marginBottom: 8 }}>
-                {WEEKDAYS[selectedDay.date.getDay()]}, {MONTHS[currentMonth]}{" "}
-                {selectedDay.day}
+              {/* Close button */}
+              <button
+                onClick={closeDrawer}
+                style={{
+                  position: "absolute",
+                  top: 16,
+                  right: 16,
+                  background: "rgba(255,255,255,0.1)",
+                  border: "none",
+                  borderRadius: 8,
+                  width: 32,
+                  height: 32,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  color: "#e6edf7",
+                  fontSize: 18,
+                }}
+              >
+                ✕
+              </button>
+              <div style={{ fontSize: 13, opacity: 0.6, marginBottom: 6 }}>
+                {WEEKDAYS[selectedDay.date.getDay()]}, {MONTHS[currentMonth]} {selectedDay.day}
               </div>
-              <h2
-                style={{
-                  fontSize: 26,
-                  fontWeight: 800,
-                  margin: 0,
-                  marginBottom: 8,
-                }}
-              >
-                {selectedDay.isHoliday
-                  ? `🎉 ${selectedDay.holidayName}`
-                  : selectedDay.postType}
+              <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0, marginBottom: 4 }}>
+                {selectedDay.isHoliday ? `🎉 ${selectedDay.holidayName}` : selectedDay.postType}
               </h2>
-              <p
-                style={{
-                  fontSize: 15,
-                  opacity: 0.85,
-                  margin: 0,
-                  lineHeight: 1.5,
-                }}
-              >
+              <p style={{ fontSize: 14, opacity: 0.8, margin: 0, lineHeight: 1.5 }}>
                 {selectedDay.detail}
               </p>
+              {savedPostForDay && drawerView === "saved" && (
+                <div style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "rgba(34, 197, 94, 0.15)",
+                  border: "1px solid rgba(34, 197, 94, 0.3)",
+                  borderRadius: 8,
+                  padding: "4px 10px",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "#22c55e",
+                  marginTop: 10,
+                }}>
+                  <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  Post Generated
+                </div>
+              )}
             </div>
 
-            {/* Simple Body */}
-            <div style={{ padding: "24px 28px" }}>
-              {/* Post type explanation */}
-              <div
-                style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: 12,
-                  padding: 16,
-                  marginBottom: 20,
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    textTransform: "uppercase" as const,
-                    letterSpacing: 1,
-                    opacity: 0.5,
-                    marginBottom: 8,
-                  }}
-                >
-                  What this means for your post
-                </div>
-                <p
-                  style={{
-                    fontSize: 14,
-                    lineHeight: 1.6,
-                    margin: 0,
-                    opacity: 0.9,
-                  }}
-                >
-                  {selectedDay.postType === "Engagement" && (
-                    <>
-                      Your post will include a{" "}
-                      <strong>question or call-to-action</strong> designed to
-                      spark conversation. Expect a{" "}
-                      <strong>casual, inviting tone</strong> that encourages
-                      your followers to comment and share their thoughts.
-                    </>
-                  )}
-                  {selectedDay.postType === "Educational" && (
-                    <>
-                      Your post will share{" "}
-                      <strong>valuable tips or insights</strong> that teach your
-                      audience something new. The content will establish you as
-                      a <strong>helpful resource</strong> in your niche.
-                    </>
-                  )}
-                  {selectedDay.postType === "Authority" && (
-                    <>
-                      Your post will showcase your{" "}
-                      <strong>expertise and credibility</strong>. Expect content
-                      that positions you as a <strong>trusted leader</strong> in
-                      your industry.
-                    </>
-                  )}
-                  {selectedDay.postType === "Problem → Solution" && (
-                    <>
-                      Your post will address a{" "}
-                      <strong>common pain point</strong> your audience faces and
-                      present your <strong>solution or approach</strong>. Great
-                      for showing how you can help.
-                    </>
-                  )}
-                  {selectedDay.postType === "Before & After" && (
-                    <>
-                      Your post will highlight a{" "}
-                      <strong>transformation or results</strong>. Perfect for
-                      showing the <strong>impact of your work</strong> or
-                      product in a visual, compelling way.
-                    </>
-                  )}
-                  {selectedDay.postType === "Basic Post" && (
-                    <>
-                      Your post will be a{" "}
-                      <strong>well-crafted, on-brand message</strong> that keeps
-                      your audience engaged. Simple, effective, and true to your
-                      voice.
-                    </>
-                  )}
-                  {selectedDay.postType === "Seasonal" && (
-                    <>
-                      Your post will tap into the{" "}
-                      <strong>holiday excitement</strong> with festive, timely
-                      content. Perfect for connecting with your audience through{" "}
-                      <strong>shared celebrations</strong>.
-                    </>
-                  )}
-                </p>
-              </div>
+            {/* Drawer Body */}
+            <div style={{ flex: 1, padding: "20px 24px", overflowY: "auto" }}>
 
-              {/* What you'll get section */}
-              <div style={{ marginBottom: 20 }}>
-                <div
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    textTransform: "uppercase" as const,
-                    letterSpacing: 1,
-                    opacity: 0.5,
-                    marginBottom: 14,
-                  }}
-                >
-                  What you'll get
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column" as const,
-                    gap: 10,
-                  }}
-                >
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 12 }}
-                  >
-                    <div
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 10,
-                        background:
-                          "linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 18,
-                      }}
-                    >
-                      🖼️
+              {/* ======== SAVED POST VIEW ======== */}
+              {drawerView === "saved" && savedPostForDay ? (
+                <div>
+                  {/* Image */}
+                  {drawerImageLoading ? (
+                    <div style={{
+                      width: "100%",
+                      height: 280,
+                      background: "rgba(255,255,255,0.06)",
+                      borderRadius: 12,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginBottom: 16,
+                      fontSize: 13,
+                      opacity: 0.5,
+                    }}>
+                      Loading image...
                     </div>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: 14 }}>
-                        Custom AI Image
-                      </div>
-                      <div style={{ fontSize: 12, opacity: 0.6 }}>
-                        Designed to match your brand colors
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 12 }}
-                  >
-                    <div
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 10,
-                        background:
-                          "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(44, 107, 237, 0.1) 100%)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 18,
-                      }}
-                    >
-                      ✍️
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: 14 }}>
-                        Engaging Caption
-                      </div>
-                      <div style={{ fontSize: 12, opacity: 0.6 }}>
-                        Written in your brand voice
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 12 }}
-                  >
-                    <div
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 10,
-                        background:
-                          "linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 18,
-                      }}
-                    >
-                      #️⃣
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: 14 }}>
-                        Relevant Hashtags
-                      </div>
-                      <div style={{ fontSize: 12, opacity: 0.6 }}>
-                        Optimized for your niche
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                  ) : drawerImage ? (
+                    <img
+                      src={drawerImage}
+                      alt="Generated post"
+                      style={{ width: "100%", borderRadius: 12, marginBottom: 16 }}
+                    />
+                  ) : null}
 
-              {/* Brand profile indicator */}
-              {activeBrandProfile ? (
-                <div
-                  style={{
-                    background:
-                      "linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%)",
-                    border: "1px solid rgba(16, 185, 129, 0.3)",
-                    borderRadius: 12,
-                    padding: 16,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                  }}
-                >
-                  <div style={{ fontSize: 22 }}>✅</div>
-                  <div>
-                    <div
+                  {/* Caption */}
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5 }}>
+                        Caption
+                      </div>
+                      <button
+                        onClick={() => copyText(savedPostForDay.caption, "caption")}
+                        style={{
+                          background: "rgba(255,255,255,0.08)",
+                          border: "1px solid rgba(255,255,255,0.12)",
+                          borderRadius: 6,
+                          padding: "4px 10px",
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: copiedField === "caption" ? "#22c55e" : "#e6edf7",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {copiedField === "caption" ? "Copied!" : "Copy"}
+                      </button>
+                    </div>
+                    <div style={{
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      borderRadius: 10,
+                      padding: 14,
+                      fontSize: 13,
+                      lineHeight: 1.6,
+                      whiteSpace: "pre-wrap" as const,
+                    }}>
+                      {savedPostForDay.caption}
+                    </div>
+                  </div>
+
+                  {/* Hashtags */}
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5 }}>
+                        Hashtags
+                      </div>
+                      <button
+                        onClick={() => copyText(savedPostForDay.hashtags, "hashtags")}
+                        style={{
+                          background: "rgba(255,255,255,0.08)",
+                          border: "1px solid rgba(255,255,255,0.12)",
+                          borderRadius: 6,
+                          padding: "4px 10px",
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: copiedField === "hashtags" ? "#22c55e" : "#e6edf7",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {copiedField === "hashtags" ? "Copied!" : "Copy"}
+                      </button>
+                    </div>
+                    <div style={{
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      borderRadius: 10,
+                      padding: 14,
+                      fontSize: 13,
+                      lineHeight: 1.6,
+                      color: "#7eb3ff",
+                    }}>
+                      {savedPostForDay.hashtags}
+                    </div>
+                  </div>
+
+                  {/* Download */}
+                  {drawerImage && (
+                    <button
+                      onClick={downloadDrawerImage}
                       style={{
+                        width: "100%",
+                        padding: "12px 20px",
+                        borderRadius: 10,
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        background: "rgba(255,255,255,0.06)",
+                        color: "#e6edf7",
+                        fontSize: 13,
                         fontWeight: 600,
-                        fontSize: 14,
-                        color: "#6ee7b7",
+                        cursor: "pointer",
+                        marginBottom: 16,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 8,
                       }}
+                      className="hover-btn"
                     >
-                      Using "{activeBrandProfile.profileName}" Profile
-                    </div>
-                    <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
-                      Your brand settings will be applied automatically
-                    </div>
-                  </div>
+                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                      </svg>
+                      Download Image
+                    </button>
+                  )}
+
+                  {/* Divider */}
+                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", margin: "20px 0" }} />
+
+                  {/* Generate new button */}
+                  <button
+                    onClick={() => setDrawerView("plan")}
+                    style={{
+                      width: "100%",
+                      padding: "14px 20px",
+                      borderRadius: 12,
+                      border: "1px solid rgba(124, 58, 237, 0.3)",
+                      background: "linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(44, 107, 237, 0.1) 100%)",
+                      color: "#a78bfa",
+                      fontSize: 14,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      fontFamily: "Verdana, Geneva, sans-serif",
+                    }}
+                    className="hover-btn"
+                  >
+                    Generate New Post for This Day
+                  </button>
                 </div>
               ) : (
-                <div
-                  style={{
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: 12,
-                    padding: 16,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                  }}
-                >
-                  <div style={{ fontSize: 22 }}>💡</div>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: 14 }}>
-                      No Profile Selected
+                /* ======== PLAN / GENERATE VIEW ======== */
+                <div>
+                  {/* Post type explanation */}
+                  <div
+                    style={{
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      borderRadius: 12,
+                      padding: 16,
+                      marginBottom: 20,
+                    }}
+                  >
+                    <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 8 }}>
+                      What this means for your post
                     </div>
-                    <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
-                      <a
-                        href="/dashboard"
-                        style={{ color: "#7eb3ff", textDecoration: "none" }}
-                      >
-                        Set up a profile
-                      </a>{" "}
-                      for personalized results
+                    <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0, opacity: 0.9 }}>
+                      {selectedDay.postType === "Engagement" && (
+                        <>Your post will include a <strong>question or call-to-action</strong> designed to spark conversation. Expect a <strong>casual, inviting tone</strong> that encourages your followers to comment and share their thoughts.</>
+                      )}
+                      {selectedDay.postType === "Educational" && (
+                        <>Your post will share <strong>valuable tips or insights</strong> that teach your audience something new. The content will establish you as a <strong>helpful resource</strong> in your niche.</>
+                      )}
+                      {selectedDay.postType === "Authority" && (
+                        <>Your post will showcase your <strong>expertise and credibility</strong>. Expect content that positions you as a <strong>trusted leader</strong> in your industry.</>
+                      )}
+                      {selectedDay.postType === "Problem → Solution" && (
+                        <>Your post will address a <strong>common pain point</strong> your audience faces and present your <strong>solution or approach</strong>. Great for showing how you can help.</>
+                      )}
+                      {selectedDay.postType === "Before & After" && (
+                        <>Your post will highlight a <strong>transformation or results</strong>. Perfect for showing the <strong>impact of your work</strong> or product in a visual, compelling way.</>
+                      )}
+                      {selectedDay.postType === "Basic Post" && (
+                        <>Your post will be a <strong>well-crafted, on-brand message</strong> that keeps your audience engaged. Simple, effective, and true to your voice.</>
+                      )}
+                      {selectedDay.postType === "Seasonal" && (
+                        <>Your post will tap into the <strong>holiday excitement</strong> with festive, timely content. Perfect for connecting with your audience through <strong>shared celebrations</strong>.</>
+                      )}
+                    </p>
+                  </div>
+
+                  {/* What you'll get */}
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 14 }}>
+                      What you'll get
                     </div>
+                    <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
+                          🖼️
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: 14 }}>Custom AI Image</div>
+                          <div style={{ fontSize: 12, opacity: 0.6 }}>Designed to match your brand colors</div>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(44, 107, 237, 0.1) 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
+                          ✍️
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: 14 }}>Engaging Caption</div>
+                          <div style={{ fontSize: 12, opacity: 0.6 }}>Written in your brand voice</div>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
+                          #️⃣
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: 14 }}>Relevant Hashtags</div>
+                          <div style={{ fontSize: 12, opacity: 0.6 }}>Optimized for your niche</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Brand profile indicator */}
+                  <div
+                    style={{
+                      background: "linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%)",
+                      border: "1px solid rgba(16, 185, 129, 0.3)",
+                      borderRadius: 12,
+                      padding: 16,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      marginBottom: 20,
+                    }}
+                  >
+                    <div style={{ fontSize: 22 }}>✅</div>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 14, color: "#6ee7b7" }}>
+                        Using "{activeBrandProfile?.profileName}" Profile
+                      </div>
+                      <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
+                        Your brand settings will be applied automatically
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Extra details textarea */}
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 8 }}>
+                      Extra Details (Optional)
+                    </div>
+                    <textarea
+                      value={extraDetails}
+                      onChange={(e) => setExtraDetails(e.target.value)}
+                      placeholder="Add any specific instructions for your post..."
+                      style={{
+                        width: "100%",
+                        minHeight: 80,
+                        background: "rgba(255,255,255,0.06)",
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        borderRadius: 10,
+                        padding: 12,
+                        color: "#e6edf7",
+                        fontFamily: "Verdana, Geneva, sans-serif",
+                        fontSize: 13,
+                        resize: "vertical",
+                        outline: "none",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </div>
+
+                  {/* Token count */}
+                  <div style={{ fontSize: 12, textAlign: "center" as const, opacity: 0.5, marginBottom: 8 }}>
+                    {tokenBalance.isLoading
+                      ? "Loading tokens..."
+                      : `${tokenBalance.tokensRemaining} tokens remaining this month`}
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Footer */}
-            <div style={styles.modalFooter}>
-              <button
-                style={{ ...styles.modalBtn, ...styles.modalBtnCancel }}
-                onClick={() => setSelectedDay(null)}
-                className="hover-btn"
-              >
-                Cancel
-              </button>
-              <button
-                style={{
-                  ...styles.modalBtn,
-                  ...styles.modalBtnGenerate,
-                  ...(selectedDay.isHoliday
-                    ? styles.modalBtnGenerateHoliday
-                    : {}),
-                  ...((!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) || generating
-                    ? { opacity: 0.4, cursor: "not-allowed" }
-                    : {}),
-                }}
-                onClick={handleGenerate}
-                disabled={(!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) || generating}
-                className="hover-btn-primary"
-              >
-                {generating
-                  ? "Loading…"
-                  : !tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0
-                    ? "Out of tokens"
-                    : "✨ Create My Post"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            {/* Drawer Footer — only show on plan view */}
+            {drawerView === "plan" && (
+              <div style={{
+                padding: "16px 24px",
+                borderTop: "1px solid rgba(255,255,255,0.08)",
+              }}>
+                <button
+                  onClick={handleGenerate}
+                  disabled={!activeBrandProfile || (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0)}
+                  style={{
+                    width: "100%",
+                    padding: "16px 20px",
+                    borderRadius: 12,
+                    border: "none",
+                    fontSize: 15,
+                    fontWeight: 700,
+                    cursor: (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) ? "not-allowed" : "pointer",
+                    background: (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0)
+                      ? "rgba(255,255,255,0.08)"
+                      : selectedDay.isHoliday
+                        ? "linear-gradient(135deg, #ff6384 0%, #ff9f64 100%)"
+                        : "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
+                    color: (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0)
+                      ? "rgba(255,255,255,0.4)"
+                      : "#fff",
+                    fontFamily: "Verdana, Geneva, sans-serif",
+                    textTransform: "uppercase" as const,
+                    letterSpacing: 0.5,
+                    transition: "all 0.15s ease",
+                    opacity: (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) ? 0.5 : 1,
+                  }}
+                  className="hover-btn-primary"
+                >
+                  {!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0
+                    ? "Token limit reached"
+                    : "✨ Generate (uses 1 token)"}
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
       <style>{`
         .hover-btn:hover { background: rgba(255,255,255,0.12) !important; }
@@ -1620,13 +1745,13 @@ export default function CalendarPage() {
           .desktop-calendar { display: grid !important; }
           .mobile-calendar { display: none !important; }
         }
-        
+
         /* Mobile: Hide grid, show mobile list */
         @media (max-width: 768px) {
           .desktop-calendar { display: none !important; }
           .mobile-calendar { display: block !important; }
-          
-          /* Adjust mobile list item hover states */
+          .calendar-drawer { width: 100vw !important; }
+
           .mobile-list-item:hover {
             transform: translateY(-1px);
             background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%) !important;
@@ -1644,10 +1769,6 @@ export default function CalendarPage() {
 
         /* Small tablet / large phone */
         @media (max-width: 768px) {
-          .calendar-modal-body {
-            display: block !important;
-            padding: 16px 20px !important;
-          }
           .ath-cal-grid { gap: 4px !important; }
           .ath-day-cell { min-height: 80px !important; padding: 6px !important; }
           .ath-day-cell .post-type-label { font-size: 8px !important; line-height: 1.2 !important; }
