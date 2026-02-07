@@ -1011,8 +1011,50 @@ export default function CalendarPage() {
           </a>
         </div>
 
+        {/* Brand profile gate */}
+        {!activeBrandProfile && (
+          <div
+            style={{
+              background: "linear-gradient(135deg, rgba(255, 165, 0, 0.12) 0%, rgba(255, 165, 0, 0.06) 100%)",
+              border: "1px solid rgba(255, 165, 0, 0.3)",
+              borderRadius: 16,
+              padding: "40px 28px",
+              textAlign: "center" as const,
+              maxWidth: 520,
+              margin: "0 auto",
+            }}
+          >
+            <div style={{ fontSize: 40, marginBottom: 16 }}>📋</div>
+            <h2 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 10px", color: "#e6edf7" }}>
+              Brand Profile Required
+            </h2>
+            <p style={{ fontSize: 14, opacity: 0.8, lineHeight: 1.6, margin: "0 0 24px" }}>
+              Set up a brand profile on your dashboard before using the calendar.
+              Your profile ensures every post matches your brand voice, niche, and colors.
+            </p>
+            <a
+              href="/dashboard"
+              style={{
+                display: "inline-block",
+                background: "linear-gradient(135deg, #7c3aed 0%, #2c6bed 100%)",
+                color: "#fff",
+                padding: "12px 28px",
+                borderRadius: 12,
+                fontSize: 14,
+                fontWeight: 700,
+                textDecoration: "none",
+                textTransform: "uppercase" as const,
+                letterSpacing: 0.5,
+              }}
+              className="hover-btn-primary"
+            >
+              Go to Dashboard
+            </a>
+          </div>
+        )}
+
         {/* Calendar Card */}
-        <div style={styles.card} className="ath-card">
+        {activeBrandProfile && (<><div style={styles.card} className="ath-card">
           <div style={styles.monthNav}>
             <div style={styles.monthLabel} className="ath-month-label">
               {MONTHS[currentMonth]} {currentYear}
@@ -1205,6 +1247,7 @@ export default function CalendarPage() {
           <br />
           Click any day to preview what will be generated.
         </div>
+        </>)}
       </div>
 
       {/* Preview Modal */}
