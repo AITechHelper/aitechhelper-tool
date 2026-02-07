@@ -2,15 +2,36 @@ import { neon } from "@neondatabase/serverless";
 
 const sql = neon(process.env.DATABASE_URL!);
 
-const DEFAULT_MONTHLY_TOKENS = 60;
+const PLAN_ALLOWANCES: Record<string, number> = {
+  free: 3,
+  basic: 30,
+  pro: 60,
+  premium: 120,
+};
+
+const FREE_ALLOWANCE = PLAN_ALLOWANCES.free; // 3
 
 function getMonthKey(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function getAllowance(): number {
-  return parseInt(process.env.MONTHLY_TOKENS ?? String(DEFAULT_MONTHLY_TOKENS), 10);
+async function getAllowanceForUser(userId: string): Promise<number> {
+  const rows = await sql`
+    SELECT subscription_status as "subscriptionStatus", plan
+    FROM user_entitlements
+    WHERE clerk_user_id = ${userId}
+  `;
+
+  if (!rows[0]) return FREE_ALLOWANCE;
+
+  const row = rows[0] as { subscriptionStatus: string; plan: string | null };
+
+  if (row.subscriptionStatus !== "active") return FREE_ALLOWANCE;
+
+  // Active subscription — look up plan, default to pro (60) if null/unknown
+  const planKey = (row.plan || "").toLowerCase();
+  return PLAN_ALLOWANCES[planKey] ?? PLAN_ALLOWANCES.pro;
 }
 
 export interface TokenStatus {
@@ -21,7 +42,7 @@ export interface TokenStatus {
 
 export async function getTokenStatus(userId: string): Promise<TokenStatus> {
   const currentMonth = getMonthKey();
-  const allowance = getAllowance();
+  const allowance = await getAllowanceForUser(userId);
 
   const rows = await sql`
     SELECT used, month_key as "monthKey", allowance
@@ -48,6 +69,16 @@ export async function getTokenStatus(userId: string): Promise<TokenStatus> {
       WHERE user_id = ${userId}
     `;
     return { allowance, used: 0, remaining: allowance };
+  }
+
+  // Sync allowance if plan changed mid-month (e.g. upgrade/downgrade or leaving test mode)
+  if (row.allowance !== allowance) {
+    await sql`
+      UPDATE user_tokens
+      SET allowance = ${allowance}, updated_at = NOW()
+      WHERE user_id = ${userId}
+    `;
+    return { allowance, used: row.used, remaining: allowance - row.used };
   }
 
   return { allowance: row.allowance, used: row.used, remaining: row.allowance - row.used };

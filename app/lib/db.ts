@@ -3,7 +3,7 @@ import { neon } from "@neondatabase/serverless";
 const sql = neon(process.env.DATABASE_URL!);
 
 export type SubscriptionStatus = "active" | "inactive" | "past_due";
-export type Plan = "monthly" | "yearly";
+export type Plan = "basic" | "pro" | "premium";
 
 export interface UserEntitlement {
   clerkUserId: string;

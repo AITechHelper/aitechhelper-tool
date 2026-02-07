@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS user_entitlements (
   stripe_customer_id TEXT UNIQUE,
   stripe_subscription_id TEXT UNIQUE,
   subscription_status TEXT NOT NULL DEFAULT 'inactive' CHECK (subscription_status IN ('active', 'inactive', 'past_due')),
-  plan TEXT CHECK (plan IN ('monthly', 'yearly')),
+  plan TEXT CHECK (plan IN ('basic', 'pro', 'premium')),
   current_period_end TIMESTAMPTZ,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -22,6 +22,6 @@ CREATE TABLE IF NOT EXISTS user_tokens (
   user_id TEXT PRIMARY KEY,
   month_key TEXT NOT NULL,
   used INTEGER NOT NULL DEFAULT 0,
-  allowance INTEGER NOT NULL DEFAULT 60,
+  allowance INTEGER NOT NULL DEFAULT 45,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

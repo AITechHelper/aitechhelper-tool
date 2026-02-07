@@ -9,6 +9,14 @@ import type { Plan } from "@/app/lib/db";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
+function planFromPriceId(priceId: string): Plan {
+  if (priceId === process.env.STRIPE_PRICE_BASIC) return "basic";
+  if (priceId === process.env.STRIPE_PRICE_PRO) return "pro";
+  if (priceId === process.env.STRIPE_PRICE_PREMIUM) return "premium";
+  // Unknown price — default to pro
+  return "pro";
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.text();
   const signature = req.headers.get("stripe-signature")!;
@@ -31,7 +39,6 @@ export async function POST(req: NextRequest) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const clerkUserId = session.metadata?.clerkUserId;
-        const plan = session.metadata?.plan as Plan;
 
         if (!clerkUserId) {
           console.error("No clerkUserId in checkout session metadata");
@@ -44,16 +51,20 @@ export async function POST(req: NextRequest) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const subData = subscription as any;
 
+        // Derive plan from Stripe price ID
+        const priceId = subData.items?.data?.[0]?.price?.id ?? "";
+        const plan = planFromPriceId(priceId);
+
         await upsertUserEntitlement({
           clerkUserId,
           stripeCustomerId: session.customer as string,
           stripeSubscriptionId: subscriptionId,
           subscriptionStatus: "active",
-          plan: plan || "monthly",
+          plan,
           currentPeriodEnd: subData.current_period_end ? new Date(subData.current_period_end * 1000) : null,
         });
 
-        console.log(`Subscription activated for user ${clerkUserId}`);
+        console.log(`Subscription activated for user ${clerkUserId}, plan=${plan}, priceId=${priceId}`);
         break;
       }
 
@@ -64,13 +75,30 @@ export async function POST(req: NextRequest) {
         const status = subObj.status === "active" ? "active" :
                        subObj.status === "past_due" ? "past_due" : "inactive";
 
-        await updateSubscriptionStatus(
-          subscription.id,
-          status,
-          subObj.current_period_end ? new Date(subObj.current_period_end * 1000) : undefined
-        );
+        // Re-derive plan in case of upgrade/downgrade
+        const updatedPriceId = subObj.items?.data?.[0]?.price?.id ?? "";
+        const updatedPlan = planFromPriceId(updatedPriceId);
 
-        console.log(`Subscription ${subscription.id} updated to ${status}`);
+        // Update status AND plan
+        const customerId = subObj.customer as string;
+        const entitlement = await getEntitlementByStripeCustomerId(customerId);
+        if (entitlement) {
+          await upsertUserEntitlement({
+            clerkUserId: entitlement.clerkUserId,
+            stripeSubscriptionId: subscription.id,
+            subscriptionStatus: status,
+            plan: updatedPlan,
+            currentPeriodEnd: subObj.current_period_end ? new Date(subObj.current_period_end * 1000) : undefined,
+          });
+        } else {
+          await updateSubscriptionStatus(
+            subscription.id,
+            status,
+            subObj.current_period_end ? new Date(subObj.current_period_end * 1000) : undefined
+          );
+        }
+
+        console.log(`Subscription ${subscription.id} updated to ${status}, plan=${updatedPlan}`);
         break;
       }
 

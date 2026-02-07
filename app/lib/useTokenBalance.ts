@@ -13,8 +13,8 @@ export function useTokenBalance(): TokenBalance {
   const { user } = useUser();
   const [balance, setBalance] = useState<TokenBalance>({
     tokensUsed: 0,
-    tokensRemaining: 60,
-    totalMonthlyTokens: 60,
+    tokensRemaining: 0,
+    totalMonthlyTokens: 0,
     isLoading: true,
   });
 

@@ -759,8 +759,10 @@ export default function DashboardPage() {
                   }}
                 >
                   {tokenBalance.isLoading
-                    ? "Loading..."
-                    : `Tokens: ${tokenBalance.tokensRemaining}/${tokenBalance.totalMonthlyTokens}`}
+                    ? "Tokens: …"
+                    : tokenBalance.error
+                      ? "Tokens unavailable"
+                      : `Tokens: ${tokenBalance.tokensRemaining}/${tokenBalance.totalMonthlyTokens}`}
                 </div>
               </div>
 
