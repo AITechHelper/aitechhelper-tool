@@ -3,6 +3,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getImageStyleOption } from "../lib/imageStyleOptions";
+import { useTokenBalance } from "../lib/useTokenBalance";
 
 type ImageStyle =
   | "lifestyle_photo"
@@ -418,6 +419,7 @@ function buildMonthPlan(year: number, month: number): DayPlan[] {
 
 export default function CalendarPage() {
   const router = useRouter();
+  const tokenBalance = useTokenBalance();
   const [qs, setQs] = useState("");
   const today = new Date();
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
@@ -1525,11 +1527,17 @@ export default function CalendarPage() {
                   ...(selectedDay.isHoliday
                     ? styles.modalBtnGenerateHoliday
                     : {}),
+                  ...(!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0
+                    ? { opacity: 0.4, cursor: "not-allowed" }
+                    : {}),
                 }}
                 onClick={handleGenerate}
+                disabled={!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0}
                 className="hover-btn-primary"
               >
-                ✨ Create My Post
+                {!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0
+                  ? "Out of tokens"
+                  : "✨ Create My Post"}
               </button>
             </div>
           </div>

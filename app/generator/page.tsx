@@ -474,14 +474,18 @@ export default function Page() {
     }
   }, [form.niche]);
 
-  const canGenerate = useMemo(
-    () => {
-      const hasRequiredFields = form.niche.trim().length > 0 && form.audience.trim().length > 0;
-      const hasTokens = !tokenBalance.isLoading && tokenBalance.tokensRemaining > 0;
-      return hasRequiredFields && hasTokens;
-    },
-    [form.niche, form.audience, tokenBalance.isLoading, tokenBalance.tokensRemaining]
-  );
+  const canGenerate = useMemo(() => {
+    const hasRequiredFields =
+      form.niche.trim().length > 0 && form.audience.trim().length > 0;
+    const hasTokens =
+      !tokenBalance.isLoading && tokenBalance.tokensRemaining > 0;
+    return hasRequiredFields && hasTokens;
+  }, [
+    form.niche,
+    form.audience,
+    tokenBalance.isLoading,
+    tokenBalance.tokensRemaining,
+  ]);
 
   // Step definitions: 0=Business, 1=PostType, 2=ImageStyle, 3=CaptionSettings, 4=BrandColors, 5=ReferenceImage
   const totalSteps = 6;
@@ -2126,8 +2130,8 @@ export default function Page() {
                     : tokenBalance.tokensRemaining === 0
                       ? "Token limit reached - resets next month"
                       : canGenerate
-                      ? "Generate Post"
-                      : "Fill in Niche & Audience"}
+                        ? "Generate Post"
+                        : "Fill in Niche & Audience"}
                   <svg
                     width="16"
                     height="16"

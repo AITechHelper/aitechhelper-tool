@@ -2,14 +2,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import OpenAI from "openai";
-import {
-  getTokenKey,
-  getDefaultTokenData,
-  resetTokensIfNewMonth,
-  decrementToken,
-  canUseToken,
-  type TokenData,
-} from "../../lib/tokens";
+import { getTokenStatus, useToken, type TokenStatus } from "../../lib/tokens";
 
 export const runtime = "nodejs";
 
@@ -805,44 +798,18 @@ export async function POST(req: Request) {
 
     const body = (await req.json()) as Body;
 
-    // Initialize token data to return
-    let updatedTokenData: TokenData = getDefaultTokenData();
+    // Token status holder (populated below)
+    let tokenStatus: TokenStatus | null = null;
 
-    // Check and decrement tokens (skip for refinements)
+    // Check tokens BEFORE generation (skip for refinements)
     if (!body.refinementText) {
-      const tokenKey = getTokenKey(userId);
-
-      // Get current token data (this would be from a database in production)
-      let tokenData: TokenData;
-      try {
-        // For now, use a simple in-memory fallback
-        // In production, this would fetch from a database
-        tokenData = getDefaultTokenData();
-      } catch {
-        tokenData = getDefaultTokenData();
-      }
-
-      // Reset tokens if new month
-      tokenData = resetTokensIfNewMonth(tokenData);
-
-      // Check if user has tokens
-      if (!canUseToken(tokenData)) {
+      tokenStatus = await getTokenStatus(userId);
+      if (tokenStatus.remaining <= 0) {
         return NextResponse.json(
-          {
-            error:
-              "No tokens remaining. You have used all 60 tokens for this month.",
-          },
-          { status: 402 }
+          { error: "No tokens remaining" },
+          { status: 403 }
         );
       }
-
-      // Decrement token (we'll save this back to database in production)
-      tokenData = decrementToken(tokenData);
-      updatedTokenData = tokenData;
-
-      console.log(
-        `Token used for user ${userId}. Remaining: ${tokenData.totalMonthlyTokens - tokenData.tokensUsedThisMonth}`
-      );
     }
 
     // Check for existing generation with same requestId
@@ -852,11 +819,7 @@ export async function POST(req: Request) {
         return NextResponse.json({
           result: cached,
           userId,
-          tokenData: {
-            tokensUsedThisMonth: updatedTokenData.tokensUsedThisMonth,
-            tokenMonth: updatedTokenData.tokenMonth,
-            totalMonthlyTokens: updatedTokenData.totalMonthlyTokens,
-          },
+          tokenData: tokenStatus,
         });
       }
     }
@@ -1203,6 +1166,12 @@ Rules for scene_plan:
       createdAt: Date.now(),
     };
 
+    // Increment token usage AFTER successful generation (skip refinements)
+    if (!body.refinementText) {
+      tokenStatus = await useToken(userId);
+      console.log(`Token used for user ${userId}. Remaining: ${tokenStatus.remaining}`);
+    }
+
     // Cache the result for future requests with same requestId
     if (body.requestId && !body.refinementText) {
       generationCache.set(body.requestId, result);
@@ -1219,11 +1188,7 @@ Rules for scene_plan:
     return NextResponse.json({
       result,
       userId,
-      tokenData: {
-        tokensUsedThisMonth: updatedTokenData.tokensUsedThisMonth,
-        tokenMonth: updatedTokenData.tokenMonth,
-        totalMonthlyTokens: updatedTokenData.totalMonthlyTokens,
-      },
+      tokenData: tokenStatus,
     });
   } catch (err: any) {
     console.error("❌ /api/generate crashed:", err);

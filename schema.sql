@@ -16,3 +16,12 @@ CREATE INDEX IF NOT EXISTS idx_user_entitlements_stripe_customer_id ON user_enti
 
 -- Index for faster lookups by stripe subscription id
 CREATE INDEX IF NOT EXISTS idx_user_entitlements_stripe_subscription_id ON user_entitlements(stripe_subscription_id);
+
+-- Token usage tracking
+CREATE TABLE IF NOT EXISTS user_tokens (
+  user_id TEXT PRIMARY KEY,
+  month_key TEXT NOT NULL,
+  used INTEGER NOT NULL DEFAULT 0,
+  allowance INTEGER NOT NULL DEFAULT 60,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

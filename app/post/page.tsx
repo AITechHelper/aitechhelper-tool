@@ -314,7 +314,9 @@ export default function PostPage() {
     // Prevent auto-generation if no tokens remaining
     if (!tokenBalance.isLoading && tokenBalance.tokensRemaining === 0) {
       console.log("❌ No tokens remaining, skipping auto-generation");
-      setErrorMsg("You've hit your token limit for this month. Resets on the 1st of next month.");
+      setErrorMsg(
+        "You've hit your token limit for this month. Resets on the 1st of next month."
+      );
       return;
     }
 
@@ -369,13 +371,19 @@ export default function PostPage() {
 
   async function generatePost(refinementOverride?: string) {
     if (isLoading) return;
-    
+
     // Check tokens before starting generation (skip for refinements)
-    if (!refinementOverride && !tokenBalance.isLoading && tokenBalance.tokensRemaining === 0) {
-      setErrorMsg("You've hit your token limit for this month. Resets on the 1st of next month.");
+    if (
+      !refinementOverride &&
+      !tokenBalance.isLoading &&
+      tokenBalance.tokensRemaining === 0
+    ) {
+      setErrorMsg(
+        "You've hit your token limit for this month. Resets on the 1st of next month."
+      );
       return;
     }
-    
+
     setIsLoading(true);
     setErrorMsg("");
     setStatusMsg(refinementOverride ? "Regenerating…" : "Generating…");
@@ -453,18 +461,6 @@ export default function PostPage() {
       if (!result || !result.caption || !result.hashtags) {
         console.error("Unexpected API shape:", data);
         throw new Error("API returned an unexpected response shape.");
-      }
-
-      // Save token data to localStorage if provided
-      if (data?.tokenData && data?.userId) {
-        try {
-          const { getTokenKey } = await import("../lib/tokens");
-          const tokenKey = getTokenKey(data.userId);
-          localStorage.setItem(tokenKey, JSON.stringify(data.tokenData));
-          console.log("💾 Updated token data in localStorage", data.tokenData);
-        } catch (err) {
-          console.error("Failed to save token data:", err);
-        }
       }
 
       setPost(result);

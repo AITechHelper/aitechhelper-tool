@@ -1,20 +1,10 @@
-// Client-side token management hook
-
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
-import {
-  getTokenKey,
-  getDefaultTokenData,
-  resetTokensIfNewMonth,
-  calculateRemainingTokens,
-  type TokenData,
-} from "./tokens";
 
 export type TokenBalance = {
   tokensUsed: number;
   tokensRemaining: number;
   totalMonthlyTokens: number;
-  currentMonth: string;
   isLoading: boolean;
   error?: string;
 };
@@ -25,7 +15,6 @@ export function useTokenBalance(): TokenBalance {
     tokensUsed: 0,
     tokensRemaining: 60,
     totalMonthlyTokens: 60,
-    currentMonth: "",
     isLoading: true,
   });
 
@@ -35,29 +24,15 @@ export function useTokenBalance(): TokenBalance {
       return;
     }
 
-    const fetchTokenBalance = () => {
+    async function fetchTokenBalance() {
       try {
-        const tokenKey = getTokenKey(user.id);
-        const stored = localStorage.getItem(tokenKey);
-        let tokenData: TokenData = stored
-          ? JSON.parse(stored)
-          : getDefaultTokenData();
-
-        // Reset tokens if it's a new month
-        const resetData = resetTokensIfNewMonth(tokenData);
-
-        // Save back if reset occurred
-        if (resetData.tokenMonth !== tokenData.tokenMonth) {
-          localStorage.setItem(tokenKey, JSON.stringify(resetData));
-        }
-
-        const remainingTokens = calculateRemainingTokens(resetData);
-
+        const res = await fetch("/api/tokens");
+        if (!res.ok) throw new Error("Failed to fetch");
+        const data = await res.json();
         setBalance({
-          tokensUsed: resetData.tokensUsedThisMonth,
-          tokensRemaining: remainingTokens,
-          totalMonthlyTokens: resetData.totalMonthlyTokens,
-          currentMonth: resetData.tokenMonth,
+          tokensUsed: data.tokensUsed,
+          tokensRemaining: data.tokensRemaining,
+          totalMonthlyTokens: data.totalMonthlyTokens,
           isLoading: false,
         });
       } catch (error) {
@@ -68,7 +43,7 @@ export function useTokenBalance(): TokenBalance {
           error: "Failed to load token balance",
         }));
       }
-    };
+    }
 
     fetchTokenBalance();
   }, [user?.id]);
