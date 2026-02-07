@@ -215,6 +215,12 @@ export default function DashboardPage() {
 
   const handleDeleteProfile = (id: string) => {
     setProfiles(profiles.filter((p) => p.id !== id));
+
+    // Clear active brand if the deleted profile was active
+    if (activeProfileId === id) {
+      setActiveProfileId(null);
+      localStorage.removeItem(ACTIVE_BRAND_KEY);
+    }
   };
 
   const handleEditProfile = (profile: BrandProfile) => {

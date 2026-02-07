@@ -433,11 +433,17 @@ export default function CalendarPage() {
 
     setQs(window.location.search ? window.location.search.slice(1) : "");
 
-    // Load active brand profile
+    // Load active brand profile (validate it has required fields)
     try {
       const activeBrand = localStorage.getItem("ath_active_brand_profile");
       if (activeBrand) {
-        setActiveBrandProfile(JSON.parse(activeBrand));
+        const parsed = JSON.parse(activeBrand);
+        if (parsed && parsed.niche && parsed.audience) {
+          setActiveBrandProfile(parsed);
+        } else {
+          // Stale/incomplete profile — clear it
+          localStorage.removeItem("ath_active_brand_profile");
+        }
       }
     } catch {}
   }, []);
