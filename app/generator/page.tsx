@@ -3,6 +3,8 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { imageStyles } from "../lib/imageStyleOptions";
 import { useTokenBalance } from "../lib/useTokenBalance";
+import { useToast } from "../_components/ToastProvider";
+import OutOfTokensModal from "../_components/OutOfTokensModal";
 
 type FormState = {
   niche: string;
@@ -318,6 +320,8 @@ function Tooltip({
 
 export default function Page() {
   const tokenBalance = useTokenBalance();
+  const { addToast } = useToast();
+  const [showOutOfTokens, setShowOutOfTokens] = useState(false);
   const [form, setForm] = useState<FormState>({
     niche: "",
     audience: "",
@@ -636,6 +640,7 @@ export default function Page() {
     } catch (err: any) {
       setStatusMsg("");
       setErrorMsg(err?.message || "Failed to redirect.");
+      addToast("Failed to start generation. Please try again.", "error");
       setIsLoading(false);
     }
   }
@@ -2121,14 +2126,21 @@ export default function Page() {
                     fontSize: 14,
                     ...(canGenerate ? {} : styles.nextBtnDisabled),
                   }}
-                  onClick={generatePost}
+                  onClick={() => {
+                    if (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) {
+                      setShowOutOfTokens(true);
+                      addToast("You've used all your tokens this month.", "warning");
+                      return;
+                    }
+                    generatePost();
+                  }}
                   disabled={!canGenerate || isLoading}
                   className="hover-btn"
                 >
                   {isLoading
                     ? "Generating…"
-                    : tokenBalance.tokensRemaining === 0
-                      ? "Token limit reached - resets next month"
+                    : !tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0
+                      ? "Token limit reached"
                       : canGenerate
                         ? "Generate Post"
                         : "Fill in Niche & Audience"}
@@ -2278,6 +2290,13 @@ export default function Page() {
           .ath-styleCardGrid { grid-template-columns: 1fr !important; }
         }
       `}</style>
+
+      <OutOfTokensModal
+        isOpen={showOutOfTokens}
+        onClose={() => setShowOutOfTokens(false)}
+        tokensUsed={tokenBalance.tokensUsed}
+        totalTokens={tokenBalance.totalMonthlyTokens}
+      />
     </div>
   );
 }

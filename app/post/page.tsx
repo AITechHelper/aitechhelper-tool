@@ -4,6 +4,8 @@ import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { saveImage } from "../lib/imageStorage";
 import { useTokenBalance } from "../lib/useTokenBalance";
+import { useToast } from "../_components/ToastProvider";
+import OutOfTokensModal from "../_components/OutOfTokensModal";
 
 // Idempotency utilities
 function createRequestId(payload: any): string {
@@ -155,6 +157,9 @@ export default function PostPage() {
   const router = useRouter();
   const hasStarted = useRef(false);
   const tokenBalance = useTokenBalance();
+  const { addToast } = useToast();
+  const [isFromCache, setIsFromCache] = useState(false);
+  const [showOutOfTokens, setShowOutOfTokens] = useState(false);
 
   const [form, setForm] = useState<FormState>({
     niche: "",
@@ -308,6 +313,13 @@ export default function PostPage() {
     if (existingResult) {
       console.log("✅ Found existing post result, using cached version");
       setPost(existingResult);
+      setIsFromCache(true);
+      // Remove autogen from URL to prevent re-triggering
+      try {
+        const cleanParams = new URLSearchParams(window.location.search);
+        cleanParams.delete("autogen");
+        window.history.replaceState({}, "", `/post?${cleanParams.toString()}`);
+      } catch {}
       return;
     }
 
@@ -317,6 +329,8 @@ export default function PostPage() {
       setErrorMsg(
         "You've hit your token limit for this month. Resets on the 1st of next month."
       );
+      setShowOutOfTokens(true);
+      addToast("You've used all your tokens this month.", "warning");
       return;
     }
 
@@ -467,6 +481,7 @@ export default function PostPage() {
       setLoadingProgress(100);
       if (refinementOverride) setHasRefined(true);
       setStatusMsg("Done ✅");
+      addToast(refinementOverride ? "Post refined!" : "Post generated successfully!", "success");
 
       // Store result with genId for hard lock (only for new generations, not refinements)
       if (!refinementOverride) {
@@ -475,6 +490,12 @@ export default function PostPage() {
         if (genId) {
           storePostResult(genId, result);
         }
+        // Remove autogen from URL to prevent re-triggering
+        try {
+          const cleanParams = new URLSearchParams(window.location.search);
+          cleanParams.delete("autogen");
+          window.history.replaceState({}, "", `/post?${cleanParams.toString()}`);
+        } catch {}
       }
 
       // Save to gallery (metadata in localStorage, image in IndexedDB)
@@ -523,6 +544,7 @@ export default function PostPage() {
     } catch (err: any) {
       setStatusMsg("");
       setErrorMsg(err?.message || "Something went wrong.");
+      addToast("Generation failed. Please try again.", "error");
     } finally {
       setIsLoading(false);
       setTimeout(() => setStatusMsg(""), 1500);
@@ -546,13 +568,14 @@ export default function PostPage() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    addToast("Image downloaded!", "success");
   }
 
   async function copyCaptionAndHashtags() {
     const text = `${editedCaption}\n\n${editedHashtags}`.trim();
     try {
       await navigator.clipboard.writeText(text);
-      alert("Copied caption + hashtags!");
+      addToast("Caption and hashtags copied!", "success");
     } catch {
       const textarea = document.createElement("textarea");
       textarea.value = text;
@@ -560,7 +583,7 @@ export default function PostPage() {
       textarea.select();
       document.execCommand("copy");
       document.body.removeChild(textarea);
-      alert("Copied caption + hashtags!");
+      addToast("Caption and hashtags copied!", "success");
     }
   }
 
@@ -900,6 +923,25 @@ export default function PostPage() {
       <div style={styles.grid} className="ath-grid">
         {/* LEFT: Output */}
         <div style={styles.card}>
+          {isFromCache && (
+            <div
+              style={{
+                background: "rgba(249, 115, 22, 0.1)",
+                border: "1px solid rgba(249, 115, 22, 0.3)",
+                borderRadius: 10,
+                padding: "10px 16px",
+                fontSize: 13,
+                color: "#f59e0b",
+                marginBottom: 16,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <span style={{ fontSize: 16 }}>⚠️</span>
+              This post was already generated. Showing your saved result.
+            </div>
+          )}
           <h2 style={styles.cardTitle}>Output</h2>
           <p style={styles.cardHint}>
             Image + caption + hashtags appear here after generation.
@@ -956,7 +998,7 @@ export default function PostPage() {
                     onClick={refineOnce}
                     className="hover-btn"
                   >
-                    Refine
+                    {isLoading && refinementText.trim().length > 0 ? "Refining…" : "Refine"}
                   </button>
                 </div>
                 {hasRefined && (
@@ -1348,6 +1390,13 @@ export default function PostPage() {
         @media (max-width: 420px) { .ath-imageFrame { min-height: 180px !important; } }
         @keyframes athSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
+
+      <OutOfTokensModal
+        isOpen={showOutOfTokens}
+        onClose={() => setShowOutOfTokens(false)}
+        tokensUsed={tokenBalance.tokensUsed}
+        totalTokens={tokenBalance.totalMonthlyTokens}
+      />
     </div>
   );
 }

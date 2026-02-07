@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getImage, deleteImage } from "../lib/imageStorage";
+import { useToast } from "../_components/ToastProvider";
 
 type SavedPost = {
   id: string;
@@ -22,6 +23,7 @@ type SavedPost = {
 
 export default function GalleryPage() {
   const router = useRouter();
+  const { addToast } = useToast();
 
   // Helper function to get image style metadata
   const getImageStyleMeta = (imageStyle: string) => {
@@ -230,6 +232,7 @@ export default function GalleryPage() {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
     setTimeout(() => setCopiedField(null), 2000);
+    addToast(field === "caption" ? "Caption copied!" : field === "hashtags" ? "Hashtags copied!" : "Copied!", "success");
   };
 
   const handleDelete = async (id: string) => {
@@ -250,6 +253,7 @@ export default function GalleryPage() {
 
     setSelectedPost(null);
     setSelectedImage(null);
+    addToast("Post deleted", "info");
   };
 
   const handleDownloadImage = () => {
@@ -260,6 +264,7 @@ export default function GalleryPage() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    addToast("Image downloaded!", "success");
   };
 
   const formatDate = (dateStr: string) => {
@@ -599,7 +604,7 @@ export default function GalleryPage() {
             </div>
             <button
               style={{ ...styles.btn, ...styles.btnPrimary }}
-              onClick={() => router.push("/generate")}
+              onClick={() => router.push("/generator")}
               className="hover-btn"
             >
               Generate a Post

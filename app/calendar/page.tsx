@@ -4,6 +4,8 @@ import React, { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getImageStyleOption } from "../lib/imageStyleOptions";
 import { useTokenBalance } from "../lib/useTokenBalance";
+import { useToast } from "../_components/ToastProvider";
+import OutOfTokensModal from "../_components/OutOfTokensModal";
 
 type ImageStyle =
   | "lifestyle_photo"
@@ -420,12 +422,15 @@ function buildMonthPlan(year: number, month: number): DayPlan[] {
 export default function CalendarPage() {
   const router = useRouter();
   const tokenBalance = useTokenBalance();
+  const { addToast } = useToast();
   const [qs, setQs] = useState("");
   const today = new Date();
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [selectedDay, setSelectedDay] = useState<DayPlan | null>(null);
   const [activeBrandProfile, setActiveBrandProfile] = useState<any>(null);
+  const [generating, setGenerating] = useState(false);
+  const [showOutOfTokens, setShowOutOfTokens] = useState(false);
 
   useEffect(() => {
     // Scroll to top on page load
@@ -502,7 +507,13 @@ export default function CalendarPage() {
   }
 
   function handleGenerate() {
-    if (!selectedDay) return;
+    if (!selectedDay || generating) return;
+    if (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) {
+      setShowOutOfTokens(true);
+      addToast("You've used all your tokens this month.", "warning");
+      return;
+    }
+    setGenerating(true);
     const p = selectedDay;
     const href =
       `/generator?day=${p.day}` +
@@ -1576,17 +1587,19 @@ export default function CalendarPage() {
                   ...(selectedDay.isHoliday
                     ? styles.modalBtnGenerateHoliday
                     : {}),
-                  ...(!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0
+                  ...((!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) || generating
                     ? { opacity: 0.4, cursor: "not-allowed" }
                     : {}),
                 }}
                 onClick={handleGenerate}
-                disabled={!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0}
+                disabled={(!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) || generating}
                 className="hover-btn-primary"
               >
-                {!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0
-                  ? "Out of tokens"
-                  : "✨ Create My Post"}
+                {generating
+                  ? "Loading…"
+                  : !tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0
+                    ? "Out of tokens"
+                    : "✨ Create My Post"}
               </button>
             </div>
           </div>
@@ -1672,6 +1685,13 @@ export default function CalendarPage() {
           .ath-nav-btn { padding: 6px 10px !important; font-size: 11px !important; }
         }
       `}</style>
+
+      <OutOfTokensModal
+        isOpen={showOutOfTokens}
+        onClose={() => setShowOutOfTokens(false)}
+        tokensUsed={tokenBalance.tokensUsed}
+        totalTokens={tokenBalance.totalMonthlyTokens}
+      />
     </div>
   );
 }

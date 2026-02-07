@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { SignOutButton, useUser } from "@clerk/nextjs";
 import { getImage } from "../lib/imageStorage";
 import { useTokenBalance } from "../lib/useTokenBalance";
+import { useToast } from "../_components/ToastProvider";
 
 // localStorage keys
 const ACTIVE_BRAND_KEY = "ath_active_brand_profile";
@@ -40,6 +41,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { user } = useUser();
   const tokenBalance = useTokenBalance();
+  const { addToast } = useToast();
   const [profiles, setProfiles] = useState<BrandProfile[]>([]);
   const [recentPosts, setRecentPosts] = useState<SavedPost[]>([]);
   const [showNewProfile, setShowNewProfile] = useState(false);
@@ -58,6 +60,7 @@ export default function DashboardPage() {
   const [postImages, setPostImages] = useState<Record<string, string>>({});
   const [hasLoadedProfiles, setHasLoadedProfiles] = useState(false);
   const [billingLoading, setBillingLoading] = useState(false);
+  const [navLoading, setNavLoading] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -149,12 +152,13 @@ export default function DashboardPage() {
       });
       const data = await res.json();
       if (data.url) {
+        addToast("Opening billing portal...", "info");
         window.location.href = data.url;
       } else if (data.error) {
-        alert(`Error: ${data.error}`);
+        addToast("Failed to open billing portal.", "error");
       }
     } catch (error) {
-      alert("Failed to open billing portal. Please try again.");
+      addToast("Failed to open billing portal. Please try again.", "error");
     } finally {
       setBillingLoading(false);
     }
@@ -221,6 +225,7 @@ export default function DashboardPage() {
       setActiveProfileId(null);
       localStorage.removeItem(ACTIVE_BRAND_KEY);
     }
+    addToast("Profile deleted", "info");
   };
 
   const handleEditProfile = (profile: BrandProfile) => {
@@ -255,6 +260,7 @@ export default function DashboardPage() {
       if (activeProfileId === editingProfile.id) {
         handleActivateProfile(updatedProfile);
       }
+      addToast("Brand profile updated!", "success");
     } else {
       // Create new profile
       const newProfile: BrandProfile = {
@@ -272,7 +278,7 @@ export default function DashboardPage() {
       };
 
       if (profiles.length >= 5) {
-        alert("Maximum 5 profiles allowed. Delete one to add more.");
+        addToast("Maximum 5 profiles. Delete one to add more.", "warning");
         return;
       }
 
@@ -280,6 +286,7 @@ export default function DashboardPage() {
 
       // Auto-activate the newly created profile
       handleActivateProfile(newProfile);
+      addToast("Brand profile created!", "success");
     }
 
     // Reset form fields
@@ -753,12 +760,18 @@ export default function DashboardPage() {
               >
                 <div
                   style={{
-                    background: "rgba(34, 197, 94, 0.1)",
-                    border: "1px solid rgba(34, 197, 94, 0.2)",
+                    background: !tokenBalance.isLoading && !tokenBalance.error && tokenBalance.tokensRemaining <= 0
+                      ? "rgba(239, 68, 68, 0.1)"
+                      : "rgba(34, 197, 94, 0.1)",
+                    border: !tokenBalance.isLoading && !tokenBalance.error && tokenBalance.tokensRemaining <= 0
+                      ? "1px solid rgba(239, 68, 68, 0.2)"
+                      : "1px solid rgba(34, 197, 94, 0.2)",
                     borderRadius: 20,
                     padding: "6px 14px",
                     fontSize: 12,
-                    color: "#22c55e",
+                    color: !tokenBalance.isLoading && !tokenBalance.error && tokenBalance.tokensRemaining <= 0
+                      ? "#ef4444"
+                      : "#22c55e",
                     fontWeight: 600,
                     fontFamily: "Verdana, Geneva, sans-serif",
                     whiteSpace: "nowrap",
@@ -1263,7 +1276,7 @@ export default function DashboardPage() {
                 flexDirection: "column" as const,
               }}
               className="primary-action-card hover-card"
-              onClick={() => router.push("/generator")}
+              onClick={() => { setNavLoading("generator"); router.push("/generator"); }}
             >
               {/* Card Header with gradient */}
               <div
@@ -1377,7 +1390,7 @@ export default function DashboardPage() {
                     transition: "all 0.15s ease",
                   }}
                 >
-                  Create a Post →
+                  {navLoading === "generator" ? "Loading…" : "Create a Post →"}
                 </div>
               </div>
             </div>
@@ -1392,7 +1405,7 @@ export default function DashboardPage() {
                 flexDirection: "column" as const,
               }}
               className="primary-action-card hover-card"
-              onClick={() => router.push("/calendar")}
+              onClick={() => { setNavLoading("calendar"); router.push("/calendar"); }}
             >
               {/* Card Header with gradient */}
               <div
@@ -1506,7 +1519,7 @@ export default function DashboardPage() {
                     transition: "all 0.15s ease",
                   }}
                 >
-                  Open Calendar →
+                  {navLoading === "calendar" ? "Loading…" : "Open Calendar →"}
                 </div>
               </div>
             </div>
@@ -1900,9 +1913,26 @@ export default function DashboardPage() {
                 <div style={{ fontSize: 14, marginBottom: 8 }}>
                   No posts yet
                 </div>
-                <div style={{ fontSize: 12, opacity: 0.7 }}>
+                <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 16 }}>
                   Generate your first post to see it here
                 </div>
+                <button
+                  style={{
+                    background: "#2c6bed",
+                    border: "none",
+                    borderRadius: 10,
+                    padding: "12px 24px",
+                    color: "#fff",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                  onClick={() => router.push("/generator")}
+                  className="hover-btn-primary"
+                >
+                  Generate Your First Post
+                </button>
               </div>
             )}
           </div>

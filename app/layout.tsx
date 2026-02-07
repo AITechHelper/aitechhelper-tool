@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import ScrollToTopOnRouteChange from "./_components/ScrollToTopOnRouteChange";
 import Header from "./_components/Header";
+import { ToastProvider } from "./_components/ToastProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,9 +32,11 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <ScrollToTopOnRouteChange />
-          <Header />
-          {children}
+          <ToastProvider>
+            <ScrollToTopOnRouteChange />
+            <Header />
+            {children}
+          </ToastProvider>
         </body>
       </html>
     </ClerkProvider>
