@@ -10,7 +10,7 @@ export type TokenBalance = {
 };
 
 export function useTokenBalance(): TokenBalance {
-  const { user } = useUser();
+  const { user, isLoaded: isUserLoaded } = useUser();
   const [balance, setBalance] = useState<TokenBalance>({
     tokensUsed: 0,
     tokensRemaining: 0,
@@ -19,6 +19,9 @@ export function useTokenBalance(): TokenBalance {
   });
 
   useEffect(() => {
+    // Wait for Clerk to finish loading the user before deciding
+    if (!isUserLoaded) return;
+
     if (!user?.id) {
       setBalance((prev) => ({ ...prev, isLoading: false }));
       return;
@@ -46,7 +49,7 @@ export function useTokenBalance(): TokenBalance {
     }
 
     fetchTokenBalance();
-  }, [user?.id]);
+  }, [user?.id, isUserLoaded]);
 
   return balance;
 }
