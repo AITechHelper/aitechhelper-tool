@@ -6,23 +6,10 @@ import { SignOutButton, useUser } from "@clerk/nextjs";
 import { getImage } from "../lib/imageStorage";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
-
-// localStorage keys
-const ACTIVE_BRAND_KEY = "ath_active_brand_profile";
-
-type BrandProfile = {
-  id: string;
-  name: string;
-  niche: string;
-  audience: string;
-  tone: string;
-  captionLength: "Short" | "Medium" | "Long";
-  hashtagCount: number;
-  imageStyle: string;
-  primaryColor: string;
-  secondaryColor: string;
-  createdAt: string;
-};
+import {
+  useBrandProfiles,
+  type BrandProfile,
+} from "../lib/useBrandProfiles";
 
 type SavedPost = {
   id: string;
@@ -42,7 +29,8 @@ export default function DashboardPage() {
   const { user } = useUser();
   const tokenBalance = useTokenBalance();
   const { addToast } = useToast();
-  const [profiles, setProfiles] = useState<BrandProfile[]>([]);
+  const brandProfiles = useBrandProfiles();
+  const { profiles, activeProfileId } = brandProfiles;
   const [recentPosts, setRecentPosts] = useState<SavedPost[]>([]);
   const [showNewProfile, setShowNewProfile] = useState(false);
   const [editingProfile, setEditingProfile] = useState<BrandProfile | null>(
@@ -55,56 +43,28 @@ export default function DashboardPage() {
     useState("#000000");
   const [newProfileSecondaryColor, setNewProfileSecondaryColor] =
     useState("#ffffff");
-  const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [postImages, setPostImages] = useState<Record<string, string>>({});
-  const [hasLoadedProfiles, setHasLoadedProfiles] = useState(false);
   const [billingLoading, setBillingLoading] = useState(false);
   const [navLoading, setNavLoading] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Load profiles and posts from localStorage
+  // Load posts from localStorage
   useEffect(() => {
-    // Scroll to top on page load
     window.scrollTo(0, 0);
 
     try {
-      const savedProfiles = localStorage.getItem("ath_profiles");
-      const setupSkipped = localStorage.getItem("ath_profile_setup_skipped");
-      const savedActiveProfile = localStorage.getItem(ACTIVE_BRAND_KEY);
-
-      if (savedActiveProfile) {
-        const activeData = JSON.parse(savedActiveProfile);
-        setActiveProfileId(activeData.profileId || null);
-      }
-
-      if (savedProfiles) {
-        const profilesData = JSON.parse(savedProfiles);
-        setProfiles(profilesData);
-        // Auto-open modal if no profiles exist AND user hasn't skipped setup
-        if (profilesData.length === 0 && setupSkipped !== "1") {
-          setShowNewProfile(true);
-        }
-      } else {
-        // Auto-open modal if no profiles exist AND user hasn't skipped setup
-        if (setupSkipped !== "1") {
-          setShowNewProfile(true);
-        }
-      }
-
       const savedPosts = localStorage.getItem("ath_gallery");
       if (savedPosts) {
         const posts = JSON.parse(savedPosts) as SavedPost[];
-        // Sort by date, newest first
         posts.sort(
           (a, b) =>
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
-        const recent = posts.slice(0, 3); // Show last 3
+        const recent = posts.slice(0, 3);
         setRecentPosts(recent);
 
-        // Load images for recent posts
         recent.forEach(async (post) => {
           const img = await getImage(post.id);
           if (img) {
@@ -113,9 +73,16 @@ export default function DashboardPage() {
         });
       }
     } catch {}
-
-    setHasLoadedProfiles(true);
   }, []);
+
+  // Auto-open profile creation modal if no profiles and user hasn't skipped
+  useEffect(() => {
+    if (brandProfiles.isLoading) return;
+    const setupSkipped = localStorage.getItem("ath_profile_setup_skipped");
+    if (profiles.length === 0 && setupSkipped !== "1") {
+      setShowNewProfile(true);
+    }
+  }, [brandProfiles.isLoading, profiles.length]);
 
   // Handle click outside menu to close it
   useEffect(() => {
@@ -168,14 +135,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Save profiles to localStorage (only after initial load)
-  useEffect(() => {
-    if (!hasLoadedProfiles) return;
-    try {
-      localStorage.setItem("ath_profiles", JSON.stringify(profiles));
-    } catch {}
-  }, [profiles, hasLoadedProfiles]);
-
   // Lock body scroll when modal is open
   useEffect(() => {
     if (showNewProfile) {
@@ -188,48 +147,17 @@ export default function DashboardPage() {
     };
   }, [showNewProfile]);
 
-  const handleActivateProfile = (profile: BrandProfile) => {
-    // Save active brand profile
-    const activeBrandData = {
-      profileId: profile.id,
-      profileName: profile.name,
-      niche: profile.niche,
-      audience: profile.audience,
-      tone: profile.tone,
-      captionLength: profile.captionLength,
-      hashtagCount: profile.hashtagCount,
-      imageStyle: profile.imageStyle,
-      primaryColor: profile.primaryColor,
-      secondaryColor: profile.secondaryColor,
-    };
-    localStorage.setItem(ACTIVE_BRAND_KEY, JSON.stringify(activeBrandData));
-
-    // Overwrite form storage completely with profile data
-    const formData = {
-      niche: profile.niche,
-      audience: profile.audience,
-      tone: profile.tone,
-      captionLength: profile.captionLength,
-      hashtagCount: profile.hashtagCount,
-      imageStyle: profile.imageStyle,
-      primaryColor: profile.primaryColor,
-      secondaryColor: profile.secondaryColor,
-      postType: "Basic Post",
-      specificRequest: "",
-    };
-    localStorage.setItem("ath_form", JSON.stringify(formData));
-    setActiveProfileId(profile.id);
+  const handleActivateProfile = async (profile: BrandProfile) => {
+    await brandProfiles.setActiveProfile(profile.id);
   };
 
-  const handleDeleteProfile = (id: string) => {
-    setProfiles(profiles.filter((p) => p.id !== id));
-
-    // Clear active brand if the deleted profile was active
-    if (activeProfileId === id) {
-      setActiveProfileId(null);
-      localStorage.removeItem(ACTIVE_BRAND_KEY);
+  const handleDeleteProfile = async (id: string) => {
+    const success = await brandProfiles.deleteProfile(id);
+    if (success) {
+      addToast("Profile deleted", "info");
+    } else {
+      addToast("Failed to delete profile", "error");
     }
-    addToast("Profile deleted", "info");
   };
 
   const handleEditProfile = (profile: BrandProfile) => {
@@ -242,13 +170,12 @@ export default function DashboardPage() {
     setShowNewProfile(true);
   };
 
-  const handleCreateProfile = () => {
+  const handleCreateProfile = async () => {
     if (!newProfileName.trim()) return;
 
     if (editingProfile) {
       // Update existing profile
-      const updatedProfile: BrandProfile = {
-        ...editingProfile,
+      const updates: Partial<BrandProfile> = {
         name: newProfileName.trim(),
         niche: newProfileNiche.trim(),
         audience: newProfileAudience.trim(),
@@ -256,19 +183,28 @@ export default function DashboardPage() {
         secondaryColor: newProfileSecondaryColor,
       };
 
-      setProfiles(
-        profiles.map((p) => (p.id === editingProfile.id ? updatedProfile : p))
+      const updated = await brandProfiles.updateProfile(
+        editingProfile.id,
+        updates
       );
 
-      // If this is the active profile, update the active profile data too
-      if (activeProfileId === editingProfile.id) {
-        handleActivateProfile(updatedProfile);
+      if (updated) {
+        // If this is the active profile, re-activate to sync localStorage
+        if (activeProfileId === editingProfile.id) {
+          await handleActivateProfile(updated);
+        }
+        addToast("Brand profile updated!", "success");
+      } else {
+        addToast("Failed to update profile", "error");
       }
-      addToast("Brand profile updated!", "success");
     } else {
       // Create new profile
-      const newProfile: BrandProfile = {
-        id: Date.now().toString(),
+      if (profiles.length >= 5) {
+        addToast("Maximum 5 profiles. Delete one to add more.", "warning");
+        return;
+      }
+
+      const created = await brandProfiles.createProfile({
         name: newProfileName.trim(),
         niche: newProfileNiche.trim(),
         audience: newProfileAudience.trim(),
@@ -278,19 +214,15 @@ export default function DashboardPage() {
         imageStyle: "lifestyle_photo",
         primaryColor: newProfilePrimaryColor,
         secondaryColor: newProfileSecondaryColor,
-        createdAt: new Date().toISOString(),
-      };
+      });
 
-      if (profiles.length >= 5) {
-        addToast("Maximum 5 profiles. Delete one to add more.", "warning");
-        return;
+      if (created) {
+        // Auto-activate the newly created profile
+        await handleActivateProfile(created);
+        addToast("Brand profile created!", "success");
+      } else {
+        addToast("Failed to create profile", "error");
       }
-
-      setProfiles([...profiles, newProfile]);
-
-      // Auto-activate the newly created profile
-      handleActivateProfile(newProfile);
-      addToast("Brand profile created!", "success");
     }
 
     // Reset form fields

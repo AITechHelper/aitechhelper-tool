@@ -25,3 +25,30 @@ CREATE TABLE IF NOT EXISTS user_tokens (
   allowance INTEGER NOT NULL DEFAULT 45,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Brand profiles for users
+CREATE TABLE IF NOT EXISTS brand_profiles (
+  id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  niche TEXT NOT NULL DEFAULT '',
+  audience TEXT NOT NULL DEFAULT '',
+  tone TEXT NOT NULL DEFAULT 'Confident',
+  caption_length TEXT NOT NULL DEFAULT 'Medium' CHECK (caption_length IN ('Short', 'Medium', 'Long')),
+  hashtag_count INTEGER NOT NULL DEFAULT 12,
+  image_style TEXT NOT NULL DEFAULT 'lifestyle_photo',
+  primary_color TEXT NOT NULL DEFAULT '#000000',
+  secondary_color TEXT NOT NULL DEFAULT '#ffffff',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_brand_profiles_user_id ON brand_profiles(user_id);
+
+-- Active profile selection per user
+CREATE TABLE IF NOT EXISTS user_active_profile (
+  user_id TEXT PRIMARY KEY,
+  profile_id TEXT NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
