@@ -227,6 +227,42 @@ export default function PostPage() {
     } catch {}
   }, []);
 
+  // Warn user before leaving/refreshing while generation is in progress
+  useEffect(() => {
+    if (!isLoading) return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      return "";
+    };
+
+    // Browser refresh / close / back-forward navigation
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    // Push a dummy history entry so browser back triggers beforeunload
+    window.history.pushState(null, "", window.location.href);
+    const handlePopState = () => {
+      // Re-push so the user stays on the page if they dismiss the dialog
+      window.history.pushState(null, "", window.location.href);
+      if (
+        window.confirm(
+          "Your post is still generating. Leaving now will lose your generation and still use a token.\n\nAre you sure you want to leave?"
+        )
+      ) {
+        // User confirmed — actually go back
+        window.removeEventListener("popstate", handlePopState);
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+        window.history.go(-2);
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [isLoading]);
+
   // Update edited values when post changes
   useEffect(() => {
     if (post?.caption) setEditedCaption(post.caption);
