@@ -656,7 +656,7 @@ export default function DashboardPage() {
   const activeProfile = profiles.find((p) => p.id === activeProfileId);
 
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="ath-page">
       <div style={{ ...styles.container, position: "relative" }}>
         {/* Header - Enhanced */}
         <div
@@ -2266,6 +2266,9 @@ export default function DashboardPage() {
         }
         .primary-section { margin-bottom: 100px; }
 
+        @media (max-width: 768px) {
+          .ath-page { padding: 10px !important; }
+        }
         @media (max-width: 900px) {
           .profile-benefits-pill-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
         }

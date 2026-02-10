@@ -1418,7 +1418,7 @@ export default function PostPage() {
         .hover-btn:hover { background: rgba(255,255,255,0.12) !important; }
         @media (max-width: 920px) {
           body { margin: 0; }
-          .ath-page { padding: 12px !important; }
+          .ath-page { padding: 10px !important; }
           .ath-grid { grid-template-columns: 1fr !important; }
           .ath-imageFrame { min-height: 220px !important; }
           .ath-buttonRow button { flex: 1 1 100% !important; }

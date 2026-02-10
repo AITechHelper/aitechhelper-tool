@@ -984,7 +984,7 @@ export default function CalendarPage() {
   };
 
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="ath-page">
       <div style={styles.container}>
         {/* Header */}
         <div style={styles.header}>
@@ -1748,6 +1748,7 @@ export default function CalendarPage() {
 
         /* Mobile: Hide grid, show mobile list */
         @media (max-width: 768px) {
+          .ath-page { padding: 10px !important; }
           .desktop-calendar { display: none !important; }
           .mobile-calendar { display: block !important; }
           .calendar-drawer { width: 100vw !important; }

@@ -1226,7 +1226,7 @@ export default function LandingPage() {
           @media (max-width: 768px) {
             .landing-container {
               text-align: center !important;
-              padding: 20px !important;
+              padding: 10px !important;
             }
             .landing-section {
               text-align: center !important;

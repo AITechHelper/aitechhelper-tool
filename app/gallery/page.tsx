@@ -511,7 +511,7 @@ export default function GalleryPage() {
   };
 
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="ath-page">
       <div style={styles.container}>
         {/* Header */}
         <div style={styles.header}>
@@ -854,6 +854,7 @@ export default function GalleryPage() {
         .hover-btn:hover { background: rgba(255,255,255,0.12) !important; }
 
         @media (max-width: 768px) {
+          .ath-page { padding: 10px !important; }
           .ath-galleryGrid { grid-template-columns: repeat(2, 1fr) !important; }
           .modal-two-col { flex-direction: column !important; }
           .modal-left-col { flex: 1 !important; }

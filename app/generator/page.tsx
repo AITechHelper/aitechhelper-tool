@@ -1168,7 +1168,7 @@ export default function Page() {
   };
 
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="ath-page">
       {/* Header - Enhanced with gradient */}
       <div
         style={{
@@ -2281,6 +2281,7 @@ export default function Page() {
         }
 
         @media (max-width: 768px) {
+          .ath-page { padding: 10px !important; }
           .ath-row2 { grid-template-columns: 1fr !important; }
           .ath-styleCardGrid { grid-template-columns: repeat(2, 1fr) !important; }
           .ath-postTypeGrid { grid-template-columns: repeat(3, 1fr) !important; }
