@@ -65,6 +65,8 @@ export default function LandingPage() {
   const [demoCaption, setDemoCaption] = useState("");
   const [demoHashtags, setDemoHashtags] = useState("");
   const [cursorPosition, setCursorPosition] = useState({ x: 20, y: 20 });
+  const demoPhoneRef = useRef<HTMLDivElement>(null);
+  const demoBtnRef = useRef<HTMLButtonElement>(null);
   const fullCaption =
     "Start your week right! Nothing beats Monday morning at your neighborhood spot.";
   const fullHashtags =
@@ -85,8 +87,16 @@ export default function LandingPage() {
       timeouts.push(
         setTimeout(() => {
           setDemoPhase("cursor-moving");
-          // Animate cursor movement to button center
-          setCursorPosition({ x: 130, y: 560 });
+          // Calculate button position relative to phone frame
+          let targetX = 130;
+          let targetY = 560;
+          if (demoBtnRef.current && demoPhoneRef.current) {
+            const phoneRect = demoPhoneRef.current.getBoundingClientRect();
+            const btnRect = demoBtnRef.current.getBoundingClientRect();
+            targetX = btnRect.left - phoneRect.left + btnRect.width / 2 - 16;
+            targetY = btnRect.top - phoneRect.top + btnRect.height / 2 - 16;
+          }
+          setCursorPosition({ x: targetX, y: targetY });
         }, 500)
       );
 
@@ -567,6 +577,7 @@ export default function LandingPage() {
                 overflow: "visible",
               }}
               className="demo-phone-frame"
+              ref={demoPhoneRef}
             >
               {/* App Header */}
               <div
@@ -782,6 +793,7 @@ export default function LandingPage() {
 
               {/* Generate Button */}
               <button
+                ref={demoBtnRef}
                 className="demo-generate-btn"
                 style={{
                   width: "100%",
