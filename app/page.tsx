@@ -1148,9 +1148,17 @@ export default function LandingPage() {
           </div>
           <span style={{ fontSize: 16, fontWeight: 700 }}>AI Tech Helper</span>
         </div>
-        <p style={{ fontSize: 13, opacity: 0.5 }}>
+        <p style={{ fontSize: 13, opacity: 0.5, marginBottom: 12 }}>
           © 2025 AI Tech Helper. All rights reserved.
         </p>
+        <div style={{ display: "flex", justifyContent: "center", gap: 16 }}>
+          <a href="/privacy" style={{ fontSize: 11, opacity: 0.4, color: "#e6edf7", textDecoration: "none" }}>
+            Privacy Policy
+          </a>
+          <a href="/terms" style={{ fontSize: 11, opacity: 0.4, color: "#e6edf7", textDecoration: "none" }}>
+            Terms of Service
+          </a>
+        </div>
       </footer>
 
       <style>{`
