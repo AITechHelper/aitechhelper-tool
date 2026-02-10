@@ -179,6 +179,7 @@ export default function LandingPage() {
     >
       {/* Navigation */}
       <nav
+        className="landing-nav"
         style={{
           display: "flex",
           justifyContent: "space-between",
@@ -209,7 +210,7 @@ export default function LandingPage() {
           >
             ⚡
           </div>
-          <span style={{ fontSize: 18, fontWeight: 800 }}>AI Tech Helper</span>
+          <span className="nav-brand-text" style={{ fontSize: 18, fontWeight: 800 }}>AI Tech Helper</span>
         </div>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           {isSignedIn ? (
@@ -1212,6 +1213,17 @@ export default function LandingPage() {
         }
 
         @media (max-width: 600px) {
+          .landing-nav {
+            padding: 12px 10px !important;
+            gap: 8px;
+          }
+          .nav-brand-text {
+            display: none !important;
+          }
+          .nav-cta {
+            padding: 10px 16px !important;
+            font-size: 13px !important;
+          }
           .features-grid {
             grid-template-columns: 1fr !important;
           }
