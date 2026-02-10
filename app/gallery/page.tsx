@@ -549,6 +549,9 @@ export default function GalleryPage() {
                 </span>
               )}
             </p>
+            <p style={{ fontSize: 11, opacity: 0.45, margin: "6px 0 0", fontStyle: "italic" }}>
+              Posts are saved to the device they were generated on
+            </p>
           </div>
         </div>
 
