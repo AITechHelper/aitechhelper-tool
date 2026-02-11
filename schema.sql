@@ -52,3 +52,18 @@ CREATE TABLE IF NOT EXISTS user_active_profile (
   profile_id TEXT NOT NULL,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Instagram account connections
+CREATE TABLE IF NOT EXISTS instagram_accounts (
+  id SERIAL PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  instagram_user_id TEXT NOT NULL,
+  username TEXT NOT NULL,
+  access_token TEXT NOT NULL,
+  token_expires_at TIMESTAMPTZ,
+  connected_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(user_id, instagram_user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_instagram_accounts_user_id ON instagram_accounts(user_id);

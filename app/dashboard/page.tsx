@@ -10,6 +10,7 @@ import {
   useBrandProfiles,
   type BrandProfile,
 } from "../lib/useBrandProfiles";
+import { useInstagram } from "../lib/useInstagram";
 
 type SavedPost = {
   id: string;
@@ -49,6 +50,7 @@ export default function DashboardPage() {
   const [navLoading, setNavLoading] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const instagram = useInstagram();
 
   // Load posts from localStorage
   useEffect(() => {
@@ -1675,6 +1677,93 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Instagram Connection */}
+          <div
+            style={{
+              background: "linear-gradient(135deg, rgba(131,58,180,0.1) 0%, rgba(253,29,29,0.08) 50%, rgba(252,176,69,0.06) 100%)",
+              border: "1px solid rgba(253,29,29,0.2)",
+              borderRadius: 16,
+              padding: "20px 24px",
+              marginTop: 24,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap" as const,
+              gap: 12,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ fontSize: 28 }}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  <linearGradient id="igGrad" x1="0" y1="24" x2="24" y2="0">
+                    <stop offset="0%" stopColor="#feda75"/>
+                    <stop offset="25%" stopColor="#fa7e1e"/>
+                    <stop offset="50%" stopColor="#d62976"/>
+                    <stop offset="75%" stopColor="#962fbf"/>
+                    <stop offset="100%" stopColor="#4f5bd5"/>
+                  </linearGradient>
+                  <rect x="2" y="2" width="20" height="20" rx="5" stroke="url(#igGrad)" strokeWidth="2" fill="none"/>
+                  <circle cx="12" cy="12" r="4.5" stroke="url(#igGrad)" strokeWidth="2" fill="none"/>
+                  <circle cx="17.5" cy="6.5" r="1.2" fill="url(#igGrad)"/>
+                </svg>
+              </div>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 700 }}>
+                  {instagram.connected
+                    ? `Connected to @${instagram.username}`
+                    : "Connect Instagram"}
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
+                  {instagram.connected
+                    ? "Post directly to Instagram from your generated posts"
+                    : "Link your Instagram Business account to post directly"}
+                </div>
+              </div>
+            </div>
+            {instagram.connected ? (
+              <button
+                onClick={() => {
+                  if (confirm("Disconnect your Instagram account?")) {
+                    instagram.disconnect();
+                    addToast("Instagram disconnected", "success");
+                  }
+                }}
+                style={{
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  borderRadius: 10,
+                  color: "#e6edf7",
+                  padding: "8px 16px",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+                className="hover-btn"
+              >
+                Disconnect
+              </button>
+            ) : (
+              <button
+                onClick={() => instagram.connect()}
+                style={{
+                  background: "linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)",
+                  border: "none",
+                  borderRadius: 10,
+                  color: "#ffffff",
+                  padding: "10px 20px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+                className="hover-btn"
+              >
+                Connect Instagram
+              </button>
+            )}
           </div>
 
           {/* Recent Posts & Gallery Section */}

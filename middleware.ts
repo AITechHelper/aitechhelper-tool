@@ -11,6 +11,7 @@ const isPublicRoute = createRouteMatcher([
   "/privacy",
   "/terms",
   "/api/stripe/webhook",
+  "/api/instagram/callback",
 ]);
 
 // Routes that require subscription (protected app routes)

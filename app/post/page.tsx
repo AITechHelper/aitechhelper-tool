@@ -6,6 +6,7 @@ import { saveImage } from "../lib/imageStorage";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
+import { useInstagram } from "../lib/useInstagram";
 
 // Idempotency utilities
 function createRequestId(payload: any): string {
@@ -202,6 +203,9 @@ export default function PostPage() {
   // Loading progress simulation
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingStage, setLoadingStage] = useState("Initializing...");
+
+  const instagram = useInstagram();
+  const [igPostStatus, setIgPostStatus] = useState<"idle" | "posting" | "success" | "error">("idle");
 
   const SHOW_DEBUG_PROMPT = false;
 
@@ -1151,6 +1155,42 @@ export default function PostPage() {
               >
                 Copy caption + hashtags
               </button>
+              {instagram.connected && (
+                <button
+                  style={{
+                    ...styles.secondaryBtn,
+                    opacity: post?.imageBase64 && igPostStatus !== "posting" ? 1 : 0.5,
+                    cursor: post?.imageBase64 && igPostStatus !== "posting" ? "pointer" : "not-allowed",
+                    background: igPostStatus === "success"
+                      ? "rgba(34, 197, 94, 0.15)"
+                      : "linear-gradient(135deg, rgba(131,58,180,0.2), rgba(253,29,29,0.2), rgba(252,176,69,0.2))",
+                    border: igPostStatus === "success"
+                      ? "1px solid rgba(34, 197, 94, 0.4)"
+                      : "1px solid rgba(253,29,29,0.3)",
+                  }}
+                  onClick={async () => {
+                    if (!post?.imageBase64 || igPostStatus === "posting") return;
+                    setIgPostStatus("posting");
+                    try {
+                      await instagram.publish(post.imageBase64, editedCaption, editedHashtags);
+                      setIgPostStatus("success");
+                      addToast(`Posted to @${instagram.username}!`, "success");
+                    } catch (err: any) {
+                      setIgPostStatus("error");
+                      addToast(err?.message || "Failed to post to Instagram", "error");
+                      setTimeout(() => setIgPostStatus("idle"), 3000);
+                    }
+                  }}
+                  disabled={!post?.imageBase64 || igPostStatus === "posting"}
+                  className="hover-btn"
+                >
+                  {igPostStatus === "posting"
+                    ? "Posting..."
+                    : igPostStatus === "success"
+                    ? "Posted to Instagram!"
+                    : `Post to @${instagram.username}`}
+                </button>
+              )}
             </div>
 
             {/* Caption/hashtags - EDITABLE */}
