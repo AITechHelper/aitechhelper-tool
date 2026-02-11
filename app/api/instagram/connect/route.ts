@@ -9,12 +9,12 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const appId = process.env.META_APP_ID!;
+    const appId = process.env.INSTAGRAM_APP_ID!;
     const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || "https://aitechhelper-tool.vercel.app"}/api/instagram/callback`;
     const scope = "instagram_business_basic,instagram_content_publish";
 
     const authUrl =
-      `https://www.instagram.com/oauth/authorize?enable_fb_login=0&force_authentication=1` +
+      `https://www.instagram.com/oauth/authorize?enable_fb_login=1&force_authentication=1` +
       `&client_id=${appId}` +
       `&redirect_uri=${encodeURIComponent(redirectUri)}` +
       `&response_type=code` +
