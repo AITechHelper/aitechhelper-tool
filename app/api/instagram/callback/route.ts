@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = state;
-    const appId = process.env.INSTAGRAM_APP_ID!;
+    const appId = process.env.META_APP_ID!;
     const appSecret = process.env.INSTAGRAM_APP_SECRET!;
     const redirectUri = `${baseUrl}/api/instagram/callback`;
 
