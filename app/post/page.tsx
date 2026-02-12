@@ -579,7 +579,7 @@ export default function PostPage() {
           createdAt: new Date().toISOString(),
         };
         posts.unshift(newPost);
-        localStorage.setItem("ath_gallery", JSON.stringify(posts.slice(0, 50)));
+        localStorage.setItem("ath_gallery", JSON.stringify(posts.slice(0, 3)));
       } catch {}
     } catch (err: any) {
       setStatusMsg("");
@@ -1159,8 +1159,8 @@ export default function PostPage() {
                 <button
                   style={{
                     ...styles.secondaryBtn,
-                    opacity: post?.imageBase64 && igPostStatus !== "posting" ? 1 : 0.5,
-                    cursor: post?.imageBase64 && igPostStatus !== "posting" ? "pointer" : "not-allowed",
+                    opacity: post?.imageBase64 && igPostStatus !== "posting" && igPostStatus !== "success" ? 1 : 0.7,
+                    cursor: post?.imageBase64 && igPostStatus !== "posting" && igPostStatus !== "success" ? "pointer" : "not-allowed",
                     background: igPostStatus === "success"
                       ? "rgba(34, 197, 94, 0.15)"
                       : "linear-gradient(135deg, rgba(131,58,180,0.2), rgba(253,29,29,0.2), rgba(252,176,69,0.2))",
@@ -1169,7 +1169,7 @@ export default function PostPage() {
                       : "1px solid rgba(253,29,29,0.3)",
                   }}
                   onClick={async () => {
-                    if (!post?.imageBase64 || igPostStatus === "posting") return;
+                    if (!post?.imageBase64 || igPostStatus === "posting" || igPostStatus === "success") return;
                     setIgPostStatus("posting");
                     try {
                       await instagram.publish(post.imageBase64, editedCaption, editedHashtags);
@@ -1181,7 +1181,7 @@ export default function PostPage() {
                       setTimeout(() => setIgPostStatus("idle"), 3000);
                     }
                   }}
-                  disabled={!post?.imageBase64 || igPostStatus === "posting"}
+                  disabled={!post?.imageBase64 || igPostStatus === "posting" || igPostStatus === "success"}
                   className="hover-btn"
                 >
                   {igPostStatus === "posting"

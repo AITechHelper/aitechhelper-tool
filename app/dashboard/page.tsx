@@ -51,6 +51,8 @@ export default function DashboardPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const instagram = useInstagram();
+  const [igPublishingId, setIgPublishingId] = useState<string | null>(null);
+  const [igPublishedIds, setIgPublishedIds] = useState<Set<string>>(new Set());
 
   // Load posts from localStorage
   useEffect(() => {
@@ -1201,6 +1203,93 @@ export default function DashboardPage() {
           )}
         </div>
 
+        {/* Instagram Connection */}
+        <div
+          style={{
+            background: "linear-gradient(135deg, rgba(131,58,180,0.1) 0%, rgba(253,29,29,0.08) 50%, rgba(252,176,69,0.06) 100%)",
+            border: "1px solid rgba(253,29,29,0.2)",
+            borderRadius: 16,
+            padding: "20px 24px",
+            marginTop: 24,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap" as const,
+            gap: 12,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ fontSize: 28 }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <linearGradient id="igGrad" x1="0" y1="24" x2="24" y2="0">
+                  <stop offset="0%" stopColor="#feda75"/>
+                  <stop offset="25%" stopColor="#fa7e1e"/>
+                  <stop offset="50%" stopColor="#d62976"/>
+                  <stop offset="75%" stopColor="#962fbf"/>
+                  <stop offset="100%" stopColor="#4f5bd5"/>
+                </linearGradient>
+                <rect x="2" y="2" width="20" height="20" rx="5" stroke="url(#igGrad)" strokeWidth="2" fill="none"/>
+                <circle cx="12" cy="12" r="4.5" stroke="url(#igGrad)" strokeWidth="2" fill="none"/>
+                <circle cx="17.5" cy="6.5" r="1.2" fill="url(#igGrad)"/>
+              </svg>
+            </div>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 700 }}>
+                {instagram.connected
+                  ? `Connected to @${instagram.username}`
+                  : "Connect Instagram"}
+              </div>
+              <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
+                {instagram.connected
+                  ? "Post directly to Instagram from your generated posts"
+                  : "Link your Instagram Business account to post directly"}
+              </div>
+            </div>
+          </div>
+          {instagram.connected ? (
+            <button
+              onClick={() => {
+                if (confirm("Disconnect your Instagram account?")) {
+                  instagram.disconnect();
+                  addToast("Instagram disconnected", "success");
+                }
+              }}
+              style={{
+                background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.15)",
+                borderRadius: 10,
+                color: "#e6edf7",
+                padding: "8px 16px",
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+              className="hover-btn"
+            >
+              Disconnect
+            </button>
+          ) : (
+            <button
+              onClick={() => instagram.connect()}
+              style={{
+                background: "linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)",
+                border: "none",
+                borderRadius: 10,
+                color: "#ffffff",
+                padding: "10px 20px",
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+              className="hover-btn"
+            >
+              Connect Instagram
+            </button>
+          )}
+        </div>
+
         {/* Main Actions - Enhanced Cards */}
         <div style={styles.section}>
           <div style={styles.actionGrid} className="ath-actionGrid">
@@ -1679,93 +1768,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Instagram Connection */}
-          <div
-            style={{
-              background: "linear-gradient(135deg, rgba(131,58,180,0.1) 0%, rgba(253,29,29,0.08) 50%, rgba(252,176,69,0.06) 100%)",
-              border: "1px solid rgba(253,29,29,0.2)",
-              borderRadius: 16,
-              padding: "20px 24px",
-              marginTop: 24,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              flexWrap: "wrap" as const,
-              gap: 12,
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ fontSize: 28 }}>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                  <linearGradient id="igGrad" x1="0" y1="24" x2="24" y2="0">
-                    <stop offset="0%" stopColor="#feda75"/>
-                    <stop offset="25%" stopColor="#fa7e1e"/>
-                    <stop offset="50%" stopColor="#d62976"/>
-                    <stop offset="75%" stopColor="#962fbf"/>
-                    <stop offset="100%" stopColor="#4f5bd5"/>
-                  </linearGradient>
-                  <rect x="2" y="2" width="20" height="20" rx="5" stroke="url(#igGrad)" strokeWidth="2" fill="none"/>
-                  <circle cx="12" cy="12" r="4.5" stroke="url(#igGrad)" strokeWidth="2" fill="none"/>
-                  <circle cx="17.5" cy="6.5" r="1.2" fill="url(#igGrad)"/>
-                </svg>
-              </div>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 700 }}>
-                  {instagram.connected
-                    ? `Connected to @${instagram.username}`
-                    : "Connect Instagram"}
-                </div>
-                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
-                  {instagram.connected
-                    ? "Post directly to Instagram from your generated posts"
-                    : "Link your Instagram Business account to post directly"}
-                </div>
-              </div>
-            </div>
-            {instagram.connected ? (
-              <button
-                onClick={() => {
-                  if (confirm("Disconnect your Instagram account?")) {
-                    instagram.disconnect();
-                    addToast("Instagram disconnected", "success");
-                  }
-                }}
-                style={{
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1px solid rgba(255,255,255,0.15)",
-                  borderRadius: 10,
-                  color: "#e6edf7",
-                  padding: "8px 16px",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                }}
-                className="hover-btn"
-              >
-                Disconnect
-              </button>
-            ) : (
-              <button
-                onClick={() => instagram.connect()}
-                style={{
-                  background: "linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)",
-                  border: "none",
-                  borderRadius: 10,
-                  color: "#ffffff",
-                  padding: "10px 20px",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                }}
-                className="hover-btn"
-              >
-                Connect Instagram
-              </button>
-            )}
-          </div>
-
           {/* Recent Posts & Gallery Section */}
           <div
             style={{
@@ -1906,10 +1908,53 @@ export default function DashboardPage() {
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
+                          marginBottom: instagram.connected ? 8 : 0,
                         }}
                       >
                         {post.caption.slice(0, 40)}...
                       </div>
+                      {instagram.connected && postImages[post.id] && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (igPublishingId === post.id || igPublishedIds.has(post.id)) return;
+                            setIgPublishingId(post.id);
+                            instagram.publish(postImages[post.id], post.caption, post.hashtags)
+                              .then(() => {
+                                setIgPublishedIds(prev => new Set(prev).add(post.id));
+                                addToast(`Posted to @${instagram.username}!`, "success");
+                              })
+                              .catch((err: any) => {
+                                addToast(err?.message || "Failed to post", "error");
+                              })
+                              .finally(() => setIgPublishingId(null));
+                          }}
+                          disabled={igPublishingId === post.id || igPublishedIds.has(post.id)}
+                          style={{
+                            width: "100%",
+                            background: igPublishedIds.has(post.id)
+                              ? "rgba(34, 197, 94, 0.15)"
+                              : "linear-gradient(135deg, rgba(131,58,180,0.3), rgba(253,29,29,0.3), rgba(252,176,69,0.3))",
+                            border: igPublishedIds.has(post.id)
+                              ? "1px solid rgba(34, 197, 94, 0.4)"
+                              : "1px solid rgba(253,29,29,0.25)",
+                            borderRadius: 6,
+                            color: "#e6edf7",
+                            padding: "6px 8px",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            cursor: igPublishingId === post.id || igPublishedIds.has(post.id) ? "not-allowed" : "pointer",
+                            opacity: igPublishingId === post.id || igPublishedIds.has(post.id) ? 0.7 : 1,
+                            transition: "all 0.15s ease",
+                          }}
+                        >
+                          {igPublishingId === post.id
+                            ? "Posting..."
+                            : igPublishedIds.has(post.id)
+                            ? "✓ Posted"
+                            : "Post to Instagram"}
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
