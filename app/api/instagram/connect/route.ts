@@ -11,11 +11,11 @@ export async function GET() {
 
     const appId = process.env.INSTAGRAM_APP_ID!;
     const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || "https://aitechhelper-tool.vercel.app"}/api/instagram/callback`;
-    const scope = "instagram_business_basic,instagram_content_publish";
+    const scope = "instagram_business_basic,instagram_business_content_publish";
 
     const authUrl =
-      `https://www.instagram.com/oauth/authorize?enable_fb_login=1&force_authentication=1` +
-      `&client_id=${appId}` +
+      `https://api.instagram.com/oauth/authorize` +
+      `?client_id=${appId}` +
       `&redirect_uri=${encodeURIComponent(redirectUri)}` +
       `&response_type=code` +
       `&scope=${encodeURIComponent(scope)}` +
