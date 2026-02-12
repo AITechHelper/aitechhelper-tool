@@ -62,8 +62,9 @@ export async function GET(request: NextRequest) {
     if (!longLivedRes.ok) {
       const err = await longLivedRes.text();
       console.error("Facebook long-lived token exchange failed:", err);
+      const debugInfo = encodeURIComponent(err.slice(0, 200));
       return NextResponse.redirect(
-        new URL("/dashboard?facebook=error", baseUrl)
+        new URL(`/dashboard?facebook=error&reason=token_exchange&debug=${debugInfo}`, baseUrl)
       );
     }
 
@@ -87,9 +88,11 @@ export async function GET(request: NextRequest) {
     const pages = pagesData.data;
 
     if (!pages || pages.length === 0) {
-      console.error("No Facebook pages found for user");
+      console.error("No Facebook pages found for user. Full response:", JSON.stringify(pagesData));
+      // Include debug info in redirect for troubleshooting
+      const debugInfo = encodeURIComponent(JSON.stringify(pagesData).slice(0, 200));
       return NextResponse.redirect(
-        new URL("/dashboard?facebook=error&reason=no_pages", baseUrl)
+        new URL(`/dashboard?facebook=error&reason=no_pages&debug=${debugInfo}`, baseUrl)
       );
     }
 
