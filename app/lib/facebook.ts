@@ -8,7 +8,6 @@ export interface FacebookPage {
   pageId: string;
   pageName: string;
   pageAccessToken: string;
-  tokenExpiresAt: Date | null;
   connectedAt: Date;
   updatedAt: Date;
 }
@@ -24,7 +23,6 @@ export async function getFacebookPage(
       page_id as "pageId",
       page_name as "pageName",
       page_access_token as "pageAccessToken",
-      token_expires_at as "tokenExpiresAt",
       connected_at as "connectedAt",
       updated_at as "updatedAt"
     FROM facebook_pages
@@ -40,23 +38,21 @@ export async function upsertFacebookPage(data: {
   pageId: string;
   pageName: string;
   pageAccessToken: string;
-  tokenExpiresAt?: Date | null;
 }): Promise<void> {
   await sql`
     INSERT INTO facebook_pages (
-      user_id, page_id, page_name, page_access_token, token_expires_at, updated_at
+      user_id, page_id, page_name, page_access_token, updated_at
     ) VALUES (
       ${data.userId},
       ${data.pageId},
       ${data.pageName},
       ${data.pageAccessToken},
-      ${data.tokenExpiresAt ?? null},
       NOW()
     )
-    ON CONFLICT (user_id, page_id) DO UPDATE SET
+    ON CONFLICT (user_id) DO UPDATE SET
+      page_id = EXCLUDED.page_id,
       page_name = EXCLUDED.page_name,
       page_access_token = EXCLUDED.page_access_token,
-      token_expires_at = EXCLUDED.token_expires_at,
       updated_at = NOW()
   `;
 }
