@@ -7,6 +7,7 @@ import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
 import { useInstagram } from "../lib/useInstagram";
+import { useFacebook } from "../lib/useFacebook";
 
 // Idempotency utilities
 function createRequestId(payload: any): string {
@@ -206,6 +207,8 @@ export default function PostPage() {
 
   const instagram = useInstagram();
   const [igPostStatus, setIgPostStatus] = useState<"idle" | "posting" | "success" | "error">("idle");
+  const facebook = useFacebook();
+  const [fbPostStatus, setFbPostStatus] = useState<"idle" | "posting" | "success" | "error">("idle");
 
   const SHOW_DEBUG_PROMPT = false;
 
@@ -1189,6 +1192,42 @@ export default function PostPage() {
                     : igPostStatus === "success"
                     ? "Posted to Instagram!"
                     : `Post to @${instagram.username}`}
+                </button>
+              )}
+              {facebook.connected && (
+                <button
+                  style={{
+                    ...styles.secondaryBtn,
+                    opacity: post?.imageBase64 && fbPostStatus !== "posting" && fbPostStatus !== "success" ? 1 : 0.7,
+                    cursor: post?.imageBase64 && fbPostStatus !== "posting" && fbPostStatus !== "success" ? "pointer" : "not-allowed",
+                    background: fbPostStatus === "success"
+                      ? "rgba(34, 197, 94, 0.15)"
+                      : "rgba(24,119,242,0.15)",
+                    border: fbPostStatus === "success"
+                      ? "1px solid rgba(34, 197, 94, 0.4)"
+                      : "1px solid rgba(24,119,242,0.3)",
+                  }}
+                  onClick={async () => {
+                    if (!post?.imageBase64 || fbPostStatus === "posting" || fbPostStatus === "success") return;
+                    setFbPostStatus("posting");
+                    try {
+                      await facebook.publish(post.imageBase64, editedCaption, editedHashtags);
+                      setFbPostStatus("success");
+                      addToast(`Posted to ${facebook.pageName}!`, "success");
+                    } catch (err: any) {
+                      setFbPostStatus("error");
+                      addToast(err?.message || "Failed to post to Facebook", "error");
+                      setTimeout(() => setFbPostStatus("idle"), 3000);
+                    }
+                  }}
+                  disabled={!post?.imageBase64 || fbPostStatus === "posting" || fbPostStatus === "success"}
+                  className="hover-btn"
+                >
+                  {fbPostStatus === "posting"
+                    ? "Posting..."
+                    : fbPostStatus === "success"
+                    ? "Posted to Facebook!"
+                    : `Post to ${facebook.pageName}`}
                 </button>
               )}
             </div>

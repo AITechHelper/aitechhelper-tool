@@ -11,6 +11,7 @@ import {
   type BrandProfile,
 } from "../lib/useBrandProfiles";
 import { useInstagram } from "../lib/useInstagram";
+import { useFacebook } from "../lib/useFacebook";
 
 type SavedPost = {
   id: string;
@@ -53,6 +54,9 @@ export default function DashboardPage() {
   const instagram = useInstagram();
   const [igPublishingId, setIgPublishingId] = useState<string | null>(null);
   const [igPublishedIds, setIgPublishedIds] = useState<Set<string>>(new Set());
+  const facebook = useFacebook();
+  const [fbPublishingId, setFbPublishingId] = useState<string | null>(null);
+  const [fbPublishedIds, setFbPublishedIds] = useState<Set<string>>(new Set());
 
   // Load posts from localStorage
   useEffect(() => {
@@ -1290,6 +1294,84 @@ export default function DashboardPage() {
           )}
         </div>
 
+        {/* Facebook Connection */}
+        <div
+          style={{
+            background: "linear-gradient(135deg, rgba(24,119,242,0.1) 0%, rgba(66,103,178,0.08) 100%)",
+            border: "1px solid rgba(24,119,242,0.2)",
+            borderRadius: 16,
+            padding: "20px 24px",
+            marginTop: 12,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap" as const,
+            gap: 12,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ fontSize: 28 }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" stroke="#1877F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              </svg>
+            </div>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 700 }}>
+                {facebook.connected
+                  ? `Connected to ${facebook.pageName}`
+                  : "Connect Facebook"}
+              </div>
+              <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
+                {facebook.connected
+                  ? "Post directly to your Facebook Page from generated posts"
+                  : "Link your Facebook Page to post directly"}
+              </div>
+            </div>
+          </div>
+          {facebook.connected ? (
+            <button
+              onClick={() => {
+                if (confirm("Disconnect your Facebook page?")) {
+                  facebook.disconnect();
+                  addToast("Facebook disconnected", "success");
+                }
+              }}
+              style={{
+                background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.15)",
+                borderRadius: 10,
+                color: "#e6edf7",
+                padding: "8px 16px",
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+              className="hover-btn"
+            >
+              Disconnect
+            </button>
+          ) : (
+            <button
+              onClick={() => facebook.connect()}
+              style={{
+                background: "#1877F2",
+                border: "none",
+                borderRadius: 10,
+                color: "#ffffff",
+                padding: "10px 20px",
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+              className="hover-btn"
+            >
+              Connect Facebook
+            </button>
+          )}
+        </div>
+
         {/* Main Actions - Enhanced Cards */}
         <div style={styles.section}>
           <div style={styles.actionGrid} className="ath-actionGrid">
@@ -1908,7 +1990,7 @@ export default function DashboardPage() {
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
-                          marginBottom: instagram.connected ? 8 : 0,
+                          marginBottom: (instagram.connected || facebook.connected) ? 8 : 0,
                         }}
                       >
                         {post.caption.slice(0, 40)}...
@@ -1953,6 +2035,49 @@ export default function DashboardPage() {
                             : igPublishedIds.has(post.id)
                             ? "✓ Posted"
                             : "Post to Instagram"}
+                        </button>
+                      )}
+                      {facebook.connected && postImages[post.id] && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (fbPublishingId === post.id || fbPublishedIds.has(post.id)) return;
+                            setFbPublishingId(post.id);
+                            facebook.publish(postImages[post.id], post.caption, post.hashtags)
+                              .then(() => {
+                                setFbPublishedIds(prev => new Set(prev).add(post.id));
+                                addToast(`Posted to ${facebook.pageName}!`, "success");
+                              })
+                              .catch((err: any) => {
+                                addToast(err?.message || "Failed to post to Facebook", "error");
+                              })
+                              .finally(() => setFbPublishingId(null));
+                          }}
+                          disabled={fbPublishingId === post.id || fbPublishedIds.has(post.id)}
+                          style={{
+                            width: "100%",
+                            marginTop: 4,
+                            background: fbPublishedIds.has(post.id)
+                              ? "rgba(34, 197, 94, 0.15)"
+                              : "rgba(24,119,242,0.2)",
+                            border: fbPublishedIds.has(post.id)
+                              ? "1px solid rgba(34, 197, 94, 0.4)"
+                              : "1px solid rgba(24,119,242,0.3)",
+                            borderRadius: 6,
+                            color: "#e6edf7",
+                            padding: "6px 8px",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            cursor: fbPublishingId === post.id || fbPublishedIds.has(post.id) ? "not-allowed" : "pointer",
+                            opacity: fbPublishingId === post.id || fbPublishedIds.has(post.id) ? 0.7 : 1,
+                            transition: "all 0.15s ease",
+                          }}
+                        >
+                          {fbPublishingId === post.id
+                            ? "Posting..."
+                            : fbPublishedIds.has(post.id)
+                            ? "✓ Posted"
+                            : "Post to Facebook"}
                         </button>
                       )}
                     </div>

@@ -1,0 +1,101 @@
+import { neon } from "@neondatabase/serverless";
+
+const sql = neon(process.env.DATABASE_URL!);
+
+export interface FacebookPage {
+  id: number;
+  userId: string;
+  pageId: string;
+  pageName: string;
+  pageAccessToken: string;
+  tokenExpiresAt: Date | null;
+  connectedAt: Date;
+  updatedAt: Date;
+}
+
+// Get user's connected Facebook page
+export async function getFacebookPage(
+  userId: string
+): Promise<FacebookPage | null> {
+  const rows = await sql`
+    SELECT
+      id,
+      user_id as "userId",
+      page_id as "pageId",
+      page_name as "pageName",
+      page_access_token as "pageAccessToken",
+      token_expires_at as "tokenExpiresAt",
+      connected_at as "connectedAt",
+      updated_at as "updatedAt"
+    FROM facebook_pages
+    WHERE user_id = ${userId}
+    LIMIT 1
+  `;
+  return (rows[0] as FacebookPage) || null;
+}
+
+// Save or update a Facebook page connection
+export async function upsertFacebookPage(data: {
+  userId: string;
+  pageId: string;
+  pageName: string;
+  pageAccessToken: string;
+  tokenExpiresAt?: Date | null;
+}): Promise<void> {
+  await sql`
+    INSERT INTO facebook_pages (
+      user_id, page_id, page_name, page_access_token, token_expires_at, updated_at
+    ) VALUES (
+      ${data.userId},
+      ${data.pageId},
+      ${data.pageName},
+      ${data.pageAccessToken},
+      ${data.tokenExpiresAt ?? null},
+      NOW()
+    )
+    ON CONFLICT (user_id, page_id) DO UPDATE SET
+      page_name = EXCLUDED.page_name,
+      page_access_token = EXCLUDED.page_access_token,
+      token_expires_at = EXCLUDED.token_expires_at,
+      updated_at = NOW()
+  `;
+}
+
+// Remove a Facebook page connection
+export async function removeFacebookPage(
+  userId: string
+): Promise<void> {
+  await sql`
+    DELETE FROM facebook_pages
+    WHERE user_id = ${userId}
+  `;
+}
+
+// Publish a photo post to a Facebook Page
+export async function publishToFacebook(
+  pageAccessToken: string,
+  pageId: string,
+  imageUrl: string,
+  message: string
+): Promise<{ id: string }> {
+  // Post a photo with message to the page
+  const res = await fetch(
+    `https://graph.facebook.com/v21.0/${pageId}/photos`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        url: imageUrl,
+        message,
+        access_token: pageAccessToken,
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Failed to publish to Facebook: ${err}`);
+  }
+
+  return res.json();
+}

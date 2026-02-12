@@ -67,3 +67,16 @@ CREATE TABLE IF NOT EXISTS instagram_accounts (
 );
 
 CREATE INDEX IF NOT EXISTS idx_instagram_accounts_user_id ON instagram_accounts(user_id);
+
+-- Facebook page connections
+CREATE TABLE IF NOT EXISTS facebook_pages (
+  id SERIAL PRIMARY KEY,
+  user_id TEXT NOT NULL UNIQUE,
+  page_id TEXT NOT NULL,
+  page_name TEXT NOT NULL,
+  page_access_token TEXT NOT NULL,
+  connected_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_facebook_pages_user_id ON facebook_pages(user_id);
