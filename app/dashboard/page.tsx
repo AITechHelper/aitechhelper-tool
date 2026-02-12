@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { SignOutButton, useUser } from "@clerk/nextjs";
-import { getImage } from "../lib/imageStorage";
+import { getImage, deleteImage } from "../lib/imageStorage";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
 import {
@@ -23,6 +23,8 @@ type SavedPost = {
   postType: string;
   imageStyle: string;
   tone: string;
+  niche?: string;
+  audience?: string;
   createdAt: string;
 };
 
@@ -57,6 +59,8 @@ export default function DashboardPage() {
   const facebook = useFacebook();
   const [fbPublishingId, setFbPublishingId] = useState<string | null>(null);
   const [fbPublishedIds, setFbPublishedIds] = useState<Set<string>>(new Set());
+  const [selectedPost, setSelectedPost] = useState<SavedPost | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   // Load posts from localStorage
   useEffect(() => {
@@ -241,6 +245,47 @@ export default function DashboardPage() {
     setNewProfileSecondaryColor("#ffffff");
     setEditingProfile(null);
     setShowNewProfile(false);
+  };
+
+  const handleCopyField = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+    addToast(field === "caption" ? "Caption copied!" : field === "hashtags" ? "Hashtags copied!" : "Copied!", "success");
+  };
+
+  const handleDeletePost = async (id: string) => {
+    await deleteImage(id);
+    const updated = recentPosts.filter((p) => p.id !== id);
+    setRecentPosts(updated);
+    localStorage.setItem("ath_gallery", JSON.stringify(updated));
+    setPostImages((prev) => {
+      const newImages = { ...prev };
+      delete newImages[id];
+      return newImages;
+    });
+    setSelectedPost(null);
+    addToast("Post deleted", "info");
+  };
+
+  const handleDownloadImage = () => {
+    if (!selectedPost || !postImages[selectedPost.id]) return;
+    const a = document.createElement("a");
+    a.href = postImages[selectedPost.id];
+    a.download = `ai-tech-helper-${selectedPost.id}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    addToast("Image downloaded!", "success");
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   const styles: Record<string, React.CSSProperties> = {
@@ -1889,29 +1934,6 @@ export default function DashboardPage() {
                   Recent Posts
                 </span>
               </div>
-              <div
-                onClick={() =>
-                  router.push(
-                    activeProfile?.id
-                      ? `/gallery?profileId=${activeProfile.id}`
-                      : "/gallery"
-                  )
-                }
-                style={{
-                  background: "rgba(124, 58, 237, 0.2)",
-                  border: "1px solid rgba(124, 58, 237, 0.4)",
-                  borderRadius: 8,
-                  padding: "8px 16px",
-                  cursor: "pointer",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "#a78bfa",
-                  transition: "all 0.2s ease",
-                }}
-                className="hover-card"
-              >
-                View All →
-              </div>
             </div>
 
             {recentPosts.length > 0 ? (
@@ -1925,13 +1947,7 @@ export default function DashboardPage() {
                 {recentPosts.map((post) => (
                   <div
                     key={post.id}
-                    onClick={() =>
-                      router.push(
-                        activeProfile?.id
-                          ? `/gallery?profileId=${activeProfile.id}`
-                          : "/gallery"
-                      )
-                    }
+                    onClick={() => setSelectedPost(post)}
                     style={{
                       background: "#0b1220",
                       borderRadius: 12,
@@ -2132,6 +2148,252 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+
+        {/* Post Detail Modal */}
+        {selectedPost && (
+          <div
+            style={{
+              position: "fixed" as const,
+              inset: 0,
+              background: "rgba(0,0,0,0.8)",
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "center",
+              zIndex: 200,
+              padding: 20,
+              paddingTop: 60,
+              overflowY: "auto" as const,
+            }}
+            onClick={() => setSelectedPost(null)}
+          >
+            <div
+              style={{
+                background: "#101a33",
+                borderRadius: 16,
+                padding: 24,
+                maxWidth: 900,
+                width: "95%",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 700 }}>{selectedPost.postType}</div>
+                  <div style={{ fontSize: 12, opacity: 0.5, marginTop: 4 }}>
+                    {formatDate(selectedPost.createdAt)}
+                    {selectedPost.calendarDay && ` • Day ${selectedPost.calendarDay}`}
+                  </div>
+                </div>
+                <button
+                  style={{ background: "none", border: "none", color: "#e6edf7", fontSize: 24, cursor: "pointer", padding: 0, lineHeight: 1 }}
+                  onClick={() => setSelectedPost(null)}
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* Two-column layout */}
+              <div className="post-modal-two-col" style={{ display: "flex", gap: 24, flexDirection: "row" as const }}>
+                {/* Left column - Image */}
+                <div className="post-modal-left-col" style={{ flex: "0 0 45%", minWidth: 0 }}>
+                  {postImages[selectedPost.id] && (
+                    <div>
+                      <div style={{ borderRadius: 12, overflow: "hidden", background: "#0b1220", marginBottom: 12 }}>
+                        <img
+                          src={postImages[selectedPost.id]}
+                          alt="Generated post"
+                          style={{ width: "100%", height: "auto", display: "block" }}
+                        />
+                      </div>
+                      <button
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                          border: "none",
+                          borderRadius: 6,
+                          padding: "8px 12px",
+                          color: "#fff",
+                          cursor: "pointer",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          width: "100%",
+                          justifyContent: "center",
+                        }}
+                        onClick={handleDownloadImage}
+                        className="hover-btn"
+                      >
+                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Download Image
+                      </button>
+
+                      {/* Publish buttons */}
+                      {instagram.connected && (
+                        <button
+                          onClick={() => {
+                            if (igPublishingId === selectedPost.id || igPublishedIds.has(selectedPost.id)) return;
+                            setIgPublishingId(selectedPost.id);
+                            instagram.publish(postImages[selectedPost.id], selectedPost.caption, selectedPost.hashtags)
+                              .then(() => {
+                                setIgPublishedIds(prev => new Set(prev).add(selectedPost.id));
+                                addToast(`Posted to @${instagram.username}!`, "success");
+                              })
+                              .catch((err: any) => {
+                                addToast(err?.message || "Failed to post", "error");
+                              })
+                              .finally(() => setIgPublishingId(null));
+                          }}
+                          disabled={igPublishingId === selectedPost.id || igPublishedIds.has(selectedPost.id)}
+                          style={{
+                            width: "100%",
+                            marginTop: 8,
+                            background: igPublishedIds.has(selectedPost.id)
+                              ? "rgba(34, 197, 94, 0.15)"
+                              : "linear-gradient(135deg, rgba(131,58,180,0.3), rgba(253,29,29,0.3), rgba(252,176,69,0.3))",
+                            border: igPublishedIds.has(selectedPost.id)
+                              ? "1px solid rgba(34, 197, 94, 0.4)"
+                              : "1px solid rgba(253,29,29,0.25)",
+                            borderRadius: 6,
+                            color: "#e6edf7",
+                            padding: "8px 12px",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            cursor: igPublishingId === selectedPost.id || igPublishedIds.has(selectedPost.id) ? "not-allowed" : "pointer",
+                            opacity: igPublishingId === selectedPost.id || igPublishedIds.has(selectedPost.id) ? 0.7 : 1,
+                            transition: "all 0.15s ease",
+                          }}
+                        >
+                          {igPublishingId === selectedPost.id
+                            ? "Posting..."
+                            : igPublishedIds.has(selectedPost.id)
+                            ? "✓ Posted to Instagram"
+                            : "Post to Instagram"}
+                        </button>
+                      )}
+                      {facebook.connected && (
+                        <button
+                          onClick={() => {
+                            if (fbPublishingId === selectedPost.id || fbPublishedIds.has(selectedPost.id)) return;
+                            setFbPublishingId(selectedPost.id);
+                            facebook.publish(postImages[selectedPost.id], selectedPost.caption, selectedPost.hashtags)
+                              .then(() => {
+                                setFbPublishedIds(prev => new Set(prev).add(selectedPost.id));
+                                addToast(`Posted to ${facebook.pageName}!`, "success");
+                              })
+                              .catch((err: any) => {
+                                addToast(err?.message || "Failed to post to Facebook", "error");
+                              })
+                              .finally(() => setFbPublishingId(null));
+                          }}
+                          disabled={fbPublishingId === selectedPost.id || fbPublishedIds.has(selectedPost.id)}
+                          style={{
+                            width: "100%",
+                            marginTop: 8,
+                            background: fbPublishedIds.has(selectedPost.id)
+                              ? "rgba(34, 197, 94, 0.15)"
+                              : "rgba(24,119,242,0.2)",
+                            border: fbPublishedIds.has(selectedPost.id)
+                              ? "1px solid rgba(34, 197, 94, 0.4)"
+                              : "1px solid rgba(24,119,242,0.3)",
+                            borderRadius: 6,
+                            color: "#e6edf7",
+                            padding: "8px 12px",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            cursor: fbPublishingId === selectedPost.id || fbPublishedIds.has(selectedPost.id) ? "not-allowed" : "pointer",
+                            opacity: fbPublishingId === selectedPost.id || fbPublishedIds.has(selectedPost.id) ? 0.7 : 1,
+                            transition: "all 0.15s ease",
+                          }}
+                        >
+                          {fbPublishingId === selectedPost.id
+                            ? "Posting..."
+                            : fbPublishedIds.has(selectedPost.id)
+                            ? "✓ Posted to Facebook"
+                            : "Post to Facebook"}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Right column - Content */}
+                <div className="post-modal-right-col" style={{ flex: 1, minWidth: 0 }}>
+                  {/* Caption */}
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 0.5, opacity: 0.6, marginBottom: 8 }}>Caption</div>
+                    <div style={{ background: "#0b1220", borderRadius: 10, padding: 14, fontSize: 14, lineHeight: 1.6 }}>{selectedPost.caption}</div>
+                    <button
+                      style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, padding: "6px 12px", color: "#e6edf7", cursor: "pointer", fontSize: 12, fontWeight: 600, marginTop: 8 }}
+                      onClick={() => handleCopyField(selectedPost.caption, "caption")}
+                      className="hover-btn"
+                    >
+                      {copiedField === "caption" ? "✓ Copied!" : "Copy Caption"}
+                    </button>
+                  </div>
+
+                  {/* Hashtags */}
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 0.5, opacity: 0.6, marginBottom: 8 }}>Hashtags</div>
+                    <div style={{ background: "#0b1220", borderRadius: 10, padding: 14, fontSize: 14, lineHeight: 1.6 }}>{selectedPost.hashtags}</div>
+                    <button
+                      style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, padding: "6px 12px", color: "#e6edf7", cursor: "pointer", fontSize: 12, fontWeight: 600, marginTop: 8 }}
+                      onClick={() => handleCopyField(selectedPost.hashtags, "hashtags")}
+                      className="hover-btn"
+                    >
+                      {copiedField === "hashtags" ? "✓ Copied!" : "Copy Hashtags"}
+                    </button>
+                  </div>
+
+                  {/* Metadata */}
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 0.5, opacity: 0.6, marginBottom: 8 }}>Post Details</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+                      <div style={{ background: "#0b1220", borderRadius: 8, padding: 12 }}>
+                        <div style={{ fontSize: 10, opacity: 0.5, marginBottom: 4 }}>Niche</div>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>{selectedPost.niche || "—"}</div>
+                      </div>
+                      <div style={{ background: "#0b1220", borderRadius: 8, padding: 12 }}>
+                        <div style={{ fontSize: 10, opacity: 0.5, marginBottom: 4 }}>Audience</div>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>{selectedPost.audience || "—"}</div>
+                      </div>
+                      <div style={{ background: "#0b1220", borderRadius: 8, padding: 12 }}>
+                        <div style={{ fontSize: 10, opacity: 0.5, marginBottom: 4 }}>Tone</div>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>{selectedPost.tone}</div>
+                      </div>
+                      <div style={{ background: "#0b1220", borderRadius: 8, padding: 12 }}>
+                        <div style={{ fontSize: 10, opacity: 0.5, marginBottom: 4 }}>Image Style</div>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>{selectedPost.imageStyle}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div style={{ display: "flex", gap: 12, marginTop: 20, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+                    <button
+                      style={{ background: "rgba(255, 99, 99, 0.15)", border: "1px solid rgba(255, 99, 99, 0.3)", borderRadius: 8, padding: "10px 16px", color: "#ff9999", cursor: "pointer", fontSize: 13, fontWeight: 600, transition: "all 0.15s ease" }}
+                      onClick={() => handleDeletePost(selectedPost.id)}
+                      className="hover-btn"
+                    >
+                      Delete Post
+                    </button>
+                    <div style={{ flex: 1 }} />
+                    <button
+                      style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "10px 16px", color: "#e6edf7", cursor: "pointer", fontSize: 13, fontWeight: 600, transition: "all 0.15s ease" }}
+                      onClick={() => handleCopyField(`${selectedPost.caption}\n\n${selectedPost.hashtags}`, "all")}
+                      className="hover-btn"
+                    >
+                      {copiedField === "all" ? "✓ Copied!" : "Copy All"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* New Profile Modal */}
         {showNewProfile && (
@@ -2534,6 +2796,8 @@ export default function DashboardPage() {
         @media (max-width: 768px) {
           .ath-actionGrid { grid-template-columns: 1fr !important; }
           .ath-recentPostsGrid { grid-template-columns: repeat(2, 1fr) !important; }
+          .post-modal-two-col { flex-direction: column !important; }
+          .post-modal-left-col { flex: 1 !important; }
           .primary-section { margin-bottom: 60px; }
           .profile-benefits-grid { grid-template-columns: 1fr !important; }
           .how-it-works-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 16px !important; }

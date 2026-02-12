@@ -20,7 +20,6 @@ const isProtectedAppRoute = createRouteMatcher([
   "/dashboard(.*)",
   "/generator(.*)",
   "/calendar(.*)",
-  "/gallery(.*)",
   "/post(.*)",
   "/api/generate(.*)",
 ]);

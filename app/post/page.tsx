@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { saveImage } from "../lib/imageStorage";
+import { saveImage, deleteImage } from "../lib/imageStorage";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
@@ -582,6 +582,11 @@ export default function PostPage() {
           createdAt: new Date().toISOString(),
         };
         posts.unshift(newPost);
+        // Clean up images for posts that will be removed (beyond the 3-post limit)
+        const removedPosts = posts.slice(3);
+        for (const removed of removedPosts) {
+          try { await deleteImage(removed.id); } catch {}
+        }
         localStorage.setItem("ath_gallery", JSON.stringify(posts.slice(0, 3)));
       } catch {}
     } catch (err: any) {
