@@ -47,11 +47,32 @@ export async function GET(request: NextRequest) {
     }
 
     const tokenData = await tokenRes.json();
-    const userAccessToken = tokenData.access_token;
+    const shortLivedToken = tokenData.access_token;
+
+    // Exchange short-lived token for long-lived token (60 days)
+    // Page access tokens derived from a long-lived user token are non-expiring
+    const longLivedRes = await fetch(
+      `https://graph.facebook.com/v21.0/oauth/access_token` +
+      `?grant_type=fb_exchange_token` +
+      `&client_id=${appId}` +
+      `&client_secret=${appSecret}` +
+      `&fb_exchange_token=${shortLivedToken}`
+    );
+
+    if (!longLivedRes.ok) {
+      const err = await longLivedRes.text();
+      console.error("Facebook long-lived token exchange failed:", err);
+      return NextResponse.redirect(
+        new URL("/dashboard?facebook=error", baseUrl)
+      );
+    }
+
+    const longLivedData = await longLivedRes.json();
+    const userAccessToken = longLivedData.access_token;
 
     // Get the user's pages
     const pagesRes = await fetch(
-      `https://graph.facebook.com/v21.0/me/accounts?access_token=${userAccessToken}`
+      `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token&access_token=${userAccessToken}`
     );
 
     if (!pagesRes.ok) {
