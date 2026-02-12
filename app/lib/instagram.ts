@@ -100,6 +100,33 @@ export async function refreshLongLivedToken(
   return res.json();
 }
 
+// Get the correct Instagram user ID for publishing via the Graph API
+// The ID from direct Instagram OAuth may differ from the one needed for publishing
+async function getPublishableUserId(
+  accessToken: string,
+  instagramUserId: string
+): Promise<string> {
+  // First try: use the "me" endpoint to get the user's own ID
+  const meRes = await fetch(
+    `https://graph.instagram.com/v21.0/me?fields=user_id,username&access_token=${accessToken}`
+  );
+
+  if (meRes.ok) {
+    const meData = await meRes.json();
+    // The user_id field from /me is the correct publishable ID
+    if (meData.user_id) {
+      return meData.user_id.toString();
+    }
+    // If the response has an id field, use that
+    if (meData.id) {
+      return meData.id.toString();
+    }
+  }
+
+  // Fallback to the stored ID
+  return instagramUserId;
+}
+
 // Publish a photo to Instagram (2-step: create container, then publish)
 export async function publishToInstagram(
   accessToken: string,
@@ -107,9 +134,13 @@ export async function publishToInstagram(
   imageUrl: string,
   caption: string
 ): Promise<{ id: string }> {
+  // Get the correct publishable user ID
+  const publishUserId = await getPublishableUserId(accessToken, instagramUserId);
+  console.log("Publishing to Instagram user ID:", publishUserId, "(stored ID was:", instagramUserId, ")");
+
   // Step 1: Create media container
   const containerRes = await fetch(
-    `https://graph.instagram.com/v21.0/${instagramUserId}/media`,
+    `https://graph.instagram.com/v21.0/${publishUserId}/media`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -131,7 +162,7 @@ export async function publishToInstagram(
 
   // Step 2: Publish the container
   const publishRes = await fetch(
-    `https://graph.instagram.com/v21.0/${instagramUserId}/media_publish`,
+    `https://graph.instagram.com/v21.0/${publishUserId}/media_publish`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
