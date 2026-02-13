@@ -2006,96 +2006,32 @@ export default function DashboardPage() {
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
-                          marginBottom: (instagram.connected || facebook.connected) ? 8 : 0,
+                          marginBottom: 8,
                         }}
                       >
                         {post.caption.slice(0, 40)}...
                       </div>
-                      {instagram.connected && postImages[post.id] && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (igPublishingId === post.id || igPublishedIds.has(post.id)) return;
-                            setIgPublishingId(post.id);
-                            instagram.publish(postImages[post.id], post.caption, post.hashtags)
-                              .then(() => {
-                                setIgPublishedIds(prev => new Set(prev).add(post.id));
-                                addToast(`Posted to @${instagram.username}!`, "success");
-                              })
-                              .catch((err: any) => {
-                                addToast(err?.message || "Failed to post", "error");
-                              })
-                              .finally(() => setIgPublishingId(null));
-                          }}
-                          disabled={igPublishingId === post.id || igPublishedIds.has(post.id)}
-                          style={{
-                            width: "100%",
-                            background: igPublishedIds.has(post.id)
-                              ? "rgba(34, 197, 94, 0.15)"
-                              : "linear-gradient(135deg, rgba(131,58,180,0.3), rgba(253,29,29,0.3), rgba(252,176,69,0.3))",
-                            border: igPublishedIds.has(post.id)
-                              ? "1px solid rgba(34, 197, 94, 0.4)"
-                              : "1px solid rgba(253,29,29,0.25)",
-                            borderRadius: 6,
-                            color: "#e6edf7",
-                            padding: "6px 8px",
-                            fontSize: 10,
-                            fontWeight: 700,
-                            cursor: igPublishingId === post.id || igPublishedIds.has(post.id) ? "not-allowed" : "pointer",
-                            opacity: igPublishingId === post.id || igPublishedIds.has(post.id) ? 0.7 : 1,
-                            transition: "all 0.15s ease",
-                          }}
-                        >
-                          {igPublishingId === post.id
-                            ? "Posting..."
-                            : igPublishedIds.has(post.id)
-                            ? "✓ Posted"
-                            : "Post to Instagram"}
-                        </button>
-                      )}
-                      {facebook.connected && postImages[post.id] && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (fbPublishingId === post.id || fbPublishedIds.has(post.id)) return;
-                            setFbPublishingId(post.id);
-                            facebook.publish(postImages[post.id], post.caption, post.hashtags)
-                              .then(() => {
-                                setFbPublishedIds(prev => new Set(prev).add(post.id));
-                                addToast(`Posted to ${facebook.pageName}!`, "success");
-                              })
-                              .catch((err: any) => {
-                                addToast(err?.message || "Failed to post to Facebook", "error");
-                              })
-                              .finally(() => setFbPublishingId(null));
-                          }}
-                          disabled={fbPublishingId === post.id || fbPublishedIds.has(post.id)}
-                          style={{
-                            width: "100%",
-                            marginTop: 4,
-                            background: fbPublishedIds.has(post.id)
-                              ? "rgba(34, 197, 94, 0.15)"
-                              : "rgba(24,119,242,0.2)",
-                            border: fbPublishedIds.has(post.id)
-                              ? "1px solid rgba(34, 197, 94, 0.4)"
-                              : "1px solid rgba(24,119,242,0.3)",
-                            borderRadius: 6,
-                            color: "#e6edf7",
-                            padding: "6px 8px",
-                            fontSize: 10,
-                            fontWeight: 700,
-                            cursor: fbPublishingId === post.id || fbPublishedIds.has(post.id) ? "not-allowed" : "pointer",
-                            opacity: fbPublishingId === post.id || fbPublishedIds.has(post.id) ? 0.7 : 1,
-                            transition: "all 0.15s ease",
-                          }}
-                        >
-                          {fbPublishingId === post.id
-                            ? "Posting..."
-                            : fbPublishedIds.has(post.id)
-                            ? "✓ Posted"
-                            : "Post to Facebook"}
-                        </button>
-                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedPost(post);
+                        }}
+                        style={{
+                          width: "100%",
+                          background: "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(124, 58, 237, 0.2) 100%)",
+                          border: "1px solid rgba(44, 107, 237, 0.3)",
+                          borderRadius: 6,
+                          color: "#7eb3ff",
+                          padding: "7px 8px",
+                          fontSize: 11,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          transition: "all 0.15s ease",
+                        }}
+                        className="hover-btn"
+                      >
+                        Manage Post
+                      </button>
                     </div>
                   </div>
                 ))}

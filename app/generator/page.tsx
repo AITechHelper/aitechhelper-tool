@@ -2285,6 +2285,7 @@ export default function Page() {
           .ath-row2 { grid-template-columns: 1fr !important; }
           .ath-styleCardGrid { grid-template-columns: repeat(2, 1fr) !important; }
           .ath-postTypeGrid { grid-template-columns: repeat(3, 1fr) !important; }
+          .ath-page input, .ath-page select, .ath-page textarea { font-size: 16px !important; }
         }
         @media (max-width: 480px) {
           .ath-postTypeGrid { grid-template-columns: repeat(2, 1fr) !important; }

@@ -351,18 +351,19 @@ export default function PostPage() {
 
     console.log("🔍 Hard lock check for genId:", genId);
 
+    // Immediately remove autogen from URL to prevent re-triggering on refresh
+    try {
+      const cleanParams = new URLSearchParams(window.location.search);
+      cleanParams.delete("autogen");
+      window.history.replaceState({}, "", `/post?${cleanParams.toString()}`);
+    } catch {}
+
     // Check if already generated with this genId
     const existingResult = getStoredPostResult(genId);
     if (existingResult) {
       console.log("✅ Found existing post result, using cached version");
       setPost(existingResult);
       setIsFromCache(true);
-      // Remove autogen from URL to prevent re-triggering
-      try {
-        const cleanParams = new URLSearchParams(window.location.search);
-        cleanParams.delete("autogen");
-        window.history.replaceState({}, "", `/post?${cleanParams.toString()}`);
-      } catch {}
       return;
     }
 
@@ -533,12 +534,6 @@ export default function PostPage() {
         if (genId) {
           storePostResult(genId, result);
         }
-        // Remove autogen from URL to prevent re-triggering
-        try {
-          const cleanParams = new URLSearchParams(window.location.search);
-          cleanParams.delete("autogen");
-          window.history.replaceState({}, "", `/post?${cleanParams.toString()}`);
-        } catch {}
       }
 
       // Save to gallery (metadata in localStorage, image in IndexedDB)
@@ -1196,7 +1191,7 @@ export default function PostPage() {
                     ? "Posting..."
                     : igPostStatus === "success"
                     ? "Posted to Instagram!"
-                    : `Post to @${instagram.username}`}
+                    : "Post to Instagram"}
                 </button>
               )}
               {facebook.connected && (
@@ -1232,7 +1227,7 @@ export default function PostPage() {
                     ? "Posting..."
                     : fbPostStatus === "success"
                     ? "Posted to Facebook!"
-                    : `Post to ${facebook.pageName}`}
+                    : "Post to Facebook"}
                 </button>
               )}
             </div>
