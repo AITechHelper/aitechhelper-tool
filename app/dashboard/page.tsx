@@ -61,6 +61,7 @@ export default function DashboardPage() {
   const [fbPublishedIds, setFbPublishedIds] = useState<Set<string>>(new Set());
   const [selectedPost, setSelectedPost] = useState<SavedPost | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [profileStep, setProfileStep] = useState<1 | 2>(1);
 
   // Load posts from localStorage
   useEffect(() => {
@@ -87,11 +88,10 @@ export default function DashboardPage() {
     } catch {}
   }, []);
 
-  // Auto-open profile creation modal if no profiles and user hasn't skipped
+  // Auto-open profile creation modal if no profiles exist
   useEffect(() => {
     if (brandProfiles.isLoading) return;
-    const setupSkipped = localStorage.getItem("ath_profile_setup_skipped");
-    if (profiles.length === 0 && setupSkipped !== "1") {
+    if (profiles.length === 0) {
       setShowNewProfile(true);
     }
   }, [brandProfiles.isLoading, profiles.length]);
@@ -179,6 +179,7 @@ export default function DashboardPage() {
     setNewProfileAudience(profile.audience);
     setNewProfilePrimaryColor(profile.primaryColor);
     setNewProfileSecondaryColor(profile.secondaryColor);
+    setProfileStep(2);
     setShowNewProfile(true);
   };
 
@@ -244,6 +245,7 @@ export default function DashboardPage() {
     setNewProfilePrimaryColor("#000000");
     setNewProfileSecondaryColor("#ffffff");
     setEditingProfile(null);
+    setProfileStep(1);
     setShowNewProfile(false);
   };
 
@@ -732,7 +734,7 @@ export default function DashboardPage() {
               backgroundClip: "text",
             }}
           >
-            AI TECH HELPER
+            AI Social Helper
           </h1>
 
           {/* User Identity Pill or Sign In Button - Top Right */}
@@ -1441,12 +1443,12 @@ export default function DashboardPage() {
                   textAlign: "center" as const,
                 }}
               >
-                <div style={{ fontSize: 48, marginBottom: 8 }}>⚡</div>
+                <img src="/logo-icon.png" alt="AI Social Helper" style={{ width: 64, height: 64, marginBottom: 8, objectFit: "contain" }} />
                 <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
                   Generate a Post
                 </div>
                 <div style={{ fontSize: 13, opacity: 0.85 }}>
-                  Quick single post creation
+                  One post, done in seconds
                 </div>
               </div>
 
@@ -1483,9 +1485,9 @@ export default function DashboardPage() {
                   <div
                     style={{ display: "flex", alignItems: "center", gap: 10 }}
                   >
-                    <span style={{ fontSize: 16 }}>🖼️</span>
+                    <span style={{ fontSize: 16 }}>🏡</span>
                     <span style={{ fontSize: 13, opacity: 0.9 }}>
-                      AI-generated custom image
+                      Listing post, market update, or client story
                     </span>
                   </div>
                   <div
@@ -1493,7 +1495,7 @@ export default function DashboardPage() {
                   >
                     <span style={{ fontSize: 16 }}>✍️</span>
                     <span style={{ fontSize: 13, opacity: 0.9 }}>
-                      Engaging caption for your brand
+                      Caption written in your brand voice
                     </span>
                   </div>
                   <div
@@ -1501,7 +1503,7 @@ export default function DashboardPage() {
                   >
                     <span style={{ fontSize: 16 }}>#️⃣</span>
                     <span style={{ fontSize: 13, opacity: 0.9 }}>
-                      Optimized hashtags
+                      Real estate hashtags, ready to copy
                     </span>
                   </div>
                 </div>
@@ -1527,8 +1529,8 @@ export default function DashboardPage() {
                     marginBottom: 20,
                   }}
                 >
-                  Quick posts, one-off content, testing ideas, or when you need
-                  a single post right now.
+                  A new listing just hit, you need a quick market post, or a
+                  client just gave you a great review.
                 </div>
 
                 {/* CTA Button */}
@@ -1575,7 +1577,7 @@ export default function DashboardPage() {
                   Plan Your Month
                 </div>
                 <div style={{ fontSize: 13, opacity: 0.85 }}>
-                  Strategic content calendar
+                  Your full month, planned for you
                 </div>
               </div>
 
@@ -1614,15 +1616,15 @@ export default function DashboardPage() {
                   >
                     <span style={{ fontSize: 16 }}>🗓️</span>
                     <span style={{ fontSize: 13, opacity: 0.9 }}>
-                      30-day visual content calendar
+                      5-pillar weekly plan built for realtors
                     </span>
                   </div>
                   <div
                     style={{ display: "flex", alignItems: "center", gap: 10 }}
                   >
-                    <span style={{ fontSize: 16 }}>💡</span>
+                    <span style={{ fontSize: 16 }}>📊</span>
                     <span style={{ fontSize: 13, opacity: 0.9 }}>
-                      Smart post type suggestions
+                      Mon: Market · Tue: Listing · Wed: Tip...
                     </span>
                   </div>
                   <div
@@ -1630,7 +1632,7 @@ export default function DashboardPage() {
                   >
                     <span style={{ fontSize: 16 }}>🎯</span>
                     <span style={{ fontSize: 13, opacity: 0.9 }}>
-                      Click any day to generate content
+                      Click any day to generate that post instantly
                     </span>
                   </div>
                 </div>
@@ -1656,8 +1658,8 @@ export default function DashboardPage() {
                     marginBottom: 20,
                   }}
                 >
-                  Consistent posting, content strategy, batching your content
-                  creation, and staying organized.
+                  Agents who want to show up daily without thinking about what
+                  to post — or when.
                 </div>
 
                 {/* CTA Button */}
@@ -1801,7 +1803,7 @@ export default function DashboardPage() {
                   Choose Post Type
                 </div>
                 <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
-                  Quick tip, promo, testimonial, behind-the-scenes
+                  Listing, market update, educational tip, social proof, or community
                 </div>
               </div>
 
@@ -2333,7 +2335,7 @@ export default function DashboardPage() {
 
         {/* New Profile Modal */}
         {showNewProfile && (
-          <div style={styles.modal} onClick={() => setShowNewProfile(false)}>
+          <div style={styles.modal} onClick={() => { setShowNewProfile(false); setProfileStep(1); }}>
             <div
               style={{
                 ...styles.modalContent,
@@ -2407,284 +2409,63 @@ export default function DashboardPage() {
               >
                 {editingProfile
                   ? "Update your brand details below."
-                  : "Tell us a bit about your brand and we\u2019ll make sure every post feels on-brand and speaks to your audience."}
+                  : `Nice to meet you${newProfileName ? `, ${newProfileName}` : ""}! Two quick questions and you're all set.`}
               </div>
 
-              {/* Form Grid */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                  gap: 14,
-                  marginBottom: 24,
-                }}
-                className="profile-form-grid"
-              >
-                {/* Profile Name - Full Width */}
-                <div style={{ gridColumn: "1 / -1" }}>
-                  <label style={{ fontSize: 13, fontWeight: 600, color: "#e6edf7", marginBottom: 4, display: "block" }}>
-                    Brand name
+              {/* Step 1: Name only */}
+              {profileStep === 1 && !editingProfile ? (
+                <div>
+                  <label style={{ fontSize: 14, fontWeight: 700, color: "#e6edf7", marginBottom: 6, display: "block" }}>
+                    What should we call you?
                   </label>
+                  <div style={{ fontSize: 13, color: "#8fa3bf", marginBottom: 14, lineHeight: 1.5 }}>
+                    Your name, team name, or brokerage — whatever you go by.
+                  </div>
                   <input
-                    style={{ ...styles.input, marginBottom: 0 }}
-                    placeholder="e.g., Sunrise Coffee Co."
+                    style={{ ...styles.input, fontSize: 15, padding: "14px 16px", marginBottom: 16 }}
+                    placeholder="e.g., The Martinez Group"
                     value={newProfileName}
                     onChange={(e) => setNewProfileName(e.target.value)}
                     autoFocus
+                    onKeyDown={(e) => { if (e.key === "Enter" && newProfileName.trim()) setProfileStep(2); }}
                   />
-                  <div style={{ fontSize: 12, color: "#8fa3bf", marginTop: 4, lineHeight: 1.4 }}>
-                    The name of your business or brand. This helps personalize your posts.
-                  </div>
-                </div>
-
-                {/* Niche */}
-                <div>
-                  <label style={{ fontSize: 13, fontWeight: 600, color: "#e6edf7", marginBottom: 4, display: "block" }}>
-                    Niche
-                  </label>
-                  <input
-                    style={{ ...styles.input, marginBottom: 0 }}
-                    placeholder="e.g., Coffee, Fitness, Tech Startups"
-                    value={newProfileNiche}
-                    onChange={(e) => setNewProfileNiche(e.target.value)}
-                  />
-                  <div style={{ fontSize: 12, color: "#8fa3bf", marginTop: 4, lineHeight: 1.4 }}>
-                    Your industry or topic area. We&apos;ll use this to generate relevant content.
-                  </div>
-                </div>
-
-                {/* Audience */}
-                <div>
-                  <label style={{ fontSize: 13, fontWeight: 600, color: "#e6edf7", marginBottom: 4, display: "block" }}>
-                    Target audience
-                  </label>
-                  <input
-                    style={{ ...styles.input, marginBottom: 0 }}
-                    placeholder="e.g., Small business owners aged 25-45"
-                    value={newProfileAudience}
-                    onChange={(e) => setNewProfileAudience(e.target.value)}
-                  />
-                  <div style={{ fontSize: 12, color: "#8fa3bf", marginTop: 4, lineHeight: 1.4 }}>
-                    Who are you trying to reach? This shapes the language and tone of your posts.
-                  </div>
-                </div>
-              </div>
-
-              {/* Default Tone Display */}
-              <div style={{
-                marginBottom: 24,
-                padding: "14px 16px",
-                background: "rgba(44, 107, 237, 0.08)",
-                border: "1px solid rgba(44, 107, 237, 0.2)",
-                borderRadius: 10,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
-              }}>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>
-                    Default tone
-                  </div>
-                  <div style={{ fontSize: 12, color: "#8fa3bf" }}>
-                    Your posts will use a confident tone. You can change this per post anytime.
-                  </div>
-                </div>
-                <div style={{
-                  background: "rgba(44, 107, 237, 0.2)",
-                  border: "1px solid rgba(44, 107, 237, 0.3)",
-                  borderRadius: 8,
-                  padding: "6px 14px",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: "#7eb3ff",
-                  whiteSpace: "nowrap" as const,
-                }}>
-                  Confident
-                </div>
-              </div>
-
-              {/* Brand Colors */}
-              <div style={{ marginBottom: 24 }}>
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    marginBottom: 4,
-                    opacity: 0.9,
-                  }}
-                >
-                  Brand Colors
-                </div>
-                <div style={{ fontSize: 12, color: "#8fa3bf", marginBottom: 12 }}>
-                  Optional. These colors will be used in your generated image backgrounds and overlays.
-                </div>
-
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                    gap: 14,
-                  }}
-                  className="profile-colors-grid"
-                >
-                  {/* Primary Color */}
-                  <div>
-                    <label
-                      style={{
-                        fontSize: 12,
-                        opacity: 0.7,
-                        marginBottom: 6,
-                        display: "block",
-                      }}
-                    >
-                      Primary Color <span style={{ fontSize: 11, color: "#8fa3bf" }}>(main brand color)</span>
-                    </label>
-                    <div
-                      style={{ display: "flex", gap: 8, alignItems: "center" }}
-                    >
-                      <input
-                        type="color"
-                        value={newProfilePrimaryColor}
-                        onChange={(e) =>
-                          setNewProfilePrimaryColor(e.target.value)
-                        }
-                        style={{
-                          width: 40,
-                          height: 40,
-                          border: "1px solid rgba(255,255,255,0.12)",
-                          borderRadius: 6,
-                          background: "transparent",
-                          cursor: "pointer",
-                        }}
-                      />
-                      <input
-                        style={{ ...styles.input, marginBottom: 0, flex: 1 }}
-                        placeholder="#000000"
-                        value={newProfilePrimaryColor}
-                        onChange={(e) =>
-                          setNewProfilePrimaryColor(e.target.value)
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  {/* Secondary Color */}
-                  <div>
-                    <label
-                      style={{
-                        fontSize: 12,
-                        opacity: 0.7,
-                        marginBottom: 6,
-                        display: "block",
-                      }}
-                    >
-                      Secondary Color <span style={{ fontSize: 11, color: "#8fa3bf" }}>(accent or background)</span>
-                    </label>
-                    <div
-                      style={{ display: "flex", gap: 8, alignItems: "center" }}
-                    >
-                      <input
-                        type="color"
-                        value={newProfileSecondaryColor}
-                        onChange={(e) =>
-                          setNewProfileSecondaryColor(e.target.value)
-                        }
-                        style={{
-                          width: 40,
-                          height: 40,
-                          border: "1px solid rgba(255,255,255,0.12)",
-                          borderRadius: 6,
-                          background: "transparent",
-                          cursor: "pointer",
-                        }}
-                      />
-                      <input
-                        style={{ ...styles.input, marginBottom: 0, flex: 1 }}
-                        placeholder="#ffffff"
-                        value={newProfileSecondaryColor}
-                        onChange={(e) =>
-                          setNewProfileSecondaryColor(e.target.value)
-                        }
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <p
-                style={{
-                  fontSize: 12,
-                  opacity: 0.6,
-                  marginBottom: 20,
-                  textAlign: "center" as const,
-                  fontStyle: "italic" as const,
-                }}
-              >
-                You can edit or update your brand profile anytime.
-              </p>
-
-              <div
-                style={{
-                  ...styles.modalActions,
-                  flexDirection: "column" as const,
-                  gap: 12,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 12,
-                    justifyContent: "flex-end",
-                  }}
-                >
-                  <button
-                    style={styles.btn}
-                    onClick={() => {
-                      setShowNewProfile(false);
-                      setNewProfileName("");
-                      setNewProfileNiche("");
-                      setNewProfileAudience("");
-                      setNewProfilePrimaryColor("#000000");
-                      setNewProfileSecondaryColor("#ffffff");
-                      setEditingProfile(null);
-                    }}
-                    className="hover-btn"
-                  >
-                    Cancel
-                  </button>
                   <button
                     style={{
-                      ...styles.btn,
-                      background: "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)",
+                      width: "100%",
+                      background: newProfileName.trim()
+                        ? "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)"
+                        : "rgba(44, 107, 237, 0.2)",
                       border: "none",
+                      borderRadius: 12,
+                      padding: "16px 20px",
                       color: "#fff",
-                      padding: "10px 24px",
-                      fontSize: 14,
+                      fontSize: 15,
+                      fontWeight: 700,
+                      cursor: newProfileName.trim() ? "pointer" : "default",
+                      transition: "all 0.2s ease",
+                      opacity: newProfileName.trim() ? 1 : 0.5,
+                      marginBottom: 20,
+                      fontFamily: "Verdana, Geneva, sans-serif",
                     }}
-                    onClick={handleCreateProfile}
-                    className="hover-btn-primary"
+                    onClick={() => { if (newProfileName.trim()) setProfileStep(2); }}
                   >
-                    {editingProfile ? "Update Profile" : "Save Profile"}
+                    Let&apos;s go →
                   </button>
-                </div>
-
-                {!editingProfile && (
-                  <div style={{ textAlign: "center" as const, marginTop: 4 }}>
+                  <div style={{ textAlign: "center" as const }}>
                     <button
                       style={{
-                        ...styles.btn,
                         background: "transparent",
                         border: "none",
-                        opacity: 0.7,
+                        opacity: 0.5,
                         fontSize: 13,
-                        padding: "8px 12px",
                         color: "#8fa3bf",
                         cursor: "pointer",
+                        padding: "8px 12px",
+                        fontFamily: "Verdana, Geneva, sans-serif",
                       }}
                       onClick={() => {
-                        localStorage.setItem("ath_profile_setup_skipped", "1");
                         setShowNewProfile(false);
+                        setProfileStep(1);
                         setNewProfileName("");
                         setNewProfileNiche("");
                         setNewProfileAudience("");
@@ -2692,7 +2473,6 @@ export default function DashboardPage() {
                         setNewProfileSecondaryColor("#ffffff");
                         setEditingProfile(null);
                       }}
-                      className="hover-btn"
                     >
                       I&apos;ll do this later
                     </button>
@@ -2700,8 +2480,200 @@ export default function DashboardPage() {
                       You can always set up your brand profile from the dashboard.
                     </div>
                   </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                /* Step 2: Rest of the form */
+                <div>
+                  {/* Form Grid */}
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                      gap: 14,
+                      marginBottom: 24,
+                    }}
+                    className="profile-form-grid"
+                  >
+                    {/* Brand name — editing only (new profiles got it in step 1) */}
+                    {editingProfile && (
+                      <div style={{ gridColumn: "1 / -1" }}>
+                        <label style={{ fontSize: 13, fontWeight: 600, color: "#e6edf7", marginBottom: 4, display: "block" }}>
+                          Brand name
+                        </label>
+                        <input
+                          style={{ ...styles.input, marginBottom: 0 }}
+                          placeholder="e.g., The Martinez Group"
+                          value={newProfileName}
+                          onChange={(e) => setNewProfileName(e.target.value)}
+                          autoFocus
+                        />
+                        <div style={{ fontSize: 12, color: "#8fa3bf", marginTop: 4, lineHeight: 1.4 }}>
+                          The name of your business or brand. This helps personalize your posts.
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Market / City */}
+                    <div>
+                      <label style={{ fontSize: 13, fontWeight: 600, color: "#e6edf7", marginBottom: 4, display: "block" }}>
+                        Your market
+                      </label>
+                      <input
+                        style={{ ...styles.input, marginBottom: 0 }}
+                        placeholder="e.g., Austin, TX"
+                        value={newProfileNiche}
+                        onChange={(e) => setNewProfileNiche(e.target.value)}
+                        autoFocus={!editingProfile}
+                      />
+                      <div style={{ fontSize: 12, color: "#8fa3bf", marginTop: 4, lineHeight: 1.4 }}>
+                        The city or area you sell in. Used in local market posts and community content.
+                      </div>
+                    </div>
+
+                    {/* Who they help */}
+                    <div>
+                      <label style={{ fontSize: 13, fontWeight: 600, color: "#e6edf7", marginBottom: 4, display: "block" }}>
+                        Who you help most
+                      </label>
+                      <input
+                        style={{ ...styles.input, marginBottom: 0 }}
+                        placeholder="e.g., First-time buyers, move-up families"
+                        value={newProfileAudience}
+                        onChange={(e) => setNewProfileAudience(e.target.value)}
+                      />
+                      <div style={{ fontSize: 12, color: "#8fa3bf", marginTop: 4, lineHeight: 1.4 }}>
+                        Your typical clients. Shapes the tone and focus of every post.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Default Tone Display */}
+                  <div style={{
+                    marginBottom: 24,
+                    padding: "14px 16px",
+                    background: "rgba(44, 107, 237, 0.08)",
+                    border: "1px solid rgba(44, 107, 237, 0.2)",
+                    borderRadius: 10,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 12,
+                  }}>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Default tone</div>
+                      <div style={{ fontSize: 12, color: "#8fa3bf" }}>
+                        Your posts will use a confident tone. You can change this per post anytime.
+                      </div>
+                    </div>
+                    <div style={{
+                      background: "rgba(44, 107, 237, 0.2)",
+                      border: "1px solid rgba(44, 107, 237, 0.3)",
+                      borderRadius: 8,
+                      padding: "6px 14px",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      color: "#7eb3ff",
+                      whiteSpace: "nowrap" as const,
+                    }}>
+                      Confident
+                    </div>
+                  </div>
+
+                  {/* Brand Colors */}
+                  <div style={{ marginBottom: 24 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, opacity: 0.9 }}>
+                      Brand Colors
+                    </div>
+                    <div style={{ fontSize: 12, color: "#8fa3bf", marginBottom: 12 }}>
+                      Optional. These colors will be used in your generated image backgrounds and overlays.
+                    </div>
+                    <div
+                      style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 14 }}
+                      className="profile-colors-grid"
+                    >
+                      <div>
+                        <label style={{ fontSize: 12, opacity: 0.7, marginBottom: 6, display: "block" }}>
+                          Primary Color <span style={{ fontSize: 11, color: "#8fa3bf" }}>(main brand color)</span>
+                        </label>
+                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                          <input
+                            type="color"
+                            value={newProfilePrimaryColor}
+                            onChange={(e) => setNewProfilePrimaryColor(e.target.value)}
+                            style={{ width: 40, height: 40, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, background: "transparent", cursor: "pointer" }}
+                          />
+                          <input
+                            style={{ ...styles.input, marginBottom: 0, flex: 1 }}
+                            placeholder="#000000"
+                            value={newProfilePrimaryColor}
+                            onChange={(e) => setNewProfilePrimaryColor(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 12, opacity: 0.7, marginBottom: 6, display: "block" }}>
+                          Secondary Color <span style={{ fontSize: 11, color: "#8fa3bf" }}>(accent or background)</span>
+                        </label>
+                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                          <input
+                            type="color"
+                            value={newProfileSecondaryColor}
+                            onChange={(e) => setNewProfileSecondaryColor(e.target.value)}
+                            style={{ width: 40, height: 40, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, background: "transparent", cursor: "pointer" }}
+                          />
+                          <input
+                            style={{ ...styles.input, marginBottom: 0, flex: 1 }}
+                            placeholder="#ffffff"
+                            value={newProfileSecondaryColor}
+                            onChange={(e) => setNewProfileSecondaryColor(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p style={{ fontSize: 12, opacity: 0.6, marginBottom: 20, textAlign: "center" as const, fontStyle: "italic" as const }}>
+                    You can edit or update your brand profile anytime.
+                  </p>
+
+                  <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+                    <button
+                      style={styles.btn}
+                      onClick={() => {
+                        if (editingProfile) {
+                          setShowNewProfile(false);
+                          setNewProfileName("");
+                          setNewProfileNiche("");
+                          setNewProfileAudience("");
+                          setNewProfilePrimaryColor("#000000");
+                          setNewProfileSecondaryColor("#ffffff");
+                          setEditingProfile(null);
+                          setProfileStep(1);
+                        } else {
+                          setProfileStep(1);
+                        }
+                      }}
+                      className="hover-btn"
+                    >
+                      {editingProfile ? "Cancel" : "← Back"}
+                    </button>
+                    <button
+                      style={{
+                        ...styles.btn,
+                        background: "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)",
+                        border: "none",
+                        color: "#fff",
+                        padding: "10px 24px",
+                        fontSize: 14,
+                      }}
+                      onClick={handleCreateProfile}
+                      className="hover-btn-primary"
+                    >
+                      {editingProfile ? "Update Profile" : "Save Profile"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

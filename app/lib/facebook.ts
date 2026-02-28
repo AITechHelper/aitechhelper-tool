@@ -1,6 +1,10 @@
 import { neon } from "@neondatabase/serverless";
 
-const sql = neon(process.env.DATABASE_URL!);
+let _sql: ReturnType<typeof neon> | null = null;
+function sql(strings: TemplateStringsArray, ...values: any[]): Promise<any[]> {
+  if (!_sql) _sql = neon(process.env.DATABASE_URL!);
+  return (_sql as any)(strings, ...values);
+}
 
 export interface FacebookPage {
   id: number;

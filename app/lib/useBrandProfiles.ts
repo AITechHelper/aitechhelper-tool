@@ -3,6 +3,17 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 
+// Safely parse JSON from a fetch response — returns null if the response is not JSON (e.g. HTML error page)
+async function safeJson(res: Response): Promise<any> {
+  const ct = res.headers.get("content-type") || "";
+  if (!ct.includes("application/json")) return null;
+  try {
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 export type BrandProfile = {
   id: string;
   name: string;
@@ -129,7 +140,8 @@ export function useBrandProfiles(): UseBrandProfilesReturn {
       try {
         const res = await fetch("/api/brand-profiles");
         if (!res.ok) throw new Error("Failed to fetch profiles");
-        const data = await res.json();
+        const data = await safeJson(res);
+        if (!data) throw new Error("Failed to fetch profiles");
 
         const dbProfiles: BrandProfile[] = data.profiles || [];
         const dbActiveId: string | null = data.activeProfileId || null;
@@ -240,11 +252,13 @@ export function useBrandProfiles(): UseBrandProfilesReturn {
         });
 
         if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.error || "Failed to create profile");
+          const errData = await safeJson(res);
+          throw new Error(errData?.error || "Failed to create profile");
         }
 
-        const { profile } = await res.json();
+        const body = await safeJson(res);
+        if (!body?.profile) throw new Error("Failed to create profile");
+        const { profile } = body;
 
         setProfiles((prev) => {
           const updated = [...prev, profile];
@@ -276,7 +290,9 @@ export function useBrandProfiles(): UseBrandProfilesReturn {
 
         if (!res.ok) throw new Error("Failed to update profile");
 
-        const { profile: updated } = await res.json();
+        const updateBody = await safeJson(res);
+        if (!updateBody?.profile) throw new Error("Failed to update profile");
+        const { profile: updated } = updateBody;
 
         setProfiles((prev) => {
           const newList = prev.map((p) => (p.id === id ? updated : p));

@@ -1,6 +1,11 @@
 import { neon } from "@neondatabase/serverless";
 
-const sql = neon(process.env.DATABASE_URL!);
+// Lazy initialization — module-level neon() threw when DATABASE_URL was missing
+let _sql: ReturnType<typeof neon> | null = null;
+function sql(strings: TemplateStringsArray, ...values: any[]): Promise<any[]> {
+  if (!_sql) _sql = neon(process.env.DATABASE_URL!);
+  return (_sql as any)(strings, ...values);
+}
 
 const MAX_PROFILES_PER_USER = 5;
 

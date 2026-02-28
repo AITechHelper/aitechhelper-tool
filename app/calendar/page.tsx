@@ -7,6 +7,11 @@ import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
 import { getImage } from "../lib/imageStorage";
+import {
+  getTemplate,
+  getPillarForWorkdayIndex,
+  weekdayToWorkdayIndex,
+} from "../lib/nicheTemplates";
 
 type ImageStyle =
   | "lifestyle_photo"
@@ -25,6 +30,7 @@ type DayPlan = {
   imageFormatLabel: string;
   isHoliday?: boolean;
   holidayName?: string;
+  pillarType?: string;
 };
 
 type SavedPost = {
@@ -357,6 +363,7 @@ function getFirstDayOfMonth(year: number, month: number) {
 function buildMonthPlan(year: number, month: number): DayPlan[] {
   const daysInMonth = getDaysInMonth(year, month);
   const plans: DayPlan[] = [];
+  const template = getTemplate(); // V1: always realtor
 
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
@@ -367,51 +374,45 @@ function buildMonthPlan(year: number, month: number): DayPlan[] {
     let detail: string;
     let isHoliday = false;
     let holidayName: string | undefined;
+    let pillarType: string | undefined;
+    let imageStyle: ImageStyle;
+    let captionLength: "short" | "medium" | "long";
+    let hashtagPack: "light" | "standard" | "heavy";
 
     if (holiday) {
+      // Holidays always override the template
       postType = "Seasonal";
       detail = holiday.detail;
       isHoliday = true;
       holidayName = holiday.name;
+      imageStyle = pickImageStyleForDay(postType, year, month, day);
+      captionLength = "medium";
+      hashtagPack = "heavy";
     } else {
-      const base = WEEKDAY_PLANS[weekday];
-      postType = base.postType;
-      detail = base.detail;
-    }
-
-    const imageStyle = pickImageStyleForDay(postType, year, month, day);
-
-    let captionLength: "short" | "medium" | "long";
-    let hashtagPack: "light" | "standard" | "heavy";
-
-    switch (postType) {
-      case "Engagement":
-        captionLength = "short";
-        hashtagPack = "light";
-        break;
-      case "Educational":
-        captionLength = "medium";
-        hashtagPack = "heavy";
-        break;
-      case "Authority":
-        captionLength = "medium";
-        hashtagPack = "standard";
-        break;
-      case "Problem → Solution":
-        captionLength = "medium";
-        hashtagPack = "standard";
-        break;
-      case "Before & After":
-        captionLength = "short";
-        hashtagPack = "standard";
-        break;
-      case "Seasonal":
-        captionLength = "medium";
-        hashtagPack = "heavy";
-        break;
-      default:
-        captionLength = "medium";
-        hashtagPack = "standard";
+      const workdayIndex = weekdayToWorkdayIndex(weekday);
+      if (workdayIndex !== null) {
+        // Mon–Fri: drive from the niche template's weeklyStructure
+        const pillar = getPillarForWorkdayIndex(template, workdayIndex);
+        postType = pillar.label;
+        detail = pillar.detail;
+        pillarType = pillar.id;
+        imageStyle = pillar.imageStyleHint
+          ? (pillar.imageStyleHint as ImageStyle)
+          : pickImageStyleForDay(pillar.postTypeHint, year, month, day);
+        captionLength = pillar.captionLength.toLowerCase() as "short" | "medium" | "long";
+        hashtagPack = pillar.hashtagPack;
+      } else {
+        // Sat–Sun: fall back to existing weekday plan
+        const base = WEEKDAY_PLANS[weekday];
+        postType = base.postType;
+        detail = base.detail;
+        imageStyle = pickImageStyleForDay(postType, year, month, day);
+        switch (postType) {
+          case "Engagement": captionLength = "short"; hashtagPack = "light"; break;
+          case "Educational": captionLength = "medium"; hashtagPack = "heavy"; break;
+          default: captionLength = "medium"; hashtagPack = "standard";
+        }
+      }
     }
 
     const imageStyleOption = getImageStyleOption(imageStyle);
@@ -428,6 +429,7 @@ function buildMonthPlan(year: number, month: number): DayPlan[] {
       imageFormatLabel,
       isHoliday,
       holidayName,
+      pillarType,
     });
   }
 
@@ -492,10 +494,8 @@ export default function CalendarPage() {
       const activeBrand = localStorage.getItem("ath_active_brand_profile");
       if (activeBrand) {
         const parsed = JSON.parse(activeBrand);
-        if (parsed && parsed.niche && parsed.audience) {
+        if (parsed && parsed.profileId) {
           setActiveBrandProfile(parsed);
-        } else {
-          localStorage.removeItem("ath_active_brand_profile");
         }
       }
     } catch {}
@@ -614,6 +614,11 @@ export default function CalendarPage() {
     sp.set("day", String(p.day));
     sp.set("title", p.holidayName || p.postType);
     sp.set("detail", p.detail);
+
+    // Pillar type (for template-driven prompt enrichment)
+    if (p.pillarType) {
+      sp.set("pillarType", p.pillarType);
+    }
 
     // Extra details
     if (extraDetails.trim()) {

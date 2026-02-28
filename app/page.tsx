@@ -68,9 +68,9 @@ export default function LandingPage() {
   const demoPhoneRef = useRef<HTMLDivElement>(null);
   const demoBtnRef = useRef<HTMLButtonElement>(null);
   const fullCaption =
-    "Start your week right! Nothing beats Monday morning at your neighborhood spot.";
+    "4 bed. 3 bath. Chef's kitchen. Private backyard. Just listed — and this one won't last. DM me to get in the door first.";
   const fullHashtags =
-    "#LocalBusiness #CoffeeShop #SmallBizLove #CommunityFirst #ShopLocal";
+    "#JustListed #RealEstate #HomesForSale #RealEstateAgent #DreamHome #NewListing";
 
   // Demo animation sequence
   useEffect(() => {
@@ -206,21 +206,8 @@ export default function LandingPage() {
             gap: 12,
           }}
         >
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 10,
-              background: "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 20,
-            }}
-          >
-            ⚡
-          </div>
-          <span className="nav-brand-text" style={{ fontSize: 18, fontWeight: 800 }}>AI Tech Helper</span>
+          <img src="/logo-icon.png" alt="AI Social Helper" style={{ width: 48, height: 48, objectFit: "contain" }} />
+          <span className="nav-brand-text" style={{ fontSize: 18, fontWeight: 800 }}>AI Social Helper</span>
         </div>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           {isSignedIn ? (
@@ -443,7 +430,7 @@ export default function LandingPage() {
                 }}
               />
               <span style={{ fontSize: 12, fontWeight: 600, color: "#22c55e" }}>
-                AI-Powered Content Creation
+                Built for Real Estate Agents
               </span>
             </div>
 
@@ -453,6 +440,7 @@ export default function LandingPage() {
                 fontWeight: 800,
                 lineHeight: 1.1,
                 marginBottom: 24,
+                paddingBottom: 8,
                 background:
                   "linear-gradient(135deg, #ffffff 0%, #e6edf7 50%, #7eb3ff 100%)",
                 WebkitBackgroundClip: "text",
@@ -460,11 +448,11 @@ export default function LandingPage() {
                 backgroundClip: "text",
               }}
             >
-              Your AI
-              <br />
               Social Media
               <br />
-              Manager
+              Built for
+              <br />
+              Real Estate Agents
             </h1>
 
             <p
@@ -476,9 +464,10 @@ export default function LandingPage() {
                 maxWidth: 500,
               }}
             >
-              Stop spending hours on social media content. Generate stunning
-              branded posts, engaging captions, and perfect hashtags in seconds
-              with the power of AI.
+              Real estate already demands everything you&apos;ve got. Stop
+              spending your evenings writing captions and wondering what to
+              post. Generate listing content, market updates, and client stories
+              in seconds — and reclaim your time.
             </p>
 
             {/* Feature Pills */}
@@ -590,23 +579,9 @@ export default function LandingPage() {
                   borderBottom: "1px solid rgba(255,255,255,0.1)",
                 }}
               >
-                <div
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 8,
-                    background:
-                      "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 16,
-                  }}
-                >
-                  ⚡
-                </div>
+                <img src="/logo-icon.png" alt="AI Social Helper" style={{ width: 40, height: 40, objectFit: "contain" }} />
                 <span style={{ fontSize: 14, fontWeight: 700, opacity: 0.9 }}>
-                  AI Tech Helper
+                  AI Social Helper
                 </span>
                 <div
                   style={{
@@ -706,8 +681,8 @@ export default function LandingPage() {
                     }}
                   >
                     <img
-                      src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=400&fit=crop&q=80"
-                      alt="Coffee shop"
+                      src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&h=400&fit=crop&q=80"
+                      alt="Home listing"
                       style={{
                         width: "100%",
                         height: "100%",
@@ -883,7 +858,7 @@ export default function LandingPage() {
                 marginBottom: 16,
               }}
             >
-              Everything You Need to Dominate Social Media
+              Everything Real Estate Agents Need to Win Online
             </h2>
             <p
               style={{
@@ -893,8 +868,9 @@ export default function LandingPage() {
                 margin: "0 auto",
               }}
             >
-              Create professional content that converts, without the
-              professional price tag
+              Stop losing evenings to content creation. Get a full week of posts
+              done in minutes — so you can focus on clients, closings, and
+              growing your business.
             </p>
           </div>
 
@@ -908,39 +884,39 @@ export default function LandingPage() {
           >
             {[
               {
-                icon: "🖼️",
-                title: "AI Image Generation",
-                desc: "Generate stunning, on-brand images tailored to your business in seconds",
+                icon: "🏡",
+                title: "Listing Posts in Seconds",
+                desc: "Turn any property into a compelling social post — caption, hashtags, and image style ready to publish.",
                 color: "#2c6bed",
               },
               {
-                icon: "✍️",
-                title: "Smart Captions",
-                desc: "AI writes engaging captions that match your brand voice and resonate with your audience",
+                icon: "📊",
+                title: "Market Authority Content",
+                desc: "Position yourself as the local expert with market updates and buyer tips that build trust — no research hours required.",
                 color: "#7c3aed",
               },
               {
-                icon: "#️⃣",
-                title: "Optimized Hashtags",
-                desc: "Get relevant hashtags that increase reach and engagement automatically",
+                icon: "🗓️",
+                title: "Weekly Content Calendar",
+                desc: "A structured 5-day posting plan built for realtors. Monday market update, Tuesday listing, Wednesday tip — done for you.",
                 color: "#ec4899",
               },
               {
                 icon: "🎨",
                 title: "Brand Profiles",
-                desc: "Save your brand colors, tone, and style for consistent content every time",
+                desc: "Your colors, tone, and style saved once. Every post looks like you — no designer needed.",
                 color: "#22c55e",
               },
               {
-                icon: "📅",
-                title: "Content Calendar",
-                desc: "Plan and schedule your posts to stay consistent and organized",
+                icon: "✍️",
+                title: "Captions & Hashtags",
+                desc: "Real estate-specific copy and hashtags generated instantly. No more staring at a blank screen at 10pm.",
                 color: "#f59e0b",
               },
               {
                 icon: "⚡",
-                title: "Instant Results",
-                desc: "No more staring at a blank screen. Get professional posts in under 30 seconds",
+                title: "Reclaim Your Evenings",
+                desc: "Top agents post 5x a week without spending hours on content. Set up once, generate in seconds, go close deals.",
                 color: "#06b6d4",
               },
             ].map((feature, i) => (
@@ -1027,7 +1003,7 @@ export default function LandingPage() {
               backgroundClip: "text",
             }}
           >
-            Ready to Transform Your Social Media?
+            Ready to Get Your Time Back?
           </h2>
           <p
             style={{
@@ -1038,8 +1014,8 @@ export default function LandingPage() {
               margin: "0 auto 32px",
             }}
           >
-            Join thousands of businesses creating stunning content in seconds.
-            No design skills required.
+            Top agents post 5x a week without spending hours on content.
+            Set up your brand profile once, generate in seconds.
           </p>
           <div
             style={{
@@ -1115,51 +1091,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer
-        style={{
-          borderTop: "1px solid rgba(255, 255, 255, 0.08)",
-          padding: "40px",
-          textAlign: "center",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 12,
-            marginBottom: 16,
-          }}
-        >
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              background: "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 16,
-            }}
-          >
-            ⚡
-          </div>
-          <span style={{ fontSize: 16, fontWeight: 700 }}>AI Tech Helper</span>
-        </div>
-        <p style={{ fontSize: 13, opacity: 0.5, marginBottom: 12 }}>
-          © 2025 AI Tech Helper. All rights reserved.
-        </p>
-        <div style={{ display: "flex", justifyContent: "center", gap: 16 }}>
-          <a href="/privacy" style={{ fontSize: 11, opacity: 0.4, color: "#e6edf7", textDecoration: "none" }}>
-            Privacy Policy
-          </a>
-          <a href="/terms" style={{ fontSize: 11, opacity: 0.4, color: "#e6edf7", textDecoration: "none" }}>
-            Terms of Service
-          </a>
-        </div>
-      </footer>
 
       <style>{`
         @keyframes pulse-dot {
