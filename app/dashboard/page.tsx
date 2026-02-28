@@ -43,6 +43,7 @@ export default function DashboardPage() {
   const [newProfileName, setNewProfileName] = useState("");
   const [newProfileNiche, setNewProfileNiche] = useState("");
   const [newProfileAudience, setNewProfileAudience] = useState("");
+  const [newProfileTone, setNewProfileTone] = useState("Confident");
   const [newProfilePrimaryColor, setNewProfilePrimaryColor] =
     useState("#000000");
   const [newProfileSecondaryColor, setNewProfileSecondaryColor] =
@@ -177,6 +178,7 @@ export default function DashboardPage() {
     setNewProfileName(profile.name);
     setNewProfileNiche(profile.niche);
     setNewProfileAudience(profile.audience);
+    setNewProfileTone(profile.tone || "Confident");
     setNewProfilePrimaryColor(profile.primaryColor);
     setNewProfileSecondaryColor(profile.secondaryColor);
     setProfileStep(2);
@@ -192,6 +194,7 @@ export default function DashboardPage() {
         name: newProfileName.trim(),
         niche: newProfileNiche.trim(),
         audience: newProfileAudience.trim(),
+        tone: newProfileTone,
         primaryColor: newProfilePrimaryColor,
         secondaryColor: newProfileSecondaryColor,
       };
@@ -221,7 +224,7 @@ export default function DashboardPage() {
         name: newProfileName.trim(),
         niche: newProfileNiche.trim(),
         audience: newProfileAudience.trim(),
-        tone: "Confident",
+        tone: newProfileTone,
         captionLength: "Medium",
         hashtagCount: 12,
         imageStyle: "lifestyle_photo",
@@ -242,6 +245,7 @@ export default function DashboardPage() {
     setNewProfileName("");
     setNewProfileNiche("");
     setNewProfileAudience("");
+    setNewProfileTone("Confident");
     setNewProfilePrimaryColor("#000000");
     setNewProfileSecondaryColor("#ffffff");
     setEditingProfile(null);
@@ -2547,36 +2551,34 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  {/* Default Tone Display */}
-                  <div style={{
-                    marginBottom: 24,
-                    padding: "14px 16px",
-                    background: "rgba(44, 107, 237, 0.08)",
-                    border: "1px solid rgba(44, 107, 237, 0.2)",
-                    borderRadius: 10,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 12,
-                  }}>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Default tone</div>
-                      <div style={{ fontSize: 12, color: "#8fa3bf" }}>
-                        Your posts will use a confident tone. You can change this per post anytime.
-                      </div>
+                  {/* Tone of Voice */}
+                  <div style={{ marginBottom: 24 }}>
+                    <label style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, display: "block", opacity: 0.9 }}>
+                      Tone of voice
+                    </label>
+                    <div style={{ fontSize: 12, color: "#8fa3bf", marginBottom: 10 }}>
+                      Sets the default voice for all your posts. You can override it per post anytime.
                     </div>
-                    <div style={{
-                      background: "rgba(44, 107, 237, 0.2)",
-                      border: "1px solid rgba(44, 107, 237, 0.3)",
-                      borderRadius: 8,
-                      padding: "6px 14px",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: "#7eb3ff",
-                      whiteSpace: "nowrap" as const,
-                    }}>
-                      Confident
-                    </div>
+                    <select
+                      value={newProfileTone}
+                      onChange={(e) => setNewProfileTone(e.target.value)}
+                      style={{
+                        ...styles.input,
+                        marginBottom: 0,
+                        width: "100%",
+                        cursor: "pointer",
+                        appearance: "auto" as any,
+                      }}
+                    >
+                      {[
+                        "Confident", "Friendly", "Playful", "Professional",
+                        "Luxury", "Minimal", "Bold", "Witty", "Inspirational",
+                        "Educational", "Direct", "Warm", "Premium", "Cozy",
+                        "Energetic", "Modern", "Rustic", "Casual", "Hype (but not cringe)",
+                      ].map((t) => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* Brand Colors */}
