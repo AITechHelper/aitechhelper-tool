@@ -185,6 +185,7 @@ export default function PostPage() {
   const [post, setPost] = useState<PostResult | null>(null);
   const [currentRequestId, setCurrentRequestId] = useState<string | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
+  const [pillarType, setPillarType] = useState<string>("");
   const [formReady, setFormReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string>("Preparing…");
@@ -320,6 +321,9 @@ export default function PostPage() {
         title = params.get("title"),
         detail = params.get("detail");
       if (day && title && detail) setDayContext({ day, title, detail });
+
+      const pillar = params.get("pillarType");
+      if (pillar) setPillarType(pillar);
 
       // Mark form as ready after URL params are loaded
       setFormReady(true);
@@ -466,6 +470,7 @@ export default function PostPage() {
       referenceImageName: uploadRef?.name || null,
       referenceImageMime: uploadRef?.mime || null,
       profileId: activeProfileId || "default",
+      ...(pillarType ? { pillarType } : {}),
       ...(refinementOverride
         ? {
             refinementText: refinementOverride,
@@ -934,7 +939,7 @@ export default function PostPage() {
         <div>
           <h1 style={styles.title}>{post ? "Your Post" : "Generating"}</h1>
           <p style={styles.subtitle}>
-            <span style={{ fontSize: 18 }}>{post ? "✨" : "⚡"}</span>
+            {post ? <span style={{ fontSize: 18 }}>✨</span> : <img src="/logo-icon.png" alt="AI Social Helper" style={{ width: 28, height: 28, objectFit: "contain" }} />}
             {post
               ? "Edit your caption and copy to clipboard"
               : "Your post is being created. You can refine once after it finishes."}

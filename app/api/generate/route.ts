@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import OpenAI from "openai";
 import { getTokenStatus, useToken, type TokenStatus } from "../../lib/tokens";
+import { getTemplate, buildPillarPromptEnrichment } from "../../lib/nicheTemplates";
 
 export const runtime = "nodejs";
 
@@ -53,6 +54,9 @@ type Body = {
   refinementText?: string;
 
   callToAction?: string;
+
+  // Niche template pillar (e.g., "market_authority") — drives prompt enrichment
+  pillarType?: string;
 };
 
 type PostTypeGuidance = {
@@ -837,6 +841,17 @@ export async function POST(req: Request) {
     const audience = body.audience?.trim() || "customers";
     const tone = body.tone?.trim() || "Confident";
 
+    // Niche template pillar enrichment
+    const pillarType = String(body.pillarType || "").trim();
+    let pillarEnrichment = "";
+    if (pillarType) {
+      const template = getTemplate();
+      const pillar = template.pillars[pillarType];
+      if (pillar) {
+        pillarEnrichment = buildPillarPromptEnrichment(pillar);
+      }
+    }
+
     // Page.tsx uses `goal` as post type label
     const postType = body.goal?.trim() || "Basic post";
     const specific = String(body.specificRequest || "").trim();
@@ -947,6 +962,7 @@ Rules for scene_plan:
 - It must NOT contain any readable text unless ImageStyle allows text.
 - It must NOT contain product packaging or labels (unless reference image exists AND style allows).
 - If unsure, choose a generic lifestyle/service/action scene that represents the niche.
+${pillarEnrichment ? `\nNICHE TEMPLATE CONTEXT (follow these pillar-specific guidelines):\n${pillarEnrichment}` : ""}
 `;
 
     const textResp = await client.responses.create({

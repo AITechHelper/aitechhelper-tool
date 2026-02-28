@@ -1208,7 +1208,7 @@ export default function Page() {
               gap: 8,
             }}
           >
-            <span style={{ fontSize: 18 }}>⚡</span>
+            <img src="/logo-icon.png" alt="AI Social Helper" style={{ width: 28, height: 28, objectFit: "contain" }} />
             AI-powered image + caption + hashtags
           </p>
         </div>
