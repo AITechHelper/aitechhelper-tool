@@ -304,7 +304,7 @@ export default function DashboardPage() {
       fontFamily: "Verdana, Geneva, sans-serif",
     },
     container: {
-      maxWidth: 1000,
+      maxWidth: 1280,
       margin: "0 auto",
     },
     header: {
