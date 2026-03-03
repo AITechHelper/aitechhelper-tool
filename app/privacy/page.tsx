@@ -33,7 +33,7 @@ export default function PrivacyPage() {
           Privacy Policy
         </h1>
         <p style={{ fontSize: 12, opacity: 0.5, marginBottom: 32 }}>
-          Last updated: February 2025
+          Last updated: March 2026
         </p>
 
         <div style={{ fontSize: 14, lineHeight: 1.8, opacity: 0.85 }}>

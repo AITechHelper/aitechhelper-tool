@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import OpenAI from "openai";
 import { getTokenStatus, useToken, type TokenStatus } from "../../lib/tokens";
-import { getTemplate, buildPillarPromptEnrichment } from "../../lib/nicheTemplates";
+import { getTemplate, buildPillarPromptEnrichment, getRandomPillarScene, type ContentPillar } from "../../lib/nicheTemplates";
 
 export const runtime = "nodejs";
 
@@ -113,9 +113,9 @@ function normalizeHex(hex?: string) {
 }
 
 function captionMax(len?: Body["captionLength"]) {
-  if (len === "Short") return 120;
-  if (len === "Long") return 280;
-  return 180;
+  if (len === "Short") return 160;
+  if (len === "Long") return 360;
+  return 240;
 }
 
 function looksLikeSafetyRejection(err: any) {
@@ -322,112 +322,99 @@ Clean commercial composition.
 function postTypeToGuidance(postType?: string): PostTypeGuidance {
   const t = String(postType || "").toLowerCase();
 
-  if (t.includes("basic")) {
+  if (t.includes("everyday")) {
     return {
-      caption: "General brand post within the niche. Do not invent specifics.",
+      caption:
+        "General brand presence post. No specific hook required — write something relatable, human, and on-brand for the niche. Make it feel real and lived-in, not corporate. Do not invent specifics.",
       image:
-        "Simple, high-quality visual fitting the niche. Do not invent products/packaging.",
+        "Authentic niche lifestyle scene. High quality, candid energy. Do not invent products or packaging.",
     };
   }
 
   if (t.includes("promotion") || t.includes("offer")) {
     return {
       caption:
-        "Promotion/offer. If specificRequest is provided, include it exactly. If blank, do NOT invent a discount or date; keep it generic.",
+        "Promotion/offer post. If specificRequest is provided, include it exactly — do not soften or change the offer wording. If blank, do NOT invent a discount or date; write bold promotional energy that makes them want to act without a specific deal.",
       image:
-        "Promotional energy without inventing product packaging. Show service-in-action or lifestyle cues (hands holding a cup, café scene, person enjoying the niche).",
+        "Promotional energy without inventing product packaging. Show service-in-action or lifestyle cues that feel exciting and urgent.",
     };
   }
 
-  if (t.includes("educational") || t.includes("tips")) {
+  if (t.includes("educational tip") || t.includes("educational")) {
     return {
       caption:
-        "Educational content. If specificRequest is provided, use it as the core fact/tip and build the caption around it - this is verified info from the user. If blank: Create engaging content using UNIVERSAL TRUTHS about the niche (things always true), PROCESS insights (how things work), or RELATABLE observations. DO NOT invent specific statistics, company-specific claims, or facts that could be wrong for this particular business. Keep it interesting but grounded in general wisdom.",
+        "Educational tip post. If specificRequest is provided, use it as the core fact/tip — this is verified info from the user, so use it confidently and build around it. If blank: draw from UNIVERSAL TRUTHS about the niche (things that are always true), PRO-LEVEL INSIGHTS (things a real expert would know), or SURPRISING OBSERVATIONS that reframe how the audience sees the topic. Make it genuinely useful and interesting — not watered-down. Do NOT invent specific statistics or company-specific claims.",
       image:
-        "Helpful, clean visual consistent with niche; avoid products/packaging unless a reference image is provided.",
+        "Clean, concept-driven visual that reinforces the educational theme. Avoid products/packaging.",
+    };
+  }
+
+  if (t.includes("hot take")) {
+    return {
+      caption:
+        "Hot take / bold opinion post. Write a strong, opinionated take on the niche that challenges conventional wisdom or says what most people in the industry won't say out loud. This is thought leadership — be direct, confident, and a little provocative. If specificRequest has a take, amplify it. If blank, craft a genuinely bold industry opinion that will stop the scroll. Do NOT hedge, do NOT be lukewarm.",
+      image:
+        "Bold, high-contrast visual that matches the energy of a strong opinion — dynamic lighting, strong composition, dramatic niche scene. No packaging.",
+    };
+  }
+
+  if (t.includes("myth buster") || t.includes("myth")) {
+    return {
+      caption:
+        "Myth buster post. Structure: state the myth clearly, then debunk it with confidence. If specificRequest names the myth, use it directly. If blank, choose a common misconception in the niche that the audience would recognize. Be authoritative — you're the one setting the record straight. The hook should name the myth so readers immediately recognize it.",
+      image:
+        "Bold graphic or conceptual scene that visually represents busting a misconception — contrast imagery, bold framing, strong composition. No packaging.",
     };
   }
 
   if (t.includes("problem") && t.includes("solution")) {
     return {
       caption:
-        "Problem → solution. If specificRequest is provided, use that exact problem/solution - this is verified from the user. If blank: Focus on COMMON, RELATABLE pain points the audience would recognize. Keep solution general to what the niche offers. DO NOT invent specific percentages, timeframes, or guaranteed outcomes unless user provided them.",
+        "Problem/solution post. Open by naming the pain point in a way that makes the target audience say 'that's me.' If specificRequest describes the problem/solution, use it directly — this is verified from the user. If blank: focus on the most common, most frustrating pain point for this niche's audience and position the business as the clear answer. Do NOT invent specific percentages or guaranteed outcomes unless user provided them.",
       image:
-        "Visual hinting at problem/solution concept without text unless style allows it. Do not invent products.",
+        "Visual hinting at the problem/solution concept — before energy on one side, resolution on the other, or a clean conceptual scene. No products.",
     };
   }
 
-  if (t.includes("before") && t.includes("after")) {
+  if (t.includes("announcement")) {
     return {
       caption:
-        "Before/After transformation. Keep it believable and niche-relevant. If blank specifics, generic transformation.",
+        "Announcement post. If specificRequest has the news, lead with it — make it feel like a moment. If blank, write a bold anticipation-building announcement that gets people excited to follow along. Use exclamation and energy appropriately — this should feel like real news, not a press release.",
       image:
-        "Split composition before/after using visuals (no text labels unless style allows). No products/packaging.",
+        "Bold branded announcement visual — clean, energetic, on-brand. The announcement lives in the caption; the image should have big energy.",
     };
   }
 
-  if (t.includes("testimonial") || t.includes("social proof")) {
+  if (t.includes("engagement question") || t.includes("engagement")) {
     return {
       caption:
-        "Testimonial/social proof. If specificRequest contains the testimonial, include it or a short excerpt.",
+        "Engagement question post. Ask a question so relevant and interesting that the audience can't help but respond. If specificRequest has a question, use it. If blank, craft a question that's niche-specific, a little unexpected, and genuinely sparks debate or curiosity. Avoid generic questions like 'What do you think?' — make it specific and juicy.",
       image:
-        "Trustworthy, warm, credible visual. Avoid products/packaging; lean people/service/process.",
-    };
-  }
-
-  if (t.includes("behind")) {
-    return {
-      caption:
-        "Behind-the-scenes. Authentic process/day-in-the-life. No fake claims.",
-      image:
-        "Candid behind-the-scenes scene aligned to niche. No packaging/labels.",
-    };
-  }
-
-  if (t.includes("announcement") || t.includes("update")) {
-    return {
-      caption:
-        "Announcement/update. If specifics provided, include them. If blank, keep it generic and safe.",
-      image:
-        "On-brand supportive visual. The announcement mostly lives in caption unless style allows text.",
-    };
-  }
-
-  if (t.includes("engagement") || t.includes("conversation")) {
-    return {
-      caption:
-        "Engagement starter. Ask a niche-relevant question. If blank specifics, keep it broad and safe.",
-      image: "Friendly niche photo or branded layout depending on style.",
+        "Friendly, warm niche visual or branded layout. Energy should feel inviting and conversational.",
     };
   }
 
   if (t.includes("seasonal") || t.includes("timely")) {
     return {
       caption:
-        "Seasonal/timely. Only be seasonal if user gave specifics; otherwise generic.",
-      image: "Seasonal vibe only if specified; otherwise generic niche visual.",
-    };
-  }
-
-  if (t.includes("authority") || t.includes("credibility")) {
-    return {
-      caption:
-        "Authority/credibility. If specificRequest is provided (credentials, years, certifications), use it confidently - this is verified info from the user. If blank: Demonstrate expertise through PERSPECTIVE (how a professional thinks), GENERAL PRINCIPLES (best practices), or EXPERIENCE-BASED WISDOM. DO NOT invent specific years, certifications, awards, or company-specific claims. Keep it authoritative but general.",
-      image: "Premium credible visual consistent with niche and style.",
+        "Seasonal/timely post. If specificRequest names the season/event, tie the niche directly to it in a creative, specific way — not just 'happy holidays.' If blank, choose a universally timely angle. Make it feel current and relevant, not just a calendar obligation.",
+      image:
+        "Themed visual matching the season or moment — warm, atmospheric, conceptual. AI generates a fitting scene without needing real photos.",
     };
   }
 
   if (t.includes("custom")) {
     return {
       caption:
-        "Custom. Follow specificRequest as primary instruction. If blank, keep it generic and safe.",
+        "Custom post. Follow specificRequest as the primary instruction — treat it as the user's direct creative brief. If blank, create an engaging general post for the niche.",
       image:
-        "Follow specificRequest visually, but stay safe and avoid brands/logos unless style requires generic text.",
+        "Follow specificRequest visually. Stay safe and avoid brands/logos unless style requires generic text.",
     };
   }
 
   return {
-    caption: "General post type. Stay in niche. Do not invent specifics.",
+    caption:
+      "General brand post. Stay in niche, be engaging, do not invent specifics.",
     image: "High-quality niche visual. No invented products/packaging.",
   };
 }
@@ -444,50 +431,51 @@ type CaptionStructure = {
 function getCaptionStructure(postType?: string): CaptionStructure {
   const t = String(postType || "").toLowerCase();
 
-  if (t.includes("basic")) {
+  if (t.includes("everyday")) {
     return {
-      hookStyle: "Observation or relatable statement",
+      hookStyle: "Relatable, specific observation — NOT generic",
       hookExamples: [
-        "Here's what we love about...",
-        "Nothing beats...",
-        "This is why we do what we do.",
+        "The thing nobody tells you about [niche]...",
+        "Real talk:",
+        "This is what [niche] actually looks like.",
       ],
       ctaOptions: [
         "Follow for more",
-        "Double tap if you agree",
+        "Drop a comment if you relate",
         "Save this for later",
+        "Tag someone who needs to see this",
       ],
       structureHint:
-        "Start with a relatable observation, share a simple thought, end with CTA.",
+        "Open with something real and specific that hooks the right audience, share a genuine thought or moment, end with a light CTA that feels natural.",
     };
   }
 
   if (t.includes("promotion") || t.includes("offer")) {
     return {
-      hookStyle: "Urgency or value-driven opener",
+      hookStyle: "Punchy urgency or bold value statement — make them feel like they'd be missing out",
       hookExamples: [
-        "For a limited time...",
-        "Don't miss this.",
-        "Here's your chance to...",
+        "This deal doesn't last long.",
+        "You asked. We delivered.",
+        "This is the one you've been waiting for.",
       ],
       ctaOptions: [
-        "Grab yours today",
-        "DM us to claim",
-        "Link in bio",
-        "Shop now",
+        "Grab it before it's gone — link in bio",
+        "DM us NOW to lock this in",
+        "Don't sleep on this",
+        "Book your spot today",
       ],
       structureHint:
-        "Lead with urgency or value, state the offer clearly, end with action CTA.",
+        "Lead hard with the value or offer, make the benefit crystal clear, inject urgency, end with a direct call-to-action that drives immediate response.",
     };
   }
 
-  if (t.includes("educational") || t.includes("tips")) {
+  if (t.includes("educational tip") || t.includes("educational")) {
     return {
-      hookStyle: "Question or curiosity opener",
+      hookStyle: "Curiosity-gap or surprising insight opener — make them feel like they're about to learn something they didn't know",
       hookExamples: [
-        "Ever wondered why...?",
-        "Here's a tip most people miss.",
-        "Did you know...?",
+        "Most people get this completely wrong.",
+        "Here's what they don't teach you about [niche].",
+        "The #1 mistake people make with [niche]:",
       ],
       ctaOptions: [
         "Save this for later",
@@ -499,189 +487,138 @@ function getCaptionStructure(postType?: string): CaptionStructure {
     };
   }
 
+  if (t.includes("hot take")) {
+    return {
+      hookStyle: "Controversial or bold statement that demands a reaction",
+      hookExamples: [
+        "Unpopular opinion:",
+        "Nobody in [niche] wants to admit this.",
+        "I'll say what everyone else is afraid to say:",
+      ],
+      ctaOptions: [
+        "Agree or disagree? Drop it below",
+        "Repost if you agree",
+        "Tag someone who needs to hear this",
+      ],
+      structureHint:
+        "Lead with the bold take right in the first line — no soft-pedaling. State it clearly, back it up briefly, then invite the audience to react. The goal is a real response, not validation.",
+    };
+  }
+
+  if (t.includes("myth buster") || t.includes("myth")) {
+    return {
+      hookStyle: "Call out the myth immediately in the first line",
+      hookExamples: [
+        "MYTH: [state the common belief]",
+        "Everyone thinks [X]. Here's why that's wrong.",
+        "Stop believing this about [niche]:",
+      ],
+      ctaOptions: [
+        "Save this — your future self will thank you",
+        "Share this with someone who needs it",
+        "Follow for more real talk about [niche]",
+      ],
+      structureHint:
+        "State the myth clearly so readers immediately recognize it. Debunk it with confidence and a brief, compelling reason. End with something that makes them want to save or share.",
+    };
+  }
+
   if (t.includes("problem") && t.includes("solution")) {
     return {
-      hookStyle: "Pain point callout",
+      hookStyle: "Visceral pain point callout — make them feel seen",
       hookExamples: [
-        "Tired of...?",
-        "Struggling with...?",
-        "If you've ever dealt with...",
+        "If you're sick of dealing with [problem], you're not alone.",
+        "Here's why [common struggle] keeps happening — and how to fix it.",
+        "The real reason [problem] keeps coming back:",
       ],
       ctaOptions: [
-        "DM us to learn more",
-        "Let us help — link in bio",
-        "Comment if this sounds familiar",
+        "DM us — we can help",
+        "Ready to fix this for good? Link in bio",
+        "Comment 'YES' if this sounds familiar",
       ],
       structureHint:
-        "Call out the problem, present the solution, invite them to reach out.",
+        "Name the pain point in a way that makes the right people immediately say 'that's me.' Build tension around it, then deliver the solution with confidence. The CTA should feel like relief, not a sales push.",
     };
   }
 
-  if (t.includes("before") && t.includes("after")) {
+  if (t.includes("announcement")) {
     return {
-      hookStyle: "Transformation tease",
+      hookStyle: "Bold news drop — make it feel like a moment",
       hookExamples: [
-        "The difference is unreal.",
-        "See what changed.",
-        "From this to this.",
+        "It's happening.",
+        "We've been working on something big.",
+        "Big news:",
       ],
       ctaOptions: [
-        "Ready for your transformation? DM us",
-        "Want results like this? Link in bio",
-        "Your turn next",
+        "Follow so you don't miss it — link in bio",
+        "Comment your questions below",
+        "Turn on notifications — this is worth it",
       ],
       structureHint:
-        "Tease the transformation, highlight the change, invite them to start their journey.",
+        "Open with the moment — make the audience feel like something real is happening. Share the news with energy and specificity. End by directing them to stay connected or take action.",
     };
   }
 
-  if (t.includes("testimonial") || t.includes("social proof")) {
+  if (t.includes("engagement question") || t.includes("engagement")) {
     return {
-      hookStyle: "Quote lead-in",
+      hookStyle: "Niche-specific question that's too interesting to scroll past",
       hookExamples: [
-        "Our client said it best:",
-        "Real words from a real customer:",
-        "Here's what they had to say:",
+        "Hot take: [controversial stance]. Agree or disagree?",
+        "What's the one thing about [niche] that nobody ever talks about?",
+        "Real question for my [niche] community:",
       ],
       ctaOptions: [
-        "Share your experience below",
-        "Want similar results? DM us",
-        "Your story could be next",
+        "Drop your answer in the comments — I read every one",
+        "Comment below",
+        "Tag someone who'd have a strong opinion on this",
       ],
       structureHint:
-        "Introduce the testimonial, share the quote, invite others to share or inquire.",
-    };
-  }
-
-  if (t.includes("behind")) {
-    return {
-      hookStyle: "Curiosity opener",
-      hookExamples: [
-        "Here's what happens behind the scenes.",
-        "A look at how we do it.",
-        "Ever wonder what goes into...?",
-      ],
-      ctaOptions: [
-        "Follow for more behind the scenes",
-        "Comment what you want to see next",
-        "Like if you enjoyed this peek",
-      ],
-      structureHint:
-        "Open with curiosity, share the behind-the-scenes moment, invite engagement.",
-    };
-  }
-
-  if (t.includes("announcement") || t.includes("update")) {
-    return {
-      hookStyle: "News hook",
-      hookExamples: [
-        "Big news!",
-        "We've got something exciting to share.",
-        "It's finally here.",
-      ],
-      ctaOptions: [
-        "Stay tuned",
-        "Follow for updates",
-        "Turn on notifications",
-        "Link in bio for details",
-      ],
-      structureHint:
-        "Lead with excitement, share the news clearly, direct them to stay connected.",
-    };
-  }
-
-  if (t.includes("engagement") || t.includes("conversation")) {
-    return {
-      hookStyle: "Direct question",
-      hookExamples: [
-        "What's your take on...?",
-        "We want to know:",
-        "Quick question for you:",
-      ],
-      ctaOptions: [
-        "Drop your answer below",
-        "Comment your thoughts",
-        "Tag a friend who...",
-      ],
-      structureHint:
-        "Ask a compelling question, add context if needed, invite them to respond.",
+        "Ask a question specific enough that it can't be answered with a shrug. Add one line of context or a spicy framing to make answering feel rewarding. The goal is to get real, personal responses in the comments.",
     };
   }
 
   if (t.includes("seasonal") || t.includes("timely")) {
     return {
-      hookStyle: "Time reference",
+      hookStyle: "Timely, specific angle — not just 'happy holidays'",
       hookExamples: [
-        "This season...",
-        "'Tis the season for...",
-        "With [event] around the corner...",
+        "This time of year is [specific feeling/challenge] for [niche] — here's how to handle it.",
+        "[Season/Event] means something different when you're in [niche].",
+        "While everyone else is [doing seasonal thing], here's what the pros are doing:",
       ],
       ctaOptions: [
-        "Book now before it's too late",
-        "DM us today",
-        "Don't wait — link in bio",
+        "Book now — spots are going fast",
+        "DM us before [event] — we're almost full",
+        "Don't wait until the rush — link in bio",
       ],
       structureHint:
-        "Reference the season/event, tie it to your offering, create urgency to act.",
-    };
-  }
-
-  if (t.includes("authority") || t.includes("credibility")) {
-    return {
-      hookStyle: "Expertise signal",
-      hookExamples: [
-        "After years in this industry...",
-        "Here's what we've learned:",
-        "One thing most people get wrong:",
-      ],
-      ctaOptions: [
-        "Follow for expert tips",
-        "Questions? Drop them below",
-        "DM for advice",
-      ],
-      structureHint:
-        "Establish credibility, share an insight, invite them to learn more.",
-    };
-  }
-
-  if (
-    t.includes("service") ||
-    t.includes("product") ||
-    t.includes("highlight")
-  ) {
-    return {
-      hookStyle: "Feature or benefit highlight",
-      hookExamples: [
-        "Here's what makes this special.",
-        "Why our clients love this:",
-        "The difference is in the details.",
-      ],
-      ctaOptions: [
-        "Learn more — link in bio",
-        "DM us for details",
-        "Book a consultation today",
-      ],
-      structureHint:
-        "Highlight a key feature/benefit, explain the value, invite inquiry.",
+        "Make the seasonal angle feel specific and relevant to the niche — not generic. Tie the timing to something real your audience experiences. Create urgency around the moment.",
     };
   }
 
   if (t.includes("custom")) {
     return {
-      hookStyle: "Flexible — match the user's specific request",
-      hookExamples: ["Adapt to what the user describes"],
-      ctaOptions: ["Choose based on the content goal"],
+      hookStyle: "Flexible — match the intent of the specific request",
+      hookExamples: ["Adapt fully to what the user describes"],
+      ctaOptions: ["Choose based on the content goal and post type"],
       structureHint:
-        "Follow the user's specific request for both hook and CTA style.",
+        "Follow the user's specific request as the creative brief. Match the hook style and CTA to the intent described.",
     };
   }
 
   // Default fallback
   return {
-    hookStyle: "Engaging opener",
-    hookExamples: ["Here's something worth knowing.", "Let's talk about..."],
-    ctaOptions: ["Follow for more", "Comment below", "Share if you agree"],
-    structureHint: "Open strong, deliver value, end with engagement CTA.",
+    hookStyle: "Bold, specific opener — no generic filler",
+    hookExamples: [
+      "Here's something most people don't know about [niche].",
+      "Let's talk about something real:",
+    ],
+    ctaOptions: [
+      "Follow for more",
+      "Comment your thoughts below",
+      "Save this for later",
+    ],
+    structureHint:
+      "Open with something worth stopping for. Deliver real value or a real point of view. End with a CTA that feels earned.",
   };
 }
 
@@ -844,10 +781,12 @@ export async function POST(req: Request) {
     // Niche template pillar enrichment
     const pillarType = String(body.pillarType || "").trim();
     let pillarEnrichment = "";
+    let activePillar: ContentPillar | null = null;
     if (pillarType) {
       const template = getTemplate();
       const pillar = template.pillars[pillarType];
       if (pillar) {
+        activePillar = pillar;
         pillarEnrichment = buildPillarPromptEnrichment(pillar);
       }
     }
@@ -905,14 +844,22 @@ Hard rules:
 - Caption MUST match the post type and tone.
 - If SpecificRequest is provided, caption MUST include it clearly and directly (do not change the offer wording).
 - If SpecificRequest is blank, do NOT invent discounts, dates, guarantees, or factual claims.
-- FACTUAL SAFETY: If SpecificRequest contains facts/claims, use them confidently (user verified). If SpecificRequest is blank, DO NOT invent business-specific claims (years in business, certifications, specific outcomes, data analytics capabilities, etc.). Instead use universal truths and relatable observations about the niche. Be interesting and engaging, but grounded.
+- FACTUAL SAFETY: If SpecificRequest contains facts/claims, use them confidently (user verified). If SpecificRequest is blank, DO NOT invent business-specific claims (years in business, certifications, specific outcomes). Instead use universal truths, sharp observations, and relatable niche insights. Be bold and real — not safe and corporate.
 - Hashtags must be ONE line of space-separated hashtags, exactly ${hashtagCount} hashtags (0 allowed if hashtagCount is 0).
+
+CAPTION QUALITY MANDATE — READ THIS FIRST:
+The caption must be genuinely engaging, not generic filler. Think of the best social media accounts in this niche — the ones people actually stop and read. Write like that.
+- DO NOT write safe, watered-down, corporate-sounding copy.
+- DO write with a real point of view, specific language, and something worth reading.
+- The hook must be so good that someone scrolling at 1.5x speed still stops.
+- Opinions, edge, specificity, and a clear voice beat vague positivity every time.
+- If the post type calls for boldness (Hot Take, Myth Buster, Engagement Question), commit to it fully — no hedging.
 
 CAPTION STRUCTURE (CRITICAL):
 1. HOOK: Start with an attention-grabbing opening line.
    - Hook style for this post type: ${captionStructure.hookStyle}
    - Example hooks: ${captionStructure.hookExamples.slice(0, 2).join(" / ")}
-   - First 5-10 words MUST grab attention. No generic openers like "Hey there" or "Check this out".
+   - First 5-10 words MUST stop the scroll. Ban ALL of these openers: "Hey there", "Check this out", "We're excited to share", "As a [niche] professional", "In today's world", "Are you looking for".
 
 2. BODY: ${captionStructure.structureHint}
 
@@ -969,7 +916,7 @@ ${pillarEnrichment ? `\nNICHE TEMPLATE CONTEXT (follow these pillar-specific gui
       model: "gpt-4.1-mini",
       instructions: textInstructions,
       input: textInput,
-      temperature: 0.45,
+      temperature: 0.55,
       text: { format: { type: "json_object" } },
     });
 
@@ -1058,6 +1005,9 @@ ${pillarEnrichment ? `\nNICHE TEMPLATE CONTEXT (follow these pillar-specific gui
       ? "CRITICAL: This must look like a REALISTIC PHOTO (not illustration) unless the style explicitly says no photo."
       : "CRITICAL: This must be graphic design only (no photo, no photorealism).";
 
+    // Get a pillar-specific visual scene suggestion if available
+    const pillarSceneSuggestion = activePillar ? getRandomPillarScene(activePillar) : "";
+
     let imageInstruction = [
       priority.coreLock,
       priority.styleMustDifferentiate,
@@ -1075,6 +1025,10 @@ ${pillarEnrichment ? `\nNICHE TEMPLATE CONTEXT (follow these pillar-specific gui
       "POST TYPE IMAGE INTENT:",
       postTypeGuide.image,
 
+      pillarSceneSuggestion
+        ? `PILLAR VISUAL INSPIRATION (adapt to fit image style and content, don't copy literally): ${pillarSceneSuggestion}`
+        : "",
+
       "SCENE PLAN (style-compliant):",
       scenePlan || "",
 
@@ -1082,7 +1036,7 @@ ${pillarEnrichment ? `\nNICHE TEMPLATE CONTEXT (follow these pillar-specific gui
         ? `SpecificRequest (visual interpretation, do not invent products): ${specific}`
         : "",
 
-      "Quality: premium, Instagram-ready, high-end commercial look.",
+      "Quality: premium, Instagram-ready, high-end commercial aesthetic.",
       "No logos. Avoid brand names. No watermarks.",
     ]
       .filter(Boolean)

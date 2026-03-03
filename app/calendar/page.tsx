@@ -1573,29 +1573,86 @@ export default function CalendarPage() {
                       What this means for your post
                     </div>
                     <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0, opacity: 0.9 }}>
-                      {selectedDay.postType === "Engagement" && (
-                        <>Your post will include a <strong>question or call-to-action</strong> designed to spark conversation. Expect a <strong>casual, inviting tone</strong> that encourages your followers to comment and share their thoughts.</>
+                      {selectedDay.postType === "Market Authority" && (
+                        <>AI will position you as the <strong>local market expert</strong>. Expect confident, data-informed content that gives buyers and sellers a genuine reason to trust your insight over anyone else's.</>
+                      )}
+                      {selectedDay.postType === "Active Listing" && (
+                        <>AI will write <strong>lifestyle-focused listing copy</strong> that creates desire and drives showing requests — not just a list of features, but a vision of what it feels like to live there.</>
                       )}
                       {selectedDay.postType === "Educational" && (
-                        <>Your post will share <strong>valuable tips or insights</strong> that teach your audience something new. The content will establish you as a <strong>helpful resource</strong> in your niche.</>
+                        <>AI will share <strong>genuinely useful tips</strong> that teach buyers or sellers something they didn't know. Builds trust by making you the resource they turn to before making any real estate decision.</>
                       )}
-                      {selectedDay.postType === "Authority" && (
-                        <>Your post will showcase your <strong>expertise and credibility</strong>. Expect content that positions you as a <strong>trusted leader</strong> in your industry.</>
+                      {selectedDay.postType === "Social Proof" && (
+                        <>AI will craft a <strong>credibility-building post</strong> around client results, wins, or testimonials. The goal is to let real outcomes speak — warm, genuine, and compelling.</>
                       )}
-                      {selectedDay.postType === "Problem → Solution" && (
-                        <>Your post will address a <strong>common pain point</strong> your audience faces and present your <strong>solution or approach</strong>. Great for showing how you can help.</>
-                      )}
-                      {selectedDay.postType === "Before & After" && (
-                        <>Your post will highlight a <strong>transformation or results</strong>. Perfect for showing the <strong>impact of your work</strong> or product in a visual, compelling way.</>
-                      )}
-                      {selectedDay.postType === "Basic Post" && (
-                        <>Your post will be a <strong>well-crafted, on-brand message</strong> that keeps your audience engaged. Simple, effective, and true to your voice.</>
+                      {selectedDay.postType === "Community" && (
+                        <>AI will write a <strong>personal, authentic post</strong> about the neighborhood, a local spot, or what makes this community special. Zero sales pitch — pure connection and local pride.</>
                       )}
                       {selectedDay.postType === "Seasonal" && (
-                        <>Your post will tap into the <strong>holiday excitement</strong> with festive, timely content. Perfect for connecting with your audience through <strong>shared celebrations</strong>.</>
+                        <>AI will tap into the <strong>holiday or seasonal moment</strong> with timely, festive content that connects your brand to what your audience is already thinking about.</>
+                      )}
+                      {!["Market Authority","Active Listing","Educational","Social Proof","Community","Seasonal"].includes(selectedDay.postType) && (
+                        <>AI will generate a <strong>well-crafted, on-brand post</strong> tailored to your profile. Add extra details below to make it more specific to your current goals.</>
                       )}
                     </p>
                   </div>
+
+                  {/* Post ideas for this day */}
+                  {selectedDay.pillarType && getTemplate().pillars[selectedDay.pillarType]?.postIdeas?.length > 0 && (
+                    <div style={{ marginBottom: 20 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 10 }}>
+                        Post ideas for today
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column" as const, gap: 7 }}>
+                        {getTemplate().pillars[selectedDay.pillarType].postIdeas.slice(0, 5).map((idea, i) => (
+                          <div
+                            key={i}
+                            style={{
+                              background: "rgba(44, 107, 237, 0.07)",
+                              border: "1px solid rgba(44, 107, 237, 0.18)",
+                              borderRadius: 8,
+                              padding: "9px 13px",
+                              fontSize: 13,
+                              lineHeight: 1.5,
+                              color: "rgba(230, 237, 247, 0.85)",
+                              cursor: "pointer",
+                            }}
+                            onClick={() => setExtraDetails(idea)}
+                            title="Click to use as extra details"
+                          >
+                            {idea}
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ fontSize: 11, opacity: 0.35, marginTop: 6, textAlign: "center" as const }}>
+                        Tap any idea to use it as your post angle
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Example caption hook preview */}
+                  {selectedDay.pillarType && (getTemplate().pillars[selectedDay.pillarType]?.captionHooks?.length ?? 0) > 0 && (
+                    <div style={{ marginBottom: 20 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 10 }}>
+                        Example caption opener
+                      </div>
+                      <div style={{
+                        background: "rgba(124, 58, 237, 0.09)",
+                        border: "1px solid rgba(124, 58, 237, 0.22)",
+                        borderRadius: 10,
+                        padding: "12px 14px",
+                        fontSize: 13,
+                        lineHeight: 1.6,
+                        fontStyle: "italic",
+                        color: "rgba(167, 139, 250, 0.9)",
+                      }}>
+                        "{getTemplate().pillars[selectedDay.pillarType!].captionHooks[0]}"
+                      </div>
+                      <div style={{ fontSize: 11, opacity: 0.35, marginTop: 6, textAlign: "center" as const }}>
+                        Your actual caption will be unique and tailored to your brand
+                      </div>
+                    </div>
+                  )}
 
                   {/* What you'll get */}
                   <div style={{ marginBottom: 20 }}>
@@ -1665,7 +1722,19 @@ export default function CalendarPage() {
                     <textarea
                       value={extraDetails}
                       onChange={(e) => setExtraDetails(e.target.value)}
-                      placeholder="Add any specific instructions for your post..."
+                      placeholder={
+                        selectedDay.postType === "Market Authority"
+                          ? "E.g. Interest rates just dropped 0.25% — share what that means for buyers..."
+                          : selectedDay.postType === "Active Listing"
+                          ? "E.g. 4 bed 3 bath in Riverside Heights, renovated kitchen, $649K, stunning backyard..."
+                          : selectedDay.postType === "Educational"
+                          ? "E.g. Explain the difference between pre-approval and pre-qualification..."
+                          : selectedDay.postType === "Social Proof"
+                          ? "E.g. Client quote, sold price, days on market, or any specific win to highlight..."
+                          : selectedDay.postType === "Community"
+                          ? "E.g. Name a local spot, neighborhood, event, or what makes your area special..."
+                          : "Add any specific details, angles, or instructions for your post..."
+                      }
                       style={{
                         width: "100%",
                         minHeight: 80,

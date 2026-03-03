@@ -72,89 +72,74 @@ const nicheSuggestions = [
 // Post types with icons and short descriptions
 const postTypes = [
   {
-    value: "Basic Post",
+    value: "Everyday Post",
     icon: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z",
-    desc: "Simple, general content",
+    desc: "Daily brand presence",
     tooltip:
-      "A straightforward post about your business. Good for everyday content.",
+      "Keeps your brand visible and relatable day-to-day. No specific hook needed — AI handles the rest.",
   },
   {
     value: "Promotion / Offer",
     icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
     desc: "Sales, discounts, deals",
     tooltip:
-      "Highlight a sale, discount, or special offer to drive conversions.",
+      "Announce a sale, discount, or special offer. AI creates promotional energy without needing real product photos.",
   },
   {
-    value: "Service or Product Highlight",
-    icon: "M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z",
-    desc: "Showcase what you offer",
-    tooltip: "Feature a specific product or service with details and benefits.",
-  },
-  {
-    value: "Educational / Tips",
+    value: "Educational Tip",
     icon: "M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z",
     desc: "Teach your audience",
-    tooltip: "Share knowledge, tips, or how-to content that provides value.",
+    tooltip:
+      "Share a tip, insight, or how-to that positions you as the go-to expert in your field.",
   },
   {
-    value: "Problem → Solution",
+    value: "Hot Take",
+    icon: "M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z",
+    desc: "Bold industry opinion",
+    tooltip:
+      "Drop a bold, counterintuitive take that stops the scroll. Builds thought leadership and sparks real conversation.",
+  },
+  {
+    value: "Myth Buster",
+    icon: "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636",
+    desc: "Debunk misconceptions",
+    tooltip:
+      "Call out a common myth in your industry and set the record straight. Great for building authority.",
+  },
+  {
+    value: "Problem / Solution",
     icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
     desc: "Pain point + fix",
     tooltip:
-      "Identify a common problem your audience faces, then present your solution.",
+      "Call out a real problem your audience faces and show how you solve it. Highly relatable and drives inquiries.",
   },
   {
-    value: "Before & After / Transformation",
-    icon: "M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4",
-    desc: "Show the change",
-    tooltip: "Showcase results and transformations to demonstrate your impact.",
-  },
-  {
-    value: "Testimonial / Social Proof",
-    icon: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
-    desc: "Customer reviews",
-    tooltip:
-      "Share customer feedback, reviews, or success stories to build trust.",
-  },
-  {
-    value: "Behind the Scenes",
-    icon: "M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z",
-    desc: "Show your process",
-    tooltip:
-      "Give a peek behind the curtain at how you work. Builds connection.",
-  },
-  {
-    value: "Announcement / Update",
+    value: "Announcement",
     icon: "M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z",
     desc: "News & updates",
-    tooltip: "Share news, updates, new launches, or important announcements.",
+    tooltip:
+      "Share a launch, event, change, or exciting update. AI generates a bold branded announcement visual.",
   },
   {
-    value: "Engagement / Conversation Starter",
+    value: "Engagement Question",
     icon: "M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z",
-    desc: "Start a conversation",
+    desc: "Get the comments going",
     tooltip:
-      "Ask questions or spark discussion to boost engagement and comments.",
+      "Post a question that gets your audience talking. Boosts reach by driving comments and saves.",
   },
   {
     value: "Seasonal / Timely",
     icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
     desc: "Holiday & events",
-    tooltip: "Tie your content to holidays, seasons, or current events.",
-  },
-  {
-    value: "Authority / Credibility",
-    icon: "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z",
-    desc: "Build trust",
     tooltip:
-      "Establish expertise with credentials, awards, or industry knowledge.",
+      "Tie your brand to a season, holiday, or timely moment. AI creates a themed visual without needing real photos.",
   },
   {
     value: "Custom (Advanced)",
     icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z",
     desc: "Full control",
-    tooltip: "Write your own detailed instructions for maximum customization.",
+    tooltip:
+      "Write your own detailed instructions for maximum customization. Best for experienced users with a specific vision.",
   },
 ];
 
@@ -188,72 +173,72 @@ function getSpecificRequestUI(postType: string) {
     case "Promotion / Offer":
       return {
         show: true,
-        label: "What is your promotion?",
-        placeholder: `e.g., "Buy 2 get 1 free" or "20% off this week"`,
-        helper: "Leave blank for a generic promotion.",
+        label: "What's the offer?",
+        placeholder: `e.g., "Buy 2 get 1 free" or "20% off this week only"`,
+        helper: "Leave blank for a generic promotion post.",
       };
-    case "Testimonial / Social Proof":
+    case "Educational Tip":
       return {
         show: true,
-        label: "Paste the testimonial",
-        placeholder: `e.g., "Best service we've ever had! - Sarah M."`,
-        helper: "Include real customer words for authenticity.",
+        label: "Share a tip or fact you know is true",
+        placeholder: `e.g., "Most people don't know that X actually causes Y"`,
+        helper: "Your real expertise makes the best content — or leave blank.",
       };
-    case "Announcement / Update":
+    case "Hot Take":
+      return {
+        show: true,
+        label: "What's your hot take?",
+        placeholder: `e.g., "Most [niche] advice is actually backwards"`,
+        helper: "Bold, opinionated, counterintuitive — this is your soapbox.",
+      };
+    case "Myth Buster":
+      return {
+        show: true,
+        label: "What myth are you busting?",
+        placeholder: `e.g., "Myth: You need X to get Y result"`,
+        helper: "State the myth — we'll flip it on its head.",
+      };
+    case "Problem / Solution":
+      return {
+        show: true,
+        label: "What real problem do you solve?",
+        placeholder: `e.g., "Clients come to us frustrated by X — we fix it with Y"`,
+        helper: "Your actual client pain points work best.",
+      };
+    case "Announcement":
       return {
         show: true,
         label: "What are you announcing?",
-        placeholder: `e.g., "New location opening Feb 10"`,
-        helper: "Details go in caption, image stays branded.",
+        placeholder: `e.g., "New location opening March 15" or "We just launched..."`,
+        helper: "Details go in the caption, image stays bold and branded.",
+      };
+    case "Engagement Question":
+      return {
+        show: true,
+        label: "What do you want to ask?",
+        placeholder: `e.g., "What's the biggest mistake you see in [niche]?"`,
+        helper: "Leave blank and we'll write one for you.",
       };
     case "Seasonal / Timely":
       return {
         show: true,
-        label: "What season/event?",
-        placeholder: `e.g., "Valentine's Day", "Spring cleaning"`,
-        helper: "We'll keep it timely.",
-      };
-    case "Educational / Tips":
-      return {
-        show: true,
-        label: "Share a fact or tip you know is true",
-        placeholder: `e.g., "We use a 100-year-old sourdough starter"`,
-        helper: "Your real expertise makes the best content!",
-      };
-    case "Problem → Solution":
-      return {
-        show: true,
-        label: "What real problem do you solve?",
-        placeholder: `e.g., "Clients struggle with X, we help by Y"`,
-        helper: "Your actual client pain points work best.",
-      };
-    case "Before & After / Transformation":
-      return {
-        show: true,
-        label: "Describe a real transformation",
-        placeholder: `e.g., "Client went from X to Y in 3 months"`,
-        helper: "Real results are more compelling!",
-      };
-    case "Authority / Credibility":
-      return {
-        show: true,
-        label: "What makes you the expert?",
-        placeholder: `e.g., "15 years experience", "Certified by XYZ"`,
-        helper: "Your real credentials build trust.",
+        label: "What season or event?",
+        placeholder: `e.g., "Valentine's Day", "Back to school", "Tax season"`,
+        helper: "We'll tie your brand to the moment.",
       };
     case "Custom (Advanced)":
       return {
         show: true,
         label: "Describe exactly what you want",
-        placeholder: `e.g., "Girl serving coffee, warm lighting, mention buy 2 get 1"`,
-        helper: "Full control over caption + image.",
+        placeholder: `e.g., "Show a woman getting a facial, warm lighting, mention our new membership deal"`,
+        helper: "Full control over caption + image direction.",
       };
     default:
       return {
         show: true,
         label: "Anything specific to include?",
-        placeholder: `e.g., "Mention our free consultation"`,
-        helper: "Your real details make better content.",
+        placeholder: `e.g., "Mention our free consultation" or "Focus on our weekend hours"`,
+        helper: "Optional — leave blank and we'll handle it.",
       };
   }
 }
@@ -325,7 +310,7 @@ export default function Page() {
   const [form, setForm] = useState<FormState>({
     niche: "",
     audience: "",
-    postType: "Basic Post",
+    postType: "Everyday Post",
     specificRequest: "",
     tone: "Confident",
     captionLength: "Medium",
@@ -362,6 +347,11 @@ export default function Page() {
   // Drag and drop
   const [isDragging, setIsDragging] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
+
+  // Specific request input ref + pulse animation
+  const specificRequestRef = useRef<HTMLInputElement>(null);
+  const specificRequestWrapRef = useRef<HTMLDivElement>(null);
+  const [inputPulse, setInputPulse] = useState(false);
 
   // Scroll to top on page load
   useEffect(() => {
@@ -542,6 +532,23 @@ export default function Page() {
 
   function updateForm<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function handlePostTypeSelect(value: string) {
+    updateForm("postType", value);
+    // Scroll to + focus the specific request input so users fill it out
+    setTimeout(() => {
+      const wrap = specificRequestWrapRef.current;
+      const input = specificRequestRef.current;
+      if (wrap) {
+        wrap.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      if (input) {
+        input.focus();
+        setInputPulse(true);
+        setTimeout(() => setInputPulse(false), 700);
+      }
+    }, 60);
   }
 
   // Handle file from input or drop
@@ -1459,7 +1466,7 @@ export default function Page() {
                           ? styles.postTypeCardSelected
                           : {}),
                       }}
-                      onClick={() => updateForm("postType", pt.value)}
+                      onClick={() => handlePostTypeSelect(pt.value)}
                       className="hover-card-item"
                     >
                       <svg
@@ -1484,7 +1491,7 @@ export default function Page() {
               </div>
 
               {specificUI.show && (
-                <div style={{ ...styles.field, marginTop: 16 }}>
+                <div ref={specificRequestWrapRef} style={{ ...styles.field, marginTop: 16 }}>
                   <div style={styles.label}>
                     {specificUI.label}
                     <span
@@ -1501,6 +1508,7 @@ export default function Page() {
                     </span>
                   </div>
                   <input
+                    ref={specificRequestRef}
                     style={styles.input}
                     value={form.specificRequest}
                     onChange={(e) =>
@@ -1510,7 +1518,7 @@ export default function Page() {
                       )
                     }
                     placeholder={specificUI.placeholder}
-                    className="hover-input"
+                    className={`hover-input${inputPulse ? " input-pulse" : ""}`}
                   />
                   <div style={{ marginTop: 6, fontSize: 11, opacity: 0.6 }}>
                     {specificUI.helper}
@@ -2244,6 +2252,17 @@ export default function Page() {
         .hover-btn-primary:hover { background: #3d7cf7 !important; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(44, 107, 237, 0.4); }
         .hover-input:focus { border-color: rgba(44, 107, 237, 0.5) !important; }
         .hover-suggestion:hover { background: rgba(44, 107, 237, 0.2) !important; }
+
+        /* Input pulse when post type is selected */
+        @keyframes inputPulse {
+          0%   { border-color: rgba(44, 107, 237, 0.3); box-shadow: none; }
+          40%  { border-color: rgba(44, 107, 237, 1);   box-shadow: 0 0 0 4px rgba(44, 107, 237, 0.25); }
+          100% { border-color: rgba(44, 107, 237, 0.5); box-shadow: 0 0 0 0px rgba(44, 107, 237, 0); }
+        }
+        .input-pulse {
+          animation: inputPulse 0.65s ease-out forwards !important;
+          border-color: rgba(44, 107, 237, 0.5) !important;
+        }
 
         /* Slide animations */
         .slide-card {

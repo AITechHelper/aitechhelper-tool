@@ -28,7 +28,7 @@ export default function Footer() {
         </a>
       </p>
       <p style={{ fontSize: 13, opacity: 0.5, marginBottom: 12 }}>
-        &copy; 2025 AI Tech Helper LLC. All rights reserved.
+        &copy; 2026 AI Tech Helper LLC. All rights reserved.
       </p>
       <div style={{ display: "flex", justifyContent: "center", gap: 16 }}>
         <a href="/privacy" style={{ fontSize: 11, opacity: 0.4, color: "#e6edf7", textDecoration: "none" }}>

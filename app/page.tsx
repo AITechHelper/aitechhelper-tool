@@ -10,7 +10,28 @@ export default function LandingPage() {
   const isSignedIn = isLoaded && !!user;
   const [menuOpen, setMenuOpen] = useState(false);
   const [billingLoading, setBillingLoading] = useState(false);
+  const [loadingBtn, setLoadingBtn] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const navigateTo = (route: string, btnId: string) => {
+    setLoadingBtn(btnId);
+    router.push(route);
+  };
+
+  const Spinner = () => (
+    <span
+      style={{
+        display: "inline-block",
+        width: 14,
+        height: 14,
+        border: "2px solid rgba(255,255,255,0.35)",
+        borderTopColor: "#fff",
+        borderRadius: "50%",
+        animation: "spin 0.7s linear infinite",
+        verticalAlign: "middle",
+      }}
+    />
+  );
 
   // Close menu on click outside or Escape
   useEffect(() => {
@@ -188,17 +209,8 @@ export default function LandingPage() {
       }}
     >
       {/* Navigation */}
-      <nav
-        className="landing-nav"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "20px 40px",
-          maxWidth: 1400,
-          margin: "0 auto",
-        }}
-      >
+      <nav className="landing-nav" style={{ padding: "20px 40px" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div
           style={{
             display: "flex",
@@ -213,7 +225,8 @@ export default function LandingPage() {
           {isSignedIn ? (
             <>
               <button
-                onClick={() => router.push("/dashboard")}
+                onClick={() => navigateTo("/dashboard", "nav-dashboard")}
+                disabled={loadingBtn === "nav-dashboard"}
                 style={{
                   background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
                   border: "none",
@@ -222,13 +235,17 @@ export default function LandingPage() {
                   color: "#fff",
                   fontSize: 14,
                   fontWeight: 700,
-                  cursor: "pointer",
+                  cursor: loadingBtn === "nav-dashboard" ? "not-allowed" : "pointer",
                   boxShadow: "0 4px 12px rgba(44, 107, 237, 0.3)",
                   transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  opacity: loadingBtn === "nav-dashboard" ? 0.8 : 1,
                 }}
                 className="nav-cta"
               >
-                Go to Dashboard
+                {loadingBtn === "nav-dashboard" ? <><Spinner /> Loading...</> : "Go to Dashboard"}
               </button>
               <div ref={menuRef} style={{ position: "relative" }}>
                 <div
@@ -350,7 +367,8 @@ export default function LandingPage() {
           ) : (
             <>
               <button
-                onClick={() => router.push("/sign-in")}
+                onClick={() => navigateTo("/sign-in", "nav-signin")}
+                disabled={loadingBtn === "nav-signin"}
                 style={{
                   background: "transparent",
                   border: "1px solid rgba(255,255,255,0.2)",
@@ -359,15 +377,20 @@ export default function LandingPage() {
                   color: "#8fa3bf",
                   fontSize: 14,
                   fontWeight: 700,
-                  cursor: "pointer",
+                  cursor: loadingBtn === "nav-signin" ? "not-allowed" : "pointer",
                   transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  opacity: loadingBtn === "nav-signin" ? 0.7 : 1,
                 }}
                 className="nav-signin"
               >
-                Sign In
+                {loadingBtn === "nav-signin" ? <><Spinner /> Loading...</> : "Sign In"}
               </button>
               <button
-                onClick={() => router.push("/dashboard")}
+                onClick={() => navigateTo("/dashboard", "nav-getstarted")}
+                disabled={loadingBtn === "nav-getstarted"}
                 style={{
                   background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
                   border: "none",
@@ -376,27 +399,27 @@ export default function LandingPage() {
                   color: "#fff",
                   fontSize: 14,
                   fontWeight: 700,
-                  cursor: "pointer",
+                  cursor: loadingBtn === "nav-getstarted" ? "not-allowed" : "pointer",
                   boxShadow: "0 4px 12px rgba(44, 107, 237, 0.3)",
                   transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  opacity: loadingBtn === "nav-getstarted" ? 0.8 : 1,
                 }}
                 className="nav-cta"
               >
-                Get Started
+                {loadingBtn === "nav-getstarted" ? <><Spinner /> Loading...</> : "Get Started"}
               </button>
             </>
           )}
         </div>
+        </div>
       </nav>
 
       {/* Hero Section */}
-      <section
-        style={{
-          maxWidth: 1400,
-          margin: "0 auto",
-          padding: "80px 40px 80px",
-        }}
-      >
+      <section style={{ padding: "80px 40px" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
         <div
           style={{
             display: "grid",
@@ -430,7 +453,7 @@ export default function LandingPage() {
                 }}
               />
               <span style={{ fontSize: 12, fontWeight: 600, color: "#22c55e" }}>
-                Built for Real Estate Agents
+                Built for Your Business
               </span>
             </div>
 
@@ -441,18 +464,31 @@ export default function LandingPage() {
                 lineHeight: 1.1,
                 marginBottom: 24,
                 paddingBottom: 8,
-                background:
-                  "linear-gradient(135deg, #ffffff 0%, #e6edf7 50%, #7eb3ff 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
               }}
             >
-              Social Media
-              <br />
-              Built for
-              <br />
-              Real Estate Agents
+              <span
+                style={{
+                  background: "linear-gradient(135deg, #ffffff 0%, #e6edf7 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                Social Media
+                <br />
+                Built for
+                <br />
+              </span>
+              <span
+                style={{
+                  background: "linear-gradient(135deg, #7eb3ff 0%, #2c6bed 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                Your Business
+              </span>
             </h1>
 
             <p
@@ -464,10 +500,10 @@ export default function LandingPage() {
                 maxWidth: 500,
               }}
             >
-              Real estate already demands everything you&apos;ve got. Stop
+              Your business already demands everything you&apos;ve got. Stop
               spending your evenings writing captions and wondering what to
-              post. Generate listing content, market updates, and client stories
-              in seconds — and reclaim your time.
+              post. Generate niche-specific content — captions, images, and
+              hashtags — in seconds and reclaim your time.
             </p>
 
             {/* Feature Pills */}
@@ -508,23 +544,29 @@ export default function LandingPage() {
             {/* CTA Button */}
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
               <button
-                onClick={() => router.push("/dashboard")}
+                onClick={() => navigateTo("/dashboard", "hero-cta")}
+                disabled={loadingBtn === "hero-cta"}
                 style={{
-                  background:
-                    "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
+                  background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
                   border: "none",
                   borderRadius: 14,
                   padding: "18px 36px",
                   color: "#fff",
                   fontSize: 16,
                   fontWeight: 700,
-                  cursor: "pointer",
+                  cursor: loadingBtn === "hero-cta" ? "not-allowed" : "pointer",
                   boxShadow: "0 8px 32px rgba(44, 107, 237, 0.4)",
                   transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  opacity: loadingBtn === "hero-cta" ? 0.85 : 1,
                 }}
                 className="hero-cta-primary"
               >
-                {isSignedIn ? "Go to Dashboard →" : "Start Creating Free →"}
+                {loadingBtn === "hero-cta"
+                  ? <><Spinner /> Loading...</>
+                  : (isSignedIn ? "Go to Dashboard →" : "Start Creating Free →")}
               </button>
             </div>
           </div>
@@ -834,6 +876,399 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+        </div>
+      </section>
+
+      {/* Posting Calendar Section */}
+      <section
+        style={{
+          padding: "80px 40px",
+          background:
+            "linear-gradient(180deg, transparent 0%, rgba(124, 58, 237, 0.06) 50%, transparent 100%)",
+        }}
+      >
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 64,
+              alignItems: "center",
+            }}
+            className="calendar-section-grid"
+          >
+            {/* Left: Text */}
+            <div>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "rgba(124, 58, 237, 0.15)",
+                  border: "1px solid rgba(124, 58, 237, 0.3)",
+                  borderRadius: 100,
+                  padding: "8px 16px",
+                  marginBottom: 24,
+                }}
+              >
+                <span style={{ fontSize: 14 }}>🗓️</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#a78bfa" }}>
+                  Niche-Tailored Planning
+                </span>
+              </div>
+
+              <h2
+                style={{
+                  fontSize: 40,
+                  fontWeight: 800,
+                  lineHeight: 1.2,
+                  marginBottom: 20,
+                  background:
+                    "linear-gradient(135deg, #ffffff 0%, #e6edf7 60%, #c4b5fd 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                A Posting Calendar Built Around Your Niche
+              </h2>
+
+              <p
+                style={{
+                  fontSize: 16,
+                  lineHeight: 1.75,
+                  opacity: 0.75,
+                  marginBottom: 32,
+                  maxWidth: 460,
+                }}
+              >
+                No more guessing what to post or when. AI Social Helper generates
+                a complete weekly content calendar tuned to your industry — the
+                right mix of post types to grow your audience and drive real
+                results.
+              </p>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {[
+                  {
+                    icon: "🏡",
+                    label: "Real Estate Agents",
+                    desc: "Listings, market updates, client stories",
+                  },
+                  {
+                    icon: "💼",
+                    label: "Financial Advisors",
+                    desc: "Tips, market insights, client wins",
+                  },
+                  {
+                    icon: "🍽️",
+                    label: "Restaurants & Cafes",
+                    desc: "Daily specials, behind-the-scenes, events",
+                  },
+                  {
+                    icon: "💪",
+                    label: "Fitness & Wellness",
+                    desc: "Workouts, nutrition tips, transformations",
+                  },
+                ].map((niche, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 14,
+                      padding: "12px 16px",
+                      background: "rgba(255,255,255,0.03)",
+                      border: "1px solid rgba(255,255,255,0.07)",
+                      borderRadius: 12,
+                    }}
+                  >
+                    <span style={{ fontSize: 22 }}>{niche.icon}</span>
+                    <div>
+                      <div
+                        style={{ fontSize: 13, fontWeight: 700, marginBottom: 2 }}
+                      >
+                        {niche.label}
+                      </div>
+                      <div style={{ fontSize: 12, opacity: 0.5 }}>
+                        {niche.desc}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right: Calendar Visual */}
+            <div style={{ position: "relative" }}>
+              {/* Glow */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: "110%",
+                  height: "110%",
+                  background:
+                    "radial-gradient(circle, rgba(124, 58, 237, 0.18) 0%, transparent 65%)",
+                  pointerEvents: "none",
+                }}
+              />
+
+              {/* Calendar Card */}
+              <div
+                style={{
+                  background: "#0b1220",
+                  borderRadius: 24,
+                  padding: 28,
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  boxShadow:
+                    "0 30px 80px rgba(0,0,0,0.5), 0 0 60px rgba(124, 58, 237, 0.12)",
+                  position: "relative",
+                }}
+              >
+                {/* Header */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 22,
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{ fontSize: 15, fontWeight: 700, marginBottom: 3 }}
+                    >
+                      March 2026
+                    </div>
+                    <div style={{ fontSize: 11, opacity: 0.4, fontWeight: 500 }}>
+                      Weekly Content Plan
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      background: "rgba(124, 58, 237, 0.2)",
+                      border: "1px solid rgba(124, 58, 237, 0.4)",
+                      borderRadius: 100,
+                      padding: "5px 12px",
+                      fontSize: 9,
+                      fontWeight: 700,
+                      color: "#c4b5fd",
+                      letterSpacing: "0.06em",
+                    }}
+                  >
+                    REALTOR EXAMPLE
+                  </div>
+                </div>
+
+                {/* Day headers */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(5, 1fr)",
+                    gap: 8,
+                    marginBottom: 6,
+                  }}
+                >
+                  {["MON", "TUE", "WED", "THU", "FRI"].map((day) => (
+                    <div
+                      key={day}
+                      style={{
+                        textAlign: "center",
+                        fontSize: 9,
+                        fontWeight: 700,
+                        opacity: 0.4,
+                        letterSpacing: "0.08em",
+                        paddingBottom: 4,
+                      }}
+                    >
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Date row */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(5, 1fr)",
+                    gap: 8,
+                    marginBottom: 10,
+                  }}
+                >
+                  {[3, 4, 5, 6, 7].map((date) => (
+                    <div
+                      key={date}
+                      style={{
+                        textAlign: "center",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: date === 3 ? "#7eb3ff" : "#e6edf7",
+                        opacity: date === 3 ? 1 : 0.55,
+                      }}
+                    >
+                      {date}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Post cards — week 1 */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(5, 1fr)",
+                    gap: 8,
+                  }}
+                >
+                  {[
+                    {
+                      icon: "📊",
+                      type: "Market Update",
+                      snippet: "Home prices up 3.2% this month",
+                      color: "#2c6bed",
+                      bg: "rgba(44,107,237,0.13)",
+                    },
+                    {
+                      icon: "🏡",
+                      type: "New Listing",
+                      snippet: "4 bed · 3 bath · Chef's kitchen",
+                      color: "#22c55e",
+                      bg: "rgba(34,197,94,0.13)",
+                    },
+                    {
+                      icon: "💡",
+                      type: "Buyer Tip",
+                      snippet: "5 things to check at every showing",
+                      color: "#f59e0b",
+                      bg: "rgba(245,158,11,0.13)",
+                    },
+                    {
+                      icon: "⭐",
+                      type: "Client Story",
+                      snippet: "The Johnsons found their dream home",
+                      color: "#ec4899",
+                      bg: "rgba(236,72,153,0.13)",
+                    },
+                    {
+                      icon: "🚪",
+                      type: "Open House",
+                      snippet: "Sunday 1–4pm · Don't miss this",
+                      color: "#06b6d4",
+                      bg: "rgba(6,182,212,0.13)",
+                    },
+                  ].map((post, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        background: post.bg,
+                        border: `1px solid ${post.color}40`,
+                        borderRadius: 12,
+                        padding: "10px 6px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 5,
+                      }}
+                    >
+                      <div style={{ fontSize: 18, textAlign: "center" }}>
+                        {post.icon}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 8,
+                          fontWeight: 800,
+                          textAlign: "center",
+                          color: post.color,
+                          letterSpacing: "0.04em",
+                          lineHeight: 1.3,
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        {post.type}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 8,
+                          opacity: 0.5,
+                          textAlign: "center",
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {post.snippet}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Week 2 — faded preview */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(5, 1fr)",
+                    gap: 8,
+                    marginTop: 8,
+                    opacity: 0.28,
+                  }}
+                >
+                  {[
+                    { color: "#2c6bed", bg: "rgba(44,107,237,0.1)" },
+                    { color: "#22c55e", bg: "rgba(34,197,94,0.1)" },
+                    { color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
+                    { color: "#ec4899", bg: "rgba(236,72,153,0.1)" },
+                    { color: "#06b6d4", bg: "rgba(6,182,212,0.1)" },
+                  ].map((post, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        background: post.bg,
+                        border: `1px solid ${post.color}25`,
+                        borderRadius: 12,
+                        height: 52,
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {/* Footer */}
+                <div
+                  style={{
+                    marginTop: 20,
+                    paddingTop: 16,
+                    borderTop: "1px solid rgba(255,255,255,0.07)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div style={{ fontSize: 11, opacity: 0.4 }}>
+                    Auto-generated for your niche
+                  </div>
+                  <div style={{ display: "flex", gap: 5 }}>
+                    {[
+                      "#2c6bed",
+                      "#22c55e",
+                      "#f59e0b",
+                      "#ec4899",
+                      "#06b6d4",
+                    ].map((c, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: "50%",
+                          background: c,
+                          opacity: 0.7,
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Features Section */}
@@ -844,36 +1279,186 @@ export default function LandingPage() {
           padding: "80px 40px",
         }}
       >
-        <div
-          style={{
-            maxWidth: 1200,
-            margin: "0 auto",
-          }}
-        >
-          <div style={{ textAlign: "center", marginBottom: 60 }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+
+          {/* Section Header */}
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
             <h2
               style={{
                 fontSize: 36,
                 fontWeight: 800,
                 marginBottom: 16,
+                background: "linear-gradient(135deg, #ffffff 0%, #e6edf7 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
               }}
             >
-              Everything Real Estate Agents Need to Win Online
+              Everything Your Business Needs to Win Online
             </h2>
             <p
               style={{
                 fontSize: 16,
                 opacity: 0.7,
-                maxWidth: 600,
+                maxWidth: 580,
                 margin: "0 auto",
+                lineHeight: 1.7,
               }}
             >
-              Stop losing evenings to content creation. Get a full week of posts
-              done in minutes — so you can focus on clients, closings, and
-              growing your business.
+              Stop losing evenings to content creation. Get a full week of
+              posts done in minutes — so you can focus on what actually grows
+              your business.
             </p>
           </div>
 
+          {/* Contractor Image Banner */}
+          <div
+            style={{
+              position: "relative",
+              borderRadius: 24,
+              overflow: "hidden",
+              marginBottom: 56,
+              height: 420,
+              border: "1px solid rgba(255,255,255,0.08)",
+              boxShadow: "0 24px 64px rgba(0,0,0,0.5)",
+            }}
+          >
+            <img
+              src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1280&h=420&fit=crop&q=80"
+              alt="Contractor using AI Social Helper"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                objectPosition: "center 30%",
+              }}
+            />
+            {/* Dark gradient overlay */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(90deg, rgba(6,10,20,0.85) 0%, rgba(6,10,20,0.4) 55%, rgba(6,10,20,0.15) 100%)",
+              }}
+            />
+            {/* Left text content */}
+            <div
+              style={{
+                position: "absolute",
+                left: 48,
+                top: "50%",
+                transform: "translateY(-50%)",
+                maxWidth: 480,
+              }}
+            >
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "rgba(44, 107, 237, 0.25)",
+                  border: "1px solid rgba(44, 107, 237, 0.5)",
+                  borderRadius: 100,
+                  padding: "6px 14px",
+                  marginBottom: 20,
+                }}
+              >
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#7eb3ff", letterSpacing: "0.06em" }}>
+                  BUILT FOR BUSY PEOPLE
+                </span>
+              </div>
+              <p
+                style={{
+                  fontSize: 24,
+                  fontWeight: 700,
+                  lineHeight: 1.45,
+                  color: "#ffffff",
+                  marginBottom: 20,
+                }}
+              >
+                You didn&apos;t start your business to spend your nights
+                writing captions. AI Social Helper gives you a full week
+                of content in minutes — so you can get back to the work
+                that actually pays.
+              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg, #2c6bed, #7c3aed)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 20,
+                    flexShrink: 0,
+                  }}
+                >
+                  ✦
+                </div>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>
+                    AI Social Helper
+                  </div>
+                  <div style={{ fontSize: 12, opacity: 0.6, color: "#e6edf7" }}>
+                    Social media that works as hard as you do
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right floating stat cards */}
+            <div
+              style={{
+                position: "absolute",
+                right: 48,
+                top: "50%",
+                transform: "translateY(-50%)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+              }}
+              className="banner-stats"
+            >
+              {[
+                { value: "5×", label: "More posts per week" },
+                { value: "10 min", label: "Full week of content" },
+                { value: "100%", label: "Niche-specific copy" },
+              ].map((stat, i) => (
+                <div
+                  key={i}
+                  style={{
+                    background: "rgba(11,18,32,0.85)",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    borderRadius: 14,
+                    padding: "14px 20px",
+                    backdropFilter: "blur(10px)",
+                    minWidth: 160,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 26,
+                      fontWeight: 800,
+                      background: "linear-gradient(135deg, #7eb3ff 0%, #2c6bed 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                      lineHeight: 1.1,
+                      marginBottom: 4,
+                    }}
+                  >
+                    {stat.value}
+                  </div>
+                  <div style={{ fontSize: 12, opacity: 0.6 }}>{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Feature Cards Grid */}
           <div
             style={{
               display: "grid",
@@ -884,39 +1469,39 @@ export default function LandingPage() {
           >
             {[
               {
-                icon: "🏡",
-                title: "Listing Posts in Seconds",
-                desc: "Turn any property into a compelling social post — caption, hashtags, and image style ready to publish.",
+                icon: "⚡",
+                title: "Content Ready in Seconds",
+                desc: "Turn any job, product, or update into a compelling social post — caption, hashtags, and image style ready to publish.",
                 color: "#2c6bed",
               },
               {
                 icon: "📊",
-                title: "Market Authority Content",
-                desc: "Position yourself as the local expert with market updates and buyer tips that build trust — no research hours required.",
+                title: "Industry Authority Content",
+                desc: "Position yourself as the go-to expert in your field with educational posts that build trust — no copywriter needed.",
                 color: "#7c3aed",
               },
               {
                 icon: "🗓️",
-                title: "Weekly Content Calendar",
-                desc: "A structured 5-day posting plan built for realtors. Monday market update, Tuesday listing, Wednesday tip — done for you.",
+                title: "Smart Content Calendar",
+                desc: "A structured 5-day posting plan built for your niche. The right content type every day — done for you.",
                 color: "#ec4899",
               },
               {
                 icon: "🎨",
                 title: "Brand Profiles",
-                desc: "Your colors, tone, and style saved once. Every post looks like you — no designer needed.",
+                desc: "Your colors, tone, and style saved once. Every post looks like you — consistent and professional.",
                 color: "#22c55e",
               },
               {
                 icon: "✍️",
                 title: "Captions & Hashtags",
-                desc: "Real estate-specific copy and hashtags generated instantly. No more staring at a blank screen at 10pm.",
+                desc: "Industry-specific copy and optimized hashtags generated instantly. No more blank screen at the end of a long day.",
                 color: "#f59e0b",
               },
               {
-                icon: "⚡",
+                icon: "🕐",
                 title: "Reclaim Your Evenings",
-                desc: "Top agents post 5x a week without spending hours on content. Set up once, generate in seconds, go close deals.",
+                desc: "Top businesses post 5× a week without spending hours on content. Set up once, generate in seconds, get back to work.",
                 color: "#06b6d4",
               },
             ].map((feature, i) => (
@@ -1028,7 +1613,8 @@ export default function LandingPage() {
           >
             {isSignedIn ? (
               <button
-                onClick={() => router.push("/dashboard")}
+                onClick={() => navigateTo("/dashboard", "final-dashboard")}
+                disabled={loadingBtn === "final-dashboard"}
                 style={{
                   background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
                   border: "none",
@@ -1037,18 +1623,23 @@ export default function LandingPage() {
                   color: "#fff",
                   fontSize: 18,
                   fontWeight: 700,
-                  cursor: "pointer",
+                  cursor: loadingBtn === "final-dashboard" ? "not-allowed" : "pointer",
                   boxShadow: "0 8px 32px rgba(44, 107, 237, 0.5)",
                   transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  opacity: loadingBtn === "final-dashboard" ? 0.85 : 1,
                 }}
                 className="final-cta"
               >
-                Go to Dashboard →
+                {loadingBtn === "final-dashboard" ? <><Spinner /> Loading...</> : "Go to Dashboard →"}
               </button>
             ) : (
               <>
                 <button
-                  onClick={() => router.push("/sign-in")}
+                  onClick={() => navigateTo("/sign-in", "final-signin")}
+                  disabled={loadingBtn === "final-signin"}
                   style={{
                     background: "transparent",
                     border: "2px solid rgba(255,255,255,0.3)",
@@ -1057,15 +1648,20 @@ export default function LandingPage() {
                     color: "#8fa3bf",
                     fontSize: 18,
                     fontWeight: 700,
-                    cursor: "pointer",
+                    cursor: loadingBtn === "final-signin" ? "not-allowed" : "pointer",
                     transition: "all 0.2s ease",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    opacity: loadingBtn === "final-signin" ? 0.7 : 1,
                   }}
                   className="final-signin"
                 >
-                  Sign In
+                  {loadingBtn === "final-signin" ? <><Spinner /> Loading...</> : "Sign In"}
                 </button>
                 <button
-                  onClick={() => router.push("/dashboard")}
+                  onClick={() => navigateTo("/dashboard", "final-getstarted")}
+                  disabled={loadingBtn === "final-getstarted"}
                   style={{
                     background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
                     border: "none",
@@ -1074,13 +1670,17 @@ export default function LandingPage() {
                     color: "#fff",
                     fontSize: 18,
                     fontWeight: 700,
-                    cursor: "pointer",
+                    cursor: loadingBtn === "final-getstarted" ? "not-allowed" : "pointer",
                     boxShadow: "0 8px 32px rgba(44, 107, 237, 0.5)",
                     transition: "all 0.2s ease",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    opacity: loadingBtn === "final-getstarted" ? 0.85 : 1,
                   }}
                   className="final-cta"
                 >
-                  Get Started Free →
+                  {loadingBtn === "final-getstarted" ? <><Spinner /> Loading...</> : "Get Started Free →"}
                 </button>
               </>
             )}
@@ -1144,6 +1744,17 @@ export default function LandingPage() {
             grid-template-columns: 1fr !important;
             gap: 48px !important;
             text-align: center;
+          }
+          .calendar-section-grid {
+            grid-template-columns: 1fr !important;
+            gap: 48px !important;
+          }
+          .calendar-section-grid > div:first-child {
+            text-align: center;
+          }
+          .calendar-section-grid > div:first-child p {
+            margin-left: auto;
+            margin-right: auto;
           }
           .hero-grid > div:first-child {
             order: 1;
