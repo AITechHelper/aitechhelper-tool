@@ -725,6 +725,26 @@ export default function DashboardPage() {
             paddingTop: 60,
           }}
         >
+          {/* Realtor badge */}
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+            <span style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              background: "rgba(44, 107, 237, 0.12)",
+              border: "1px solid rgba(44, 107, 237, 0.3)",
+              borderRadius: 999,
+              padding: "4px 14px",
+              fontSize: 11,
+              fontWeight: 700,
+              color: "#7eb3ff",
+              letterSpacing: 1.2,
+              textTransform: "uppercase" as const,
+            }}>
+              🏡 Built for Real Estate Agents
+            </span>
+          </div>
+
           <h1
             style={{
               fontSize: 36,
@@ -740,6 +760,10 @@ export default function DashboardPage() {
           >
             AI Social Helper
           </h1>
+
+          <p style={{ margin: "8px 0 0 0", fontSize: 14, opacity: 0.55, fontWeight: 500 }}>
+            AI-generated listing posts, market updates &amp; content — in seconds.
+          </p>
 
           {/* User Identity Pill or Sign In Button - Top Right */}
           {user ? (
