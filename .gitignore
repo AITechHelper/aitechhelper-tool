@@ -42,3 +42,11 @@ next-env.d.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# Capacitor native build artifacts
+/ios/App/Pods/
+/ios/App/App.xcworkspace/xcuserdata/
+/ios/App/build/
+/android/.gradle/
+/android/app/build/
+/android/build/
