@@ -930,18 +930,21 @@ export default function DashboardPage() {
           )}
         </div>
 
+        {/* Side-by-side: Agent Profile + Social Connections */}
+        <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }} className="dash-side-by-side">
+
         {/* Brand Profiles section - always show */}
-        <div style={styles.heroSection} className="primary-section">
+        <div style={{ ...styles.heroSection, flex: 1, marginBottom: 0 }} className="primary-section">
           <div style={styles.sectionHeader}>
             <div>
               <h2 style={styles.sectionTitle}>
-                Your Brand Profiles
+                Your Agent Profile
                 <span style={styles.stepPill}>Step 1</span>
               </h2>
               <p style={styles.instructionText}>
                 {profiles.length === 0
-                  ? "Start here — create a profile so every post matches your brand."
-                  : "Manage your brand profiles and switch between them."}
+                  ? "Set up your agent profile so every post sounds like you."
+                  : "Manage your agent profiles — switch between markets or listings."}
               </p>
             </div>
           </div>
@@ -963,7 +966,7 @@ export default function DashboardPage() {
                     textAlign: "center" as const,
                   }}
                 >
-                  Create your first brand profile to get started:
+                  Set up your realtor profile in 30 seconds:
                 </div>
 
                 {/* What you'll save - 3-column pill grid */}
@@ -1031,7 +1034,7 @@ export default function DashboardPage() {
                         flexShrink: 0,
                       }}
                     />
-                    Audience + niche
+                    Market + buyers
                   </div>
                   <div
                     style={{
@@ -1073,7 +1076,7 @@ export default function DashboardPage() {
                     textAlign: "center" as const,
                   }}
                 >
-                  Takes 30 seconds. Saves time on every post.
+                  One setup. Every listing post sounds like you.
                 </div>
 
                 {/* Enhanced CTA */}
@@ -1090,7 +1093,7 @@ export default function DashboardPage() {
                   onClick={() => setShowNewProfile(true)}
                   className="hover-btn-primary enhanced-cta"
                 >
-                  Create Your First Profile
+                  Create Your Agent Profile
                 </button>
               </div>
             </div>
@@ -1251,12 +1254,15 @@ export default function DashboardPage() {
                 <div
                   style={{ fontSize: 14, fontWeight: 600, color: "#7eb3ff" }}
                 >
-                  Add New Profile
+                  Add Agent Profile
                 </div>
               </div>
             </div>
           )}
         </div>
+
+        {/* Right column: Social Connections */}
+        <div style={{ display: "flex", flexDirection: "column" as const, gap: 12, flex: "0 0 300px", minWidth: 260 }} className="dash-social-col">
 
         {/* Instagram Connection */}
         <div
@@ -1265,7 +1271,7 @@ export default function DashboardPage() {
             border: "1px solid rgba(253,29,29,0.2)",
             borderRadius: 16,
             padding: "20px 24px",
-            marginTop: 24,
+            marginTop: 0,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -1297,7 +1303,7 @@ export default function DashboardPage() {
               <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
                 {instagram.connected
                   ? "Post directly to Instagram from your generated posts"
-                  : "Link your Instagram Business account to post directly"}
+                  : "Share listings & market updates directly to Instagram"}
               </div>
             </div>
           </div>
@@ -1352,7 +1358,7 @@ export default function DashboardPage() {
             border: "1px solid rgba(24,119,242,0.2)",
             borderRadius: 16,
             padding: "20px 24px",
-            marginTop: 12,
+            marginTop: 0,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -1375,7 +1381,7 @@ export default function DashboardPage() {
               <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
                 {facebook.connected
                   ? "Post directly to your Facebook Page from generated posts"
-                  : "Link your Facebook Page to post directly"}
+                  : "Share listings & open houses directly to Facebook"}
               </div>
             </div>
           </div>
@@ -1422,6 +1428,9 @@ export default function DashboardPage() {
             </button>
           )}
         </div>
+
+        </div>{/* end dash-social-col */}
+        </div>{/* end dash-side-by-side */}
 
         {/* Main Actions - Enhanced Cards */}
         <div style={styles.section}>
@@ -2696,6 +2705,8 @@ export default function DashboardPage() {
           box-shadow: 0 12px 28px rgba(44,107,237,0.45), 0 4px 12px rgba(44,107,237,0.3) !important;
         }
         .primary-section { margin-bottom: 100px; }
+        .dash-side-by-side { margin-bottom: 24px; }
+        .dash-social-col { align-self: stretch; justify-content: flex-start; }
 
         @media (max-width: 768px) {
           .ath-page { padding: 10px !important; }
@@ -2715,6 +2726,8 @@ export default function DashboardPage() {
           .profile-bar-left { flex-wrap: wrap !important; gap: 10px !important; }
           .profile-bar-right { width: 100% !important; justify-content: flex-end !important; }
           .user-identity-pill { right: 16px !important; top: 16px !important; }
+          .dash-side-by-side { flex-direction: column !important; }
+          .dash-social-col { flex: 1 0 auto !important; width: 100% !important; }
         }
         @media (max-width: 700px) {
           .profile-form-grid { grid-template-columns: 1fr !important; }
