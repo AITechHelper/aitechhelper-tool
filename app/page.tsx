@@ -221,7 +221,7 @@ export default function LandingPage() {
           <img src="/logo-icon.png" alt="AI Social Helper" style={{ width: 48, height: 48, objectFit: "contain" }} />
           <span className="nav-brand-text" style={{ fontSize: 18, fontWeight: 800 }}>AI Social Helper</span>
         </div>
-        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+        <div className="nav-right" style={{ display: "flex", gap: 12, alignItems: "center" }}>
           {isSignedIn ? (
             <>
               <button
@@ -247,7 +247,7 @@ export default function LandingPage() {
               >
                 {loadingBtn === "nav-dashboard" ? <><Spinner /> Loading...</> : "Go to Dashboard"}
               </button>
-              <div ref={menuRef} style={{ position: "relative" }}>
+              <div ref={menuRef} className="nav-email-pill" style={{ position: "relative" }}>
                 <div
                   onClick={() => setMenuOpen(!menuOpen)}
                   style={{
@@ -1315,6 +1315,7 @@ export default function LandingPage() {
 
           {/* Contractor Image Banner */}
           <div
+            className="image-banner-wrapper"
             style={{
               position: "relative",
               borderRadius: 24,
@@ -1346,6 +1347,7 @@ export default function LandingPage() {
             />
             {/* Left text content */}
             <div
+              className="banner-text-left"
               style={{
                 position: "absolute",
                 left: 48,
