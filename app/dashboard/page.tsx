@@ -719,6 +719,7 @@ export default function DashboardPage() {
       <div style={{ ...styles.container, position: "relative" }}>
         {/* Header - Enhanced */}
         <div
+          className="dash-page-header"
           style={{
             marginBottom: 32,
             textAlign: "center" as const,
@@ -2774,6 +2775,8 @@ export default function DashboardPage() {
         /* Token pill: stack below email pill on narrow screens */
         @media (max-width: 540px) {
           .ath-token-pill { top: 52px !important; right: 16px !important; }
+          /* Push page header below both fixed pills (email ~top:16+32px, token ~top:52+32px) */
+          .dash-page-header { padding-top: 100px !important; }
         }
         /* Sub-480px: tighten modal padding, ensure single-column layouts */
         @media (max-width: 420px) {
