@@ -1482,7 +1482,7 @@ export default function DashboardPage() {
                   textAlign: "center" as const,
                 }}
               >
-                <img src="/logo-icon.png" alt="AI Social Helper" style={{ width: 64, height: 64, marginBottom: 8, objectFit: "contain" }} />
+                <img src="/logo-icon.png" alt="AI Social Helper" style={{ width: 64, height: 64, marginBottom: 8, objectFit: "contain", display: "block", margin: "0 auto 8px" }} />
                 <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
                   Generate a Post
                 </div>
