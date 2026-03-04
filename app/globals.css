@@ -49,9 +49,11 @@ html, body {
   .calendar-text-col p { margin-left: auto !important; margin-right: auto !important; }
   /* Hide floating stat cards — they overlap image text at single-column width */
   .banner-stats { display: none !important; }
-  /* Shrink banner height and pull text inward */
-  .image-banner-wrapper { height: 280px !important; }
-  .banner-text-left { left: 20px !important; right: 20px !important; max-width: 100% !important; }
+  /* Banner: taller on mobile, text pinned to top-left, font reduced */
+  .image-banner-wrapper { height: 340px !important; }
+  .banner-text-left { left: 20px !important; right: 20px !important; max-width: 100% !important; top: 24px !important; transform: none !important; }
+  .banner-quote-text { font-size: 15px !important; line-height: 1.4 !important; margin-bottom: 10px !important; }
+  .banner-author-row { display: none !important; }
 }
 
 @media (max-width: 480px) {

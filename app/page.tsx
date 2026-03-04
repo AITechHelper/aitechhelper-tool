@@ -1373,6 +1373,7 @@ export default function LandingPage() {
                 </span>
               </div>
               <p
+                className="banner-quote-text"
                 style={{
                   fontSize: 24,
                   fontWeight: 700,
@@ -1386,7 +1387,7 @@ export default function LandingPage() {
                 of content in minutes — so you can get back to the work
                 that actually pays.
               </p>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div className="banner-author-row" style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div
                   style={{
                     width: 44,
