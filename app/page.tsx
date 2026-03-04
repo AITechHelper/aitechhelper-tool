@@ -430,7 +430,7 @@ export default function LandingPage() {
           className="hero-grid"
         >
           {/* Left Side - Hero Text */}
-          <div>
+          <div className="hero-left">
             <div
               style={{
                 display: "inline-flex",
@@ -508,6 +508,7 @@ export default function LandingPage() {
 
             {/* Feature Pills */}
             <div
+              className="hero-feature-pills"
               style={{
                 display: "flex",
                 flexWrap: "wrap",
@@ -542,7 +543,7 @@ export default function LandingPage() {
             </div>
 
             {/* CTA Button */}
-            <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            <div className="hero-cta-row" style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
               <button
                 onClick={() => navigateTo("/dashboard", "hero-cta")}
                 disabled={loadingBtn === "hero-cta"}

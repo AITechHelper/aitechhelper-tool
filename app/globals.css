@@ -39,6 +39,10 @@ html, body {
   .features-grid { grid-template-columns: repeat(2, 1fr) !important; }
   .hero-cta-primary { padding: 14px 28px !important; font-size: 15px !important; }
   .final-cta, .final-signin { padding: 14px 28px !important; font-size: 16px !important; }
+  /* Center hero left column content on single-column layout */
+  .hero-left { display: flex !important; flex-direction: column !important; align-items: center !important; text-align: center !important; }
+  .hero-feature-pills { justify-content: center !important; }
+  .hero-cta-row { justify-content: center !important; }
 }
 
 @media (max-width: 480px) {
