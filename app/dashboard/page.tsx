@@ -770,6 +770,7 @@ export default function DashboardPage() {
             <>
               {/* Token Balance Pill */}
               <div
+                className="ath-token-pill"
                 style={{
                   position: "fixed",
                   top: 16,
@@ -2769,6 +2770,15 @@ export default function DashboardPage() {
         @media (max-width: 480px) {
           .ath-recentPostsGrid { grid-template-columns: 1fr !important; }
           .how-it-works-grid { grid-template-columns: 1fr !important; }
+        }
+        /* Token pill: stack below email pill on narrow screens */
+        @media (max-width: 540px) {
+          .ath-token-pill { top: 52px !important; right: 16px !important; }
+        }
+        /* Sub-480px: tighten modal padding, ensure single-column layouts */
+        @media (max-width: 420px) {
+          .ath-page { padding: 8px !important; }
+          .post-modal-two-col { gap: 12px !important; }
         }
       `}</style>
       </div>

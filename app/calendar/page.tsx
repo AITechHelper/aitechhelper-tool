@@ -1342,6 +1342,7 @@ export default function CalendarPage() {
           <>
             {/* Drawer Header */}
             <div
+              className="calendar-drawer-header"
               style={{
                 padding: "24px 24px 20px",
                 background: selectedDay.isHoliday
@@ -1825,7 +1826,8 @@ export default function CalendarPage() {
           .ath-page { padding: 10px !important; }
           .desktop-calendar { display: none !important; }
           .mobile-calendar { display: block !important; }
-          .calendar-drawer { width: 100vw !important; }
+          .calendar-drawer { width: 100vw !important; padding-bottom: env(safe-area-inset-bottom, 0px); }
+          .calendar-drawer-header { padding: 16px 16px 14px !important; }
 
           .mobile-list-item:hover {
             transform: translateY(-1px);
@@ -1867,6 +1869,12 @@ export default function CalendarPage() {
           .ath-card { padding: 12px !important; border-radius: 12px !important; }
           .ath-page-title { font-size: 24px !important; }
           .ath-page-subtitle { font-size: 13px !important; }
+        }
+
+        /* Extra narrow: tighten drawer further */
+        @media (max-width: 420px) {
+          .calendar-drawer-header { padding: 12px 12px 10px !important; }
+          .ath-page { padding: 8px !important; }
         }
 
         /* Very small phone */

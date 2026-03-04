@@ -418,7 +418,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section style={{ padding: "80px 40px" }}>
+      <section className="hero-section" style={{ padding: "80px 40px" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
         <div
           style={{
@@ -1545,12 +1545,14 @@ export default function LandingPage() {
 
       {/* CTA Section */}
       <section
+        className="cta-section"
         style={{
           padding: "80px 40px",
           textAlign: "center",
         }}
       >
         <div
+          className="cta-box"
           style={{
             maxWidth: 800,
             margin: "0 auto",

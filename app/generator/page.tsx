@@ -279,6 +279,7 @@ function Tooltip({
             fontSize: 12,
             lineHeight: 1.4,
             width: 200,
+            maxWidth: "90vw",
             zIndex: 1000,
             boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
           }}
@@ -2180,6 +2181,7 @@ export default function Page() {
           onClick={() => setShowInstructions(false)}
         >
           <div
+            className="ath-gen-modal"
             style={styles.instructionsModal}
             onClick={(e) => e.stopPropagation()}
           >
@@ -2309,6 +2311,11 @@ export default function Page() {
         @media (max-width: 480px) {
           .ath-postTypeGrid { grid-template-columns: repeat(2, 1fr) !important; }
           .ath-styleCardGrid { grid-template-columns: 1fr !important; }
+        }
+        /* Narrow phone: tighten modal padding */
+        @media (max-width: 420px) {
+          .ath-gen-modal { padding: 16px !important; max-height: 85vh !important; }
+          .ath-page { padding: 8px !important; }
         }
       `}</style>
 
