@@ -224,29 +224,6 @@ export default function LandingPage() {
         <div className="nav-right" style={{ display: "flex", gap: 12, alignItems: "center" }}>
           {isSignedIn ? (
             <>
-              <button
-                onClick={() => navigateTo("/dashboard", "nav-dashboard")}
-                disabled={loadingBtn === "nav-dashboard"}
-                style={{
-                  background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
-                  border: "none",
-                  borderRadius: 10,
-                  padding: "12px 24px",
-                  color: "#fff",
-                  fontSize: 14,
-                  fontWeight: 700,
-                  cursor: loadingBtn === "nav-dashboard" ? "not-allowed" : "pointer",
-                  boxShadow: "0 4px 12px rgba(44, 107, 237, 0.3)",
-                  transition: "all 0.2s ease",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  opacity: loadingBtn === "nav-dashboard" ? 0.8 : 1,
-                }}
-                className="nav-cta"
-              >
-                {loadingBtn === "nav-dashboard" ? <><Spinner /> Loading...</> : "Go to Dashboard"}
-              </button>
               <div ref={menuRef} className="nav-email-pill" style={{ position: "relative" }}>
                 <div
                   onClick={() => setMenuOpen(!menuOpen)}
@@ -296,7 +273,7 @@ export default function LandingPage() {
                     style={{
                       position: "absolute",
                       top: 48,
-                      right: 0,
+                      left: 0,
                       background: "rgba(10, 18, 32, 0.98)",
                       border: "1px solid rgba(255,255,255,0.10)",
                       borderRadius: 14,
@@ -363,6 +340,29 @@ export default function LandingPage() {
                   </div>
                 )}
               </div>
+              <button
+                onClick={() => navigateTo("/dashboard", "nav-dashboard")}
+                disabled={loadingBtn === "nav-dashboard"}
+                style={{
+                  background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "12px 24px",
+                  color: "#fff",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: loadingBtn === "nav-dashboard" ? "not-allowed" : "pointer",
+                  boxShadow: "0 4px 12px rgba(44, 107, 237, 0.3)",
+                  transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  opacity: loadingBtn === "nav-dashboard" ? 0.8 : 1,
+                }}
+                className="nav-cta"
+              >
+                {loadingBtn === "nav-dashboard" ? <><Spinner /> Loading...</> : "Go to Dashboard"}
+              </button>
             </>
           ) : (
             <>
