@@ -19,7 +19,7 @@ export default function Footer() {
         }}
       >
         <img src="/logo-icon.png" alt="AI Social Helper" style={{ width: 40, height: 40, objectFit: "contain" }} />
-        <span style={{ fontSize: 16, fontWeight: 700 }}>AI Social Helper</span>
+        <span style={{ fontSize: 16, fontWeight: 700, color: "#e6edf7" }}>AI Social Helper</span>
       </div>
       <p style={{ fontSize: 13, opacity: 0.75, marginBottom: 4, color: "#e6edf7" }}>
         AISocialHelper is a product of{" "}
