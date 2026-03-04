@@ -775,7 +775,7 @@ export default function DashboardPage() {
                 style={{
                   position: "fixed",
                   top: 16,
-                  right: 240, // Position to the left of user email pill
+                  left: 16,
                   zIndex: 999,
                 }}
               >
@@ -2772,11 +2772,11 @@ export default function DashboardPage() {
           .ath-recentPostsGrid { grid-template-columns: 1fr !important; }
           .how-it-works-grid { grid-template-columns: 1fr !important; }
         }
-        /* Token pill: stack below email pill on narrow screens */
+        /* Token pill stays top-left on narrow screens (no longer needs to stack) */
         @media (max-width: 540px) {
-          .ath-token-pill { top: 52px !important; right: 16px !important; }
-          /* Push page header below both fixed pills (email ~top:16+32px, token ~top:52+32px) */
-          .dash-page-header { padding-top: 100px !important; }
+          .ath-token-pill { top: 16px !important; left: 16px !important; right: auto !important; }
+          /* Push page header below email pill on right + token pill on left */
+          .dash-page-header { padding-top: 80px !important; }
         }
         /* Sub-480px: tighten modal padding, ensure single-column layouts */
         @media (max-width: 420px) {
