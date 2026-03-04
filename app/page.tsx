@@ -882,6 +882,7 @@ export default function LandingPage() {
 
       {/* Posting Calendar Section */}
       <section
+        className="calendar-niche-section"
         style={{
           padding: "80px 40px",
           background:
@@ -899,7 +900,7 @@ export default function LandingPage() {
             className="calendar-section-grid"
           >
             {/* Left: Text */}
-            <div>
+            <div className="calendar-text-col">
               <div
                 style={{
                   display: "inline-flex",
