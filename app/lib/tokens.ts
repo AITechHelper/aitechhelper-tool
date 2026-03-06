@@ -7,7 +7,7 @@ function sql(strings: TemplateStringsArray, ...values: any[]): Promise<any[]> {
 }
 
 const PLAN_ALLOWANCES: Record<string, number> = {
-  free: 3,
+  free: 2,
   basic: 30,
   pro: 60,
   premium: 120,
