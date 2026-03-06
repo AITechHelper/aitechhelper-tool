@@ -32,6 +32,10 @@ export async function GET() {
       entitlement = await getUserEntitlement(userId);
     }
 
+    if (!entitlement) {
+      return NextResponse.json({ status: "error", message: "Failed to create entitlement" }, { status: 500 });
+    }
+
     return NextResponse.json({
       status: "active",
       plan: entitlement.plan,
