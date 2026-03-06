@@ -61,6 +61,9 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
 
       if (response.ok) {
         const data = await response.json();
+        if (data.status === "new") {
+          return NextResponse.redirect(new URL("/subscribe", req.url));
+        }
         if (data.status !== "active") {
           return NextResponse.redirect(new URL("/subscribe", req.url));
         }

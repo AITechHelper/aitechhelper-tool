@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-type PlanId = "basic" | "pro" | "premium";
+type PlanId = "free" | "basic" | "pro" | "premium";
 
 const PLANS: Array<{
   id: PlanId;
@@ -14,6 +14,21 @@ const PLANS: Array<{
   highlighted: boolean;
   badge: string | null;
 }> = [
+  {
+    id: "free",
+    name: "Free",
+    price: 0,
+    tokens: 2,
+    features: [
+      "2 AI-generated posts",
+      "All post types",
+      "Brand profile support",
+      "AI image generation",
+      "Smart captions & hashtags",
+    ],
+    highlighted: false,
+    badge: "Start Here",
+  },
   {
     id: "basic",
     name: "Basic",
@@ -84,6 +99,16 @@ function SubscribeContent() {
   const handleSubscribe = async (plan: PlanId) => {
     setLoadingPlan(plan);
     try {
+      if (plan === "free") {
+        const res = await fetch("/api/select-free-plan", { method: "POST" });
+        if (res.ok) {
+          router.push("/dashboard");
+        } else {
+          alert("Failed to activate free plan. Please try again.");
+          setLoadingPlan(null);
+        }
+        return;
+      }
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -328,8 +353,9 @@ function SubscribeContent() {
         </div>
       )}
 
+      {/* Paid plan cards */}
       <div style={styles.cardsRow} className="tier-cards-row">
-        {PLANS.map((plan) => {
+        {PLANS.filter((p) => p.id !== "free").map((plan) => {
           const isHighlighted = plan.highlighted;
           const isLoading = loadingPlan === plan.id;
           const isDisabled = loadingPlan !== null;
@@ -370,14 +396,7 @@ function SubscribeContent() {
                         ? "rgba(44, 107, 237, 0.2)"
                         : "rgba(34, 197, 94, 0.15)",
                     }}>
-                      <svg
-                        width="10"
-                        height="10"
-                        fill="none"
-                        stroke={isHighlighted ? "#7eb3ff" : "#22c55e"}
-                        strokeWidth="3"
-                        viewBox="0 0 24 24"
-                      >
+                      <svg width="10" height="10" fill="none" stroke={isHighlighted ? "#7eb3ff" : "#22c55e"} strokeWidth="3" viewBox="0 0 24 24">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                     </div>
@@ -403,9 +422,54 @@ function SubscribeContent() {
         })}
       </div>
 
+      {/* Free plan — small option at the bottom */}
+      <div style={{
+        marginTop: 40,
+        padding: "20px 32px",
+        background: "rgba(255,255,255,0.03)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: 16,
+        display: "flex",
+        alignItems: "center",
+        gap: 24,
+        flexWrap: "wrap" as const,
+        justifyContent: "center",
+        maxWidth: 560,
+        width: "100%",
+      }}>
+        <div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#e6edf7", marginBottom: 4 }}>
+            Not ready to commit? Start free.
+          </div>
+          <div style={{ fontSize: 13, color: "#5a6a80" }}>
+            2 tokens to try it out — no credit card needed.
+          </div>
+        </div>
+        <button
+          style={{
+            padding: "10px 24px",
+            borderRadius: 10,
+            fontSize: 14,
+            fontWeight: 700,
+            cursor: loadingPlan ? "not-allowed" : "pointer",
+            fontFamily: "Verdana, Geneva, sans-serif",
+            background: "rgba(22,163,74,0.12)",
+            border: "1px solid rgba(22,163,74,0.35)",
+            color: "#4ade80",
+            opacity: loadingPlan ? 0.6 : 1,
+            transition: "all 0.2s ease",
+            whiteSpace: "nowrap" as const,
+          }}
+          onClick={() => handleSubscribe("free")}
+          disabled={loadingPlan !== null}
+        >
+          {loadingPlan === "free" ? "Activating..." : "Start Free →"}
+        </button>
+      </div>
+
       <div style={styles.footer}>
         <p style={styles.footerText}>
-          All plans are billed monthly. Cancel anytime from your dashboard.
+          Paid plans are billed monthly. Cancel anytime from your dashboard.
           <br />
           Secure payment powered by Stripe.
         </p>

@@ -12,14 +12,9 @@ export async function GET() {
 
     let entitlement = await getUserEntitlement(userId);
 
-    // Auto-create a free trial account for brand new users with no record
+    // Brand new user — send them to onboarding to pick a plan
     if (!entitlement) {
-      await upsertUserEntitlement({
-        clerkUserId: userId,
-        subscriptionStatus: "active",
-        plan: "free",
-      });
-      entitlement = await getUserEntitlement(userId);
+      return NextResponse.json({ status: "new" });
     }
 
     // If subscription is inactive/cancelled, downgrade to free instead of blocking
