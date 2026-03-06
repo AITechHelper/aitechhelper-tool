@@ -12,7 +12,7 @@ export async function GET() {
 
     let entitlement = await getUserEntitlement(userId);
 
-    // Auto-create a free trial account for brand new users
+    // Auto-create a free trial account for brand new users with no record
     if (!entitlement) {
       await upsertUserEntitlement({
         clerkUserId: userId,
@@ -22,8 +22,14 @@ export async function GET() {
       entitlement = await getUserEntitlement(userId);
     }
 
+    // If subscription is inactive/cancelled, downgrade to free instead of blocking
     if (!entitlement || entitlement.subscriptionStatus !== "active") {
-      return NextResponse.json({ status: "inactive" });
+      await upsertUserEntitlement({
+        clerkUserId: userId,
+        subscriptionStatus: "active",
+        plan: "free",
+      });
+      entitlement = await getUserEntitlement(userId);
     }
 
     return NextResponse.json({
