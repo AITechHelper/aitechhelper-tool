@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
         },
       ],
       allow_promotion_codes: true,
-      success_url: `${appUrl}/dashboard?sub=success`,
+      success_url: `${appUrl}/subscribe?sub=success`,
       cancel_url: `${appUrl}/subscribe?canceled=1`,
       metadata: {
         clerkUserId: userId,

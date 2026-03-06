@@ -1,7 +1,7 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 type PlanId = "basic" | "pro" | "premium";
 
@@ -67,7 +67,19 @@ const PLANS: Array<{
 function SubscribeContent() {
   const searchParams = useSearchParams();
   const canceled = searchParams.get("canceled");
+  const subSuccess = searchParams.get("sub") === "success";
   const [loadingPlan, setLoadingPlan] = useState<PlanId | null>(null);
+  const router = useRouter();
+
+  // After successful checkout, give Clerk time to re-establish session then redirect to dashboard
+  useEffect(() => {
+    if (subSuccess) {
+      const timer = setTimeout(() => {
+        router.push("/dashboard");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [subSuccess, router]);
 
   const handleSubscribe = async (plan: PlanId) => {
     setLoadingPlan(plan);
@@ -265,6 +277,40 @@ function SubscribeContent() {
       lineHeight: 1.6,
     },
   };
+
+  // Show success screen while Clerk re-establishes session
+  if (subSuccess) {
+    return (
+      <div style={{
+        minHeight: "100vh",
+        background: "linear-gradient(180deg, #0b1220 0%, #0d1829 50%, #111827 100%)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "#e6edf7",
+        fontFamily: "Verdana, Geneva, sans-serif",
+        gap: 24,
+        padding: 20,
+        textAlign: "center",
+      }}>
+        <div style={{ fontSize: 64 }}>🎉</div>
+        <h1 style={{ fontSize: 32, fontWeight: 800, margin: 0 }}>You&apos;re subscribed!</h1>
+        <p style={{ fontSize: 16, color: "#8fa3bf", margin: 0 }}>
+          Taking you to your dashboard...
+        </p>
+        <div style={{
+          width: 40,
+          height: 40,
+          border: "3px solid rgba(44,107,237,0.3)",
+          borderTop: "3px solid #2c6bed",
+          borderRadius: "50%",
+          animation: "spin 0.8s linear infinite",
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.page}>
