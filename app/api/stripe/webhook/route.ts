@@ -4,6 +4,7 @@ import {
   upsertUserEntitlement,
   updateSubscriptionStatus,
   getEntitlementByStripeCustomerId,
+  deleteUserEntitlementByStripeCustomerId,
 } from "@/app/lib/db";
 import type { Plan } from "@/app/lib/db";
 
@@ -108,6 +109,13 @@ export async function POST(req: NextRequest) {
         await updateSubscriptionStatus(subscription.id, "inactive");
 
         console.log(`Subscription ${subscription.id} deleted/canceled`);
+        break;
+      }
+
+      case "customer.deleted": {
+        const customer = event.data.object as Stripe.Customer;
+        await deleteUserEntitlementByStripeCustomerId(customer.id);
+        console.log(`Customer ${customer.id} deleted — entitlement removed from database`);
         break;
       }
 

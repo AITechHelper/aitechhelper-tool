@@ -99,6 +99,15 @@ export async function updateSubscriptionStatus(
   `;
 }
 
+export async function deleteUserEntitlementByStripeCustomerId(
+  stripeCustomerId: string
+): Promise<void> {
+  await sql`
+    DELETE FROM user_entitlements
+    WHERE stripe_customer_id = ${stripeCustomerId}
+  `;
+}
+
 export async function getEntitlementByStripeCustomerId(
   stripeCustomerId: string
 ): Promise<UserEntitlement | null> {
