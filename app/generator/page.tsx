@@ -309,7 +309,7 @@ export default function Page() {
   const { addToast } = useToast();
   const [showOutOfTokens, setShowOutOfTokens] = useState(false);
   const [form, setForm] = useState<FormState>({
-    niche: "",
+    niche: "Real Estate Agent",
     audience: "",
     postType: "Everyday Post",
     specificRequest: "",

@@ -453,7 +453,7 @@ export default function LandingPage() {
                 }}
               />
               <span style={{ fontSize: 12, fontWeight: 600, color: "#22c55e" }}>
-                Built for Your Business
+                Built for Real Estate Agents
               </span>
             </div>
 
@@ -487,7 +487,7 @@ export default function LandingPage() {
                   backgroundClip: "text",
                 }}
               >
-                Your Business
+                Real Estate Agents
               </span>
             </h1>
 
@@ -500,10 +500,10 @@ export default function LandingPage() {
                 maxWidth: 500,
               }}
             >
-              Your business already demands everything you&apos;ve got. Stop
+              Real estate already demands everything you&apos;ve got. Stop
               spending your evenings writing captions and wondering what to
-              post. Generate niche-specific content — captions, images, and
-              hashtags — in seconds and reclaim your time.
+              post. Generate realtor-specific content — listings, market
+              updates, client stories — in seconds and reclaim your time.
             </p>
 
             {/* Feature Pills */}
@@ -915,7 +915,7 @@ export default function LandingPage() {
               >
                 <span style={{ fontSize: 14 }}>🗓️</span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: "#a78bfa" }}>
-                  Niche-Tailored Planning
+                  Built for Real Estate Agents
                 </span>
               </div>
 
@@ -932,7 +932,7 @@ export default function LandingPage() {
                   backgroundClip: "text",
                 }}
               >
-                A Posting Calendar Built Around Your Niche
+                A 5-Pillar Weekly Plan Built for Realtors
               </h2>
 
               <p
@@ -944,33 +944,33 @@ export default function LandingPage() {
                   maxWidth: 460,
                 }}
               >
-                No more guessing what to post or when. AI Social Helper generates
-                a complete weekly content calendar tuned to your industry — the
-                right mix of post types to grow your audience and drive real
-                results.
+                No more guessing what to post. AI Social Helper generates a
+                complete 5-day content plan built around how top agents grow on
+                social — market authority, listings, education, social proof,
+                and community.
               </p>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {[
                   {
+                    icon: "📊",
+                    label: "Monday — Market Authority",
+                    desc: "Interest rates, inventory trends, buyer & seller insights",
+                  },
+                  {
                     icon: "🏡",
-                    label: "Real Estate Agents",
-                    desc: "Listings, market updates, client stories",
+                    label: "Tuesday — Active Listings",
+                    desc: "Showcase properties and drive showing requests",
                   },
                   {
-                    icon: "💼",
-                    label: "Financial Advisors",
-                    desc: "Tips, market insights, client wins",
+                    icon: "💡",
+                    label: "Wednesday — Education",
+                    desc: "Buyer tips, seller strategies, mortgage FAQs",
                   },
                   {
-                    icon: "🍽️",
-                    label: "Restaurants & Cafes",
-                    desc: "Daily specials, behind-the-scenes, events",
-                  },
-                  {
-                    icon: "💪",
-                    label: "Fitness & Wellness",
-                    desc: "Workouts, nutrition tips, transformations",
+                    icon: "⭐",
+                    label: "Thursday — Social Proof",
+                    desc: "Client wins, closed escrows, testimonials",
                   },
                 ].map((niche, i) => (
                   <div
@@ -1244,7 +1244,7 @@ export default function LandingPage() {
                   }}
                 >
                   <div style={{ fontSize: 11, opacity: 0.4 }}>
-                    Auto-generated for your niche
+                    Auto-generated for realtors
                   </div>
                   <div style={{ display: "flex", gap: 5 }}>
                     {[
@@ -1296,7 +1296,7 @@ export default function LandingPage() {
                 backgroundClip: "text",
               }}
             >
-              Everything Your Business Needs to Win Online
+              Everything Realtors Need to Win on Social
             </h2>
             <p
               style={{
@@ -1308,8 +1308,8 @@ export default function LandingPage() {
               }}
             >
               Stop losing evenings to content creation. Get a full week of
-              posts done in minutes — so you can focus on what actually grows
-              your business.
+              realtor posts done in minutes — so you can focus on what
+              actually closes deals.
             </p>
           </div>
 
@@ -1369,7 +1369,7 @@ export default function LandingPage() {
                 }}
               >
                 <span style={{ fontSize: 10, fontWeight: 700, color: "#7eb3ff", letterSpacing: "0.06em" }}>
-                  BUILT FOR BUSY PEOPLE
+                  BUILT FOR REALTORS
                 </span>
               </div>
               <p
@@ -1382,10 +1382,10 @@ export default function LandingPage() {
                   marginBottom: 20,
                 }}
               >
-                You didn&apos;t start your business to spend your nights
+                You didn&apos;t become a realtor to spend your nights
                 writing captions. AI Social Helper gives you a full week
-                of content in minutes — so you can get back to the work
-                that actually pays.
+                of realtor content in minutes — so you can get back to
+                closing deals.
               </p>
               <div className="banner-author-row" style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div
@@ -1408,7 +1408,7 @@ export default function LandingPage() {
                     AI Social Helper
                   </div>
                   <div style={{ fontSize: 12, opacity: 0.6, color: "#e6edf7" }}>
-                    Social media that works as hard as you do
+                    Social media built for real estate agents
                   </div>
                 </div>
               </div>
@@ -1430,7 +1430,7 @@ export default function LandingPage() {
               {[
                 { value: "5×", label: "More posts per week" },
                 { value: "10 min", label: "Full week of content" },
-                { value: "100%", label: "Niche-specific copy" },
+                { value: "100%", label: "Realtor-specific copy" },
               ].map((stat, i) => (
                 <div
                   key={i}
@@ -1476,19 +1476,19 @@ export default function LandingPage() {
               {
                 icon: "⚡",
                 title: "Content Ready in Seconds",
-                desc: "Turn any job, product, or update into a compelling social post — caption, hashtags, and image style ready to publish.",
+                desc: "Turn any listing, market update, or client win into a compelling social post — caption, hashtags, and image ready to publish.",
                 color: "#2c6bed",
               },
               {
                 icon: "📊",
-                title: "Industry Authority Content",
-                desc: "Position yourself as the go-to expert in your field with educational posts that build trust — no copywriter needed.",
+                title: "Market Authority Content",
+                desc: "Position yourself as the go-to agent in your market with educational posts that build trust and attract buyers and sellers.",
                 color: "#7c3aed",
               },
               {
                 icon: "🗓️",
                 title: "Smart Content Calendar",
-                desc: "A structured 5-day posting plan built for your niche. The right content type every day — done for you.",
+                desc: "A structured 5-day posting plan built for realtors. Market updates, listings, tips, stories, and community — done for you.",
                 color: "#ec4899",
               },
               {
@@ -1500,13 +1500,13 @@ export default function LandingPage() {
               {
                 icon: "✍️",
                 title: "Captions & Hashtags",
-                desc: "Industry-specific copy and optimized hashtags generated instantly. No more blank screen at the end of a long day.",
+                desc: "Realtor-specific copy and optimized hashtags generated instantly. No more blank screen at the end of a long day of showings.",
                 color: "#f59e0b",
               },
               {
                 icon: "🕐",
                 title: "Reclaim Your Evenings",
-                desc: "Top businesses post 5× a week without spending hours on content. Set up once, generate in seconds, get back to work.",
+                desc: "Top agents post 5× a week without spending hours on content. Set up once, generate in seconds, get back to selling.",
                 color: "#06b6d4",
               },
             ].map((feature, i) => (
