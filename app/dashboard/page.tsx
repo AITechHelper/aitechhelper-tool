@@ -763,7 +763,7 @@ export default function DashboardPage() {
           </h1>
 
           <p style={{ margin: "8px 0 0 0", fontSize: 14, opacity: 0.55, fontWeight: 500 }}>
-            AI-generated listing posts, market updates &amp; content — in seconds.
+            AI-generated Content for Realtors — in seconds.
           </p>
 
           {/* User Identity Pill or Sign In Button - Top Right */}
@@ -817,12 +817,12 @@ export default function DashboardPage() {
                     background: "rgba(44, 107, 237, 0.1)",
                     border: "1px solid rgba(44, 107, 237, 0.2)",
                     borderRadius: 20,
-                    padding: "6px 14px",
+                    padding: "6px 20px",
                     fontSize: 12,
                     color: "#7eb3ff",
                     fontWeight: 600,
                     fontFamily: "Verdana, Geneva, sans-serif",
-                    maxWidth: 220,
+                    maxWidth: 300,
                     cursor: "pointer",
                     transition: "opacity 0.2s ease",
                     display: "flex",
