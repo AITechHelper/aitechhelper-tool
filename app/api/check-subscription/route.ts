@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { getUserEntitlement } from "@/app/lib/db";
+import { getUserEntitlement, upsertUserEntitlement } from "@/app/lib/db";
 
 export async function GET() {
   try {
@@ -10,7 +10,17 @@ export async function GET() {
       return NextResponse.json({ status: "unauthenticated" }, { status: 401 });
     }
 
-    const entitlement = await getUserEntitlement(userId);
+    let entitlement = await getUserEntitlement(userId);
+
+    // Auto-create a free trial account for brand new users
+    if (!entitlement) {
+      await upsertUserEntitlement({
+        clerkUserId: userId,
+        subscriptionStatus: "active",
+        plan: "free",
+      });
+      entitlement = await getUserEntitlement(userId);
+    }
 
     if (!entitlement || entitlement.subscriptionStatus !== "active") {
       return NextResponse.json({ status: "inactive" });

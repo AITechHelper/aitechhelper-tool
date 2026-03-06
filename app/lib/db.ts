@@ -7,7 +7,14 @@ function sql(strings: TemplateStringsArray, ...values: any[]): Promise<any[]> {
 }
 
 export type SubscriptionStatus = "active" | "inactive" | "past_due";
-export type Plan = "basic" | "pro" | "premium";
+export type Plan = "free" | "basic" | "pro" | "premium";
+
+export const PLAN_TOKENS: Record<Plan, number> = {
+  free: 2,
+  basic: 30,
+  pro: 60,
+  premium: 120,
+};
 
 export interface UserEntitlement {
   clerkUserId: string;
