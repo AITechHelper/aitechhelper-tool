@@ -742,7 +742,7 @@ export default function DashboardPage() {
               letterSpacing: 1.2,
               textTransform: "uppercase" as const,
             }}>
-              🏡 Built for Real Estate Agents
+              ✦ Built for Your Niche
             </span>
           </div>
 
@@ -763,7 +763,7 @@ export default function DashboardPage() {
           </h1>
 
           <p style={{ margin: "8px 0 0 0", fontSize: 14, opacity: 0.55, fontWeight: 500 }}>
-            AI-generated Content for Realtors — in seconds.
+            AI-generated content for your business — in seconds.
           </p>
 
           {/* User Identity Pill or Sign In Button - Top Right */}
@@ -1842,7 +1842,7 @@ export default function DashboardPage() {
                   Choose Post Type
                 </div>
                 <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>
-                  Listing, market update, educational tip, social proof, or community
+                  Promotional post, update, educational tip, social proof, or community
                 </div>
               </div>
 
