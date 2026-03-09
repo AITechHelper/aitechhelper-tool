@@ -1726,6 +1726,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        <div style={{ ...styles.section, marginTop: 28 }}>
           {/* Recent Posts & Gallery Section */}
           <div
             style={{
