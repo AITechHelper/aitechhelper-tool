@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 
 // Public routes that don't require auth
 const isPublicRoute = createRouteMatcher([
-  "/",
+  "/get-started(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/subscribe",
@@ -35,6 +35,32 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
 
   const { userId } = await auth();
   const { pathname } = req.nextUrl;
+
+  // Handle root route: unauthenticated → /get-started, authenticated → serve dashboard at /
+  if (pathname === "/") {
+    if (!userId) {
+      return NextResponse.redirect(new URL("/get-started", req.url));
+    }
+    // Check subscription before serving dashboard
+    const checkUrl = new URL("/api/check-subscription", req.url);
+    try {
+      const response = await fetch(checkUrl, {
+        headers: { cookie: req.headers.get("cookie") || "" },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.status === "new" || data.status !== "active") {
+          return NextResponse.redirect(new URL("/subscribe", req.url));
+        }
+      } else {
+        return NextResponse.redirect(new URL("/subscribe", req.url));
+      }
+    } catch {
+      // On error let through — dashboard will handle it
+    }
+    // Rewrite internally to /dashboard — URL stays as aisocialhelper.com
+    return NextResponse.rewrite(new URL("/dashboard", req.url));
+  }
 
   // Allow public routes
   if (isPublicRoute(req)) {
