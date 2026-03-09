@@ -20,8 +20,8 @@ const PLANS: Array<{
     price: 0,
     tokens: 2,
     features: [
-      "2 AI-generated realtor posts",
-      "All realtor post types (listings, tips, market updates)",
+      "2 AI-generated posts",
+      "All post types for your niche",
       "Brand profile support",
       "AI image generation",
       "Smart captions & hashtags",
@@ -35,7 +35,7 @@ const PLANS: Array<{
     price: 9,
     tokens: 30,
     features: [
-      "30 realtor posts per month",
+      "30 AI-generated posts per month",
       "Full 5-pillar weekly plan covered",
       "Brand profile support",
       "AI image generation",
@@ -50,7 +50,7 @@ const PLANS: Array<{
     price: 19,
     tokens: 60,
     features: [
-      "60 realtor posts per month",
+      "60 AI-generated posts per month",
       "Full 5-pillar weekly plan covered",
       "Brand profile support",
       "AI image generation",
@@ -66,7 +66,7 @@ const PLANS: Array<{
     price: 39,
     tokens: 120,
     features: [
-      "120 realtor posts per month",
+      "120 AI-generated posts per month",
       "Full 5-pillar weekly plan covered",
       "Brand profile support",
       "AI image generation",
@@ -342,9 +342,8 @@ function SubscribeContent() {
       <div style={styles.header}>
         <h1 style={styles.title}>Choose Your Plan</h1>
         <p style={styles.subtitle}>
-          Scale your real estate social media with AI-powered content built for
-          agents. Listings, market updates, client stories, and more — ready in
-          seconds.
+          AI-powered content tailored to your niche — captions, hashtags, images,
+          and a full content calendar — ready in seconds.
         </p>
       </div>
 

@@ -964,13 +964,13 @@ export default function DashboardPage() {
           <div style={styles.sectionHeader}>
             <div>
               <h2 style={styles.sectionTitle}>
-                Your Agent Profile
+                Your Brand Profile
                 <span style={styles.stepPill}>Step 1</span>
               </h2>
               <p style={styles.instructionText}>
                 {profiles.length === 0
-                  ? "Set up your agent profile so every post sounds like you."
-                  : "Manage your agent profiles — switch between markets or listings."}
+                  ? "Set up your brand profile so every post sounds like you."
+                  : "Manage your brand profiles — switch between businesses or audiences."}
               </p>
             </div>
           </div>
@@ -992,7 +992,7 @@ export default function DashboardPage() {
                     textAlign: "center" as const,
                   }}
                 >
-                  Set up your realtor profile in 30 seconds:
+                  Set up your brand profile in 30 seconds:
                 </div>
 
                 {/* What you'll save - 3-column pill grid */}
@@ -1060,7 +1060,7 @@ export default function DashboardPage() {
                         flexShrink: 0,
                       }}
                     />
-                    Market + buyers
+                    Niche + audience
                   </div>
                   <div
                     style={{
@@ -1102,7 +1102,7 @@ export default function DashboardPage() {
                     textAlign: "center" as const,
                   }}
                 >
-                  One setup. Every listing post sounds like you.
+                  One setup. Every post sounds like you.
                 </div>
 
                 {/* Enhanced CTA */}
@@ -1119,7 +1119,7 @@ export default function DashboardPage() {
                   onClick={() => setShowNewProfile(true)}
                   className="hover-btn-primary enhanced-cta"
                 >
-                  Create Your Agent Profile
+                  Create Your Brand Profile
                 </button>
               </div>
             </div>
@@ -1280,7 +1280,7 @@ export default function DashboardPage() {
                 <div
                   style={{ fontSize: 14, fontWeight: 600, color: "#7eb3ff" }}
                 >
-                  Add Agent Profile
+                  Add Brand Profile
                 </div>
               </div>
             </div>
@@ -1329,7 +1329,7 @@ export default function DashboardPage() {
               <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
                 {instagram.connected
                   ? "Post directly to Instagram from your generated posts"
-                  : "Share listings & market updates directly to Instagram"}
+                  : "Share your posts and updates directly to Instagram"}
               </div>
             </div>
           </div>
@@ -1407,7 +1407,7 @@ export default function DashboardPage() {
               <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
                 {facebook.connected
                   ? "Post directly to your Facebook Page from generated posts"
-                  : "Share listings & open houses directly to Facebook"}
+                  : "Share your posts and updates directly to Facebook"}
               </div>
             </div>
           </div>
@@ -1524,9 +1524,9 @@ export default function DashboardPage() {
                   <div
                     style={{ display: "flex", alignItems: "center", gap: 10 }}
                   >
-                    <span style={{ fontSize: 16 }}>🏡</span>
+                    <span style={{ fontSize: 16 }}>✨</span>
                     <span style={{ fontSize: 13, opacity: 0.9 }}>
-                      Listing post, market update, or client story
+                      Promotional post, update, or client story
                     </span>
                   </div>
                   <div
@@ -1542,7 +1542,7 @@ export default function DashboardPage() {
                   >
                     <span style={{ fontSize: 16 }}>#️⃣</span>
                     <span style={{ fontSize: 13, opacity: 0.9 }}>
-                      Real estate hashtags, ready to copy
+                      Niche-specific hashtags, ready to copy
                     </span>
                   </div>
                 </div>
@@ -1568,8 +1568,8 @@ export default function DashboardPage() {
                     marginBottom: 20,
                   }}
                 >
-                  A new listing just hit, you need a quick market post, or a
-                  client just gave you a great review.
+                  You have something to share, need a quick post, or a client
+                  just gave you a great review.
                 </div>
 
                 {/* CTA Button */}
@@ -1655,7 +1655,7 @@ export default function DashboardPage() {
                   >
                     <span style={{ fontSize: 16 }}>🗓️</span>
                     <span style={{ fontSize: 13, opacity: 0.9 }}>
-                      5-pillar weekly plan built for realtors
+                      Structured weekly content plan for your niche
                     </span>
                   </div>
                   <div
@@ -1663,7 +1663,7 @@ export default function DashboardPage() {
                   >
                     <span style={{ fontSize: 16 }}>📊</span>
                     <span style={{ fontSize: 13, opacity: 0.9 }}>
-                      Mon: Market · Tue: Listing · Wed: Tip...
+                      Mon: Authority · Tue: Showcase · Wed: Tip...
                     </span>
                   </div>
                   <div
@@ -1697,7 +1697,7 @@ export default function DashboardPage() {
                     marginBottom: 20,
                   }}
                 >
-                  Agents who want to show up daily without thinking about what
+                  Anyone who wants to show up daily without thinking about what
                   to post — or when.
                 </div>
 
@@ -2576,7 +2576,7 @@ export default function DashboardPage() {
                       </label>
                       <input
                         style={{ ...styles.input, marginBottom: 0 }}
-                        placeholder="e.g., First-time buyers, move-up families"
+                        placeholder="e.g., Young professionals, local homeowners"
                         value={newProfileAudience}
                         onChange={(e) => setNewProfileAudience(e.target.value)}
                       />

@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "AI Social Helper",
-  description: "AI-powered social media content built for real estate agents.",
+  description: "AI-powered social media content tailored to your niche.",
   icons: {
     icon: "/logo-icon.png",
   },
