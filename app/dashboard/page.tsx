@@ -2458,7 +2458,7 @@ export default function DashboardPage() {
                     What should we call you?
                   </label>
                   <div style={{ fontSize: 13, color: "#8fa3bf", marginBottom: 14, lineHeight: 1.5 }}>
-                    Your name, team name, or brokerage — whatever you go by.
+                    Your name, business name, or brand — whatever you go by.
                   </div>
                   <input
                     style={{ ...styles.input, fontSize: 15, padding: "14px 16px", marginBottom: 16 }}
@@ -2555,17 +2555,20 @@ export default function DashboardPage() {
                     {/* Market / City */}
                     <div>
                       <label style={{ fontSize: 13, fontWeight: 600, color: "#e6edf7", marginBottom: 4, display: "block" }}>
-                        Your market
+                        Your niche
                       </label>
-                      <input
+                      <select
                         style={{ ...styles.input, marginBottom: 0 }}
-                        placeholder="e.g., Austin, TX"
                         value={newProfileNiche}
                         onChange={(e) => setNewProfileNiche(e.target.value)}
-                        autoFocus={!editingProfile}
-                      />
+                      >
+                        <option value="" disabled>Select your niche…</option>
+                        <option value="Real Estate Agent">Real Estate Agent</option>
+                        <option value="Fitness Coach">Fitness Coach</option>
+                        <option value="Restaurant Owner">Restaurant Owner</option>
+                      </select>
                       <div style={{ fontSize: 12, color: "#8fa3bf", marginTop: 4, lineHeight: 1.4 }}>
-                        The city or area you sell in. Used in local market posts and community content.
+                        Your industry or specialty. Shapes every post we generate for you.
                       </div>
                     </div>
 
