@@ -541,33 +541,24 @@ export default function PostPage() {
         }
       }
 
-      // Save to gallery (metadata in localStorage, image in IndexedDB)
+      // Save to database via API
       try {
         const postId = Date.now().toString();
-
-        // Save image to IndexedDB
-        if (result.imageBase64) {
-          await saveImage(postId, result.imageBase64);
-        }
 
         // Get active profile ID
         let activeProfileId: string | undefined;
         try {
-          const activeProfile = localStorage.getItem(
-            "ath_active_brand_profile"
-          );
+          const activeProfile = localStorage.getItem("ath_active_brand_profile");
           if (activeProfile) {
             activeProfileId = JSON.parse(activeProfile).profileId;
           }
         } catch {}
 
-        // Save metadata to localStorage
-        const savedPosts = localStorage.getItem("ath_gallery");
-        const posts = savedPosts ? JSON.parse(savedPosts) : [];
         const newPost = {
           id: postId,
           profileId: activeProfileId,
           hasImage: !!result.imageBase64,
+          imageBase64: result.imageBase64,
           caption: result.caption,
           hashtags: result.hashtags,
           postType: form.postType,
@@ -576,18 +567,21 @@ export default function PostPage() {
           niche: form.niche,
           audience: form.audience,
           calendarDay: dayContext?.day ? parseInt(dayContext.day) : undefined,
-          month: dayContext?.day
-            ? new Date().toISOString().slice(0, 7)
-            : undefined,
+          month: dayContext?.day ? new Date().toISOString().slice(0, 7) : undefined,
           createdAt: new Date().toISOString(),
         };
-        posts.unshift(newPost);
-        // Clean up images for posts that will be removed (beyond the 3-post limit)
-        const removedPosts = posts.slice(3);
-        for (const removed of removedPosts) {
-          try { await deleteImage(removed.id); } catch {}
+
+        // Save to DB
+        await fetch("/api/posts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newPost),
+        });
+
+        // Also cache image locally for fast access on this device
+        if (result.imageBase64) {
+          await saveImage(postId, result.imageBase64);
         }
-        localStorage.setItem("ath_gallery", JSON.stringify(posts.slice(0, 3)));
       } catch {}
     } catch (err: any) {
       setStatusMsg("");

@@ -19,6 +19,8 @@ type SavedPost = {
   profileId?: string;
   calendarDay?: number;
   month?: string;
+  hasImage?: boolean;
+  imageBase64?: string;
   caption: string;
   hashtags: string;
   postType: string;
@@ -65,29 +67,30 @@ export default function DashboardPage() {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [profileStep, setProfileStep] = useState<1 | 2>(1);
 
-  // Load posts from localStorage
+  // Load posts from DB
   useEffect(() => {
     window.scrollTo(0, 0);
 
-    try {
-      const savedPosts = localStorage.getItem("ath_gallery");
-      if (savedPosts) {
-        const posts = JSON.parse(savedPosts) as SavedPost[];
-        posts.sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        const recent = posts.slice(0, 3);
-        setRecentPosts(recent);
-
-        recent.forEach(async (post) => {
-          const img = await getImage(post.id);
-          if (img) {
-            setPostImages((prev) => ({ ...prev, [post.id]: img }));
+    async function loadPosts() {
+      try {
+        const res = await fetch("/api/posts?limit=3");
+        if (res.ok) {
+          const data = await res.json();
+          const posts: SavedPost[] = data.posts ?? [];
+          setRecentPosts(posts);
+          // Use imageBase64 from DB directly; fall back to IndexedDB for older posts
+          for (const post of posts) {
+            if (post.imageBase64) {
+              setPostImages((prev) => ({ ...prev, [post.id]: post.imageBase64! }));
+            } else if (post.hasImage) {
+              const img = await getImage(post.id);
+              if (img) setPostImages((prev) => ({ ...prev, [post.id]: img }));
+            }
           }
-        });
-      }
-    } catch {}
+        }
+      } catch {}
+    }
+    loadPosts();
   }, []);
 
   // Auto-open profile creation modal if no profiles exist

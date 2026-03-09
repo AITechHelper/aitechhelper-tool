@@ -80,3 +80,25 @@ CREATE TABLE IF NOT EXISTS facebook_pages (
 );
 
 CREATE INDEX IF NOT EXISTS idx_facebook_pages_user_id ON facebook_pages(user_id);
+
+-- Saved posts (generated content) per user
+CREATE TABLE IF NOT EXISTS saved_posts (
+  id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  profile_id TEXT,
+  calendar_day INTEGER,
+  month TEXT,
+  has_image BOOLEAN NOT NULL DEFAULT FALSE,
+  image_base64 TEXT,
+  caption TEXT NOT NULL DEFAULT '',
+  hashtags TEXT NOT NULL DEFAULT '',
+  post_type TEXT NOT NULL DEFAULT '',
+  image_style TEXT NOT NULL DEFAULT '',
+  tone TEXT NOT NULL DEFAULT '',
+  niche TEXT NOT NULL DEFAULT '',
+  audience TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_saved_posts_user_id ON saved_posts(user_id);

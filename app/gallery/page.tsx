@@ -11,6 +11,7 @@ type SavedPost = {
   calendarDay?: number;
   month?: string;
   hasImage?: boolean;
+  imageBase64?: string;
   caption: string;
   hashtags: string;
   postType: string;
@@ -159,9 +160,8 @@ export default function GalleryPage() {
     null
   );
 
-  // Load posts from localStorage and images from IndexedDB
+  // Load posts from DB
   useEffect(() => {
-    // Scroll to top on page load
     window.scrollTo(0, 0);
 
     async function loadPosts() {
@@ -171,35 +171,37 @@ export default function GalleryPage() {
         const profileIdParam = params.get("profileId");
         setFilterProfileId(profileIdParam);
 
+        const res = await fetch("/api/posts");
+        if (!res.ok) return;
+        const data = await res.json();
+        const parsed: SavedPost[] = data.posts ?? [];
+
         // Get profile name if filtering
         if (profileIdParam) {
           try {
-            const profiles = localStorage.getItem("ath_profiles");
-            if (profiles) {
-              const parsed = JSON.parse(profiles);
-              const profile = parsed.find((p: any) => p.id === profileIdParam);
-              if (profile) {
-                setFilterProfileName(profile.name);
-              }
+            const profileRes = await fetch("/api/brand-profiles");
+            if (profileRes.ok) {
+              const profileData = await profileRes.json();
+              const profile = (profileData.profiles ?? []).find((p: any) => p.id === profileIdParam);
+              if (profile) setFilterProfileName(profile.name);
             }
           } catch {}
         }
 
-        const savedPosts = localStorage.getItem("ath_gallery");
-        if (savedPosts) {
-          const parsed = JSON.parse(savedPosts) as SavedPost[];
-          // Sort by date, newest first
-          parsed.sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-          setAllPosts(parsed);
+        setAllPosts(parsed);
+        const filtered = profileIdParam
+          ? parsed.filter((p) => p.profileId === profileIdParam)
+          : parsed;
+        setPosts(filtered);
 
-          // Filter by profileId if provided
-          const filtered = profileIdParam
-            ? parsed.filter((p) => p.profileId === profileIdParam)
-            : parsed;
-          setPosts(filtered);
+        // Pre-load images: use imageBase64 from DB, fall back to IndexedDB
+        for (const post of filtered) {
+          if (post.imageBase64) {
+            setPostImages((prev) => ({ ...prev, [post.id]: post.imageBase64! }));
+          } else if (post.hasImage) {
+            const img = await getImage(post.id);
+            if (img) setPostImages((prev) => ({ ...prev, [post.id]: img }));
+          }
         }
       } catch (err) {
         console.error("Error loading posts:", err);
@@ -213,14 +215,20 @@ export default function GalleryPage() {
   // Load image when selecting a post
   useEffect(() => {
     async function loadSelectedImage() {
-      if (selectedPost?.hasImage && !postImages[selectedPost.id]) {
+      if (!selectedPost) { setSelectedImage(null); return; }
+      if (postImages[selectedPost.id]) {
+        setSelectedImage(postImages[selectedPost.id]);
+      } else if (selectedPost.imageBase64) {
+        setSelectedImage(selectedPost.imageBase64);
+        setPostImages((prev) => ({ ...prev, [selectedPost.id]: selectedPost.imageBase64! }));
+      } else if (selectedPost.hasImage) {
         const img = await getImage(selectedPost.id);
         if (img) {
           setSelectedImage(img);
           setPostImages((prev) => ({ ...prev, [selectedPost.id]: img }));
+        } else {
+          setSelectedImage(null);
         }
-      } else if (selectedPost && postImages[selectedPost.id]) {
-        setSelectedImage(postImages[selectedPost.id]);
       } else {
         setSelectedImage(null);
       }
@@ -236,15 +244,16 @@ export default function GalleryPage() {
   };
 
   const handleDelete = async (id: string) => {
-    // Delete image from IndexedDB
-    await deleteImage(id);
+    // Delete from DB
+    await fetch(`/api/posts/${id}`, { method: "DELETE" });
 
-    // Delete from localStorage
+    // Also clean up local IndexedDB cache
+    try { await deleteImage(id); } catch {}
+
     const updated = posts.filter((p) => p.id !== id);
     setPosts(updated);
-    localStorage.setItem("ath_gallery", JSON.stringify(updated));
+    setAllPosts((prev) => prev.filter((p) => p.id !== id));
 
-    // Remove from local image cache
     setPostImages((prev) => {
       const newImages = { ...prev };
       delete newImages[id];
