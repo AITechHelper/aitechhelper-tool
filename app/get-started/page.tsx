@@ -1595,6 +1595,137 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* How It Works Section */}
+      <section style={{ padding: "80px 40px" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
+            <div
+              style={{
+                display: "inline-block",
+                fontSize: 11,
+                fontWeight: 700,
+                color: "#7eb3ff",
+                textTransform: "uppercase",
+                letterSpacing: 2,
+                marginBottom: 12,
+                background: "rgba(44, 107, 237, 0.1)",
+                border: "1px solid rgba(44, 107, 237, 0.2)",
+                borderRadius: 20,
+                padding: "4px 14px",
+              }}
+            >
+              Simple 4-Step Process
+            </div>
+            <h2
+              style={{
+                fontSize: 36,
+                fontWeight: 800,
+                margin: "0 0 16px",
+                background: "linear-gradient(135deg, #e6edf7 0%, #a8c4f0 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              How It Works
+            </h2>
+            <p style={{ fontSize: 16, opacity: 0.6, maxWidth: 480, margin: "0 auto" }}>
+              From setup to posting — your entire content workflow in minutes.
+            </p>
+          </div>
+
+          <div
+            className="how-it-works-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: 20,
+            }}
+          >
+            {[
+              {
+                step: "1",
+                label: "Create Profile",
+                desc: "Save your brand colors, tone & audience once",
+                color: "#2c6bed",
+                bg: "rgba(44, 107, 237, 0.08)",
+                border: "rgba(44, 107, 237, 0.2)",
+                shadow: "rgba(44, 107, 237, 0.4)",
+              },
+              {
+                step: "2",
+                label: "Choose Post Type",
+                desc: "Promotional, educational tip, social proof, or community",
+                color: "#7c3aed",
+                bg: "rgba(124, 58, 237, 0.08)",
+                border: "rgba(124, 58, 237, 0.2)",
+                shadow: "rgba(124, 58, 237, 0.4)",
+              },
+              {
+                step: "3",
+                label: "AI Generates",
+                desc: "Custom image + caption + hashtags instantly",
+                color: "#ec4899",
+                bg: "rgba(236, 72, 153, 0.08)",
+                border: "rgba(236, 72, 153, 0.2)",
+                shadow: "rgba(236, 72, 153, 0.4)",
+              },
+              {
+                step: "✓",
+                label: "Post & Save",
+                desc: "Download your image and copy the caption to post",
+                color: "#22c55e",
+                bg: "rgba(34, 197, 94, 0.08)",
+                border: "rgba(34, 197, 94, 0.2)",
+                shadow: "rgba(34, 197, 94, 0.4)",
+              },
+            ].map(({ step, label, desc, color, bg, border, shadow }) => (
+              <div
+                key={label}
+                style={{
+                  background: bg,
+                  border: `1px solid ${border}`,
+                  borderRadius: 20,
+                  padding: "28px 20px",
+                  textAlign: "center",
+                }}
+              >
+                <div
+                  style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: 14,
+                    background: `linear-gradient(135deg, ${color} 0%, ${color}cc 100%)`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 16px",
+                    fontSize: 22,
+                    fontWeight: 800,
+                    color: "#fff",
+                    boxShadow: `0 6px 16px ${shadow}`,
+                  }}
+                >
+                  {step}
+                </div>
+                <div
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 700,
+                    marginBottom: 8,
+                    color: "#e6edf7",
+                  }}
+                >
+                  {label}
+                </div>
+                <div style={{ fontSize: 13, opacity: 0.6, lineHeight: 1.5 }}>
+                  {desc}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section
         className="cta-section"
@@ -1825,6 +1956,15 @@ export default function LandingPage() {
         @media (max-width: 900px) {
           .features-grid {
             grid-template-columns: repeat(2, 1fr) !important;
+          }
+          .how-it-works-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+        }
+
+        @media (max-width: 500px) {
+          .how-it-works-grid {
+            grid-template-columns: 1fr !important;
           }
         }
 
