@@ -12,6 +12,7 @@ import {
 } from "../lib/useBrandProfiles";
 import { useInstagram } from "../lib/useInstagram";
 import { useFacebook } from "../lib/useFacebook";
+import { getNicheCalendarPath } from "../lib/nicheTemplates";
 
 type SavedPost = {
   id: string;
@@ -1600,7 +1601,11 @@ export default function DashboardPage() {
                 flexDirection: "column" as const,
               }}
               className="primary-action-card hover-card"
-              onClick={() => { setNavLoading("calendar"); router.push("/calendar"); }}
+              onClick={() => {
+                setNavLoading("calendar");
+                const activeProfile = profiles.find(p => p.id === activeProfileId);
+                router.push(getNicheCalendarPath(activeProfile?.niche ?? ""));
+              }}
             >
               {/* Card Header with gradient */}
               <div

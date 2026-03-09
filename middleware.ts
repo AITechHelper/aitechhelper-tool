@@ -22,7 +22,17 @@ const isProtectedAppRoute = createRouteMatcher([
   "/calendar(.*)",
   "/post(.*)",
   "/api/generate(.*)",
+  "/realtor-calendar",
+  "/fitness-coach-calendar",
+  "/restaurant-calendar",
 ]);
+
+// Niche-specific calendar URL → template key mapping
+const NICHE_CALENDAR_MAP: Record<string, string> = {
+  "/realtor-calendar": "realtor",
+  "/fitness-coach-calendar": "fitness",
+  "/restaurant-calendar": "restaurant",
+};
 
 export default clerkMiddleware(async (auth, req: NextRequest) => {
   // Development-only auth bypass - NEVER bypasses in production
@@ -102,6 +112,12 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
       // This prevents blocking if the API is temporarily unavailable
       return NextResponse.next();
     }
+  }
+
+  // Rewrite niche-specific calendar URLs → /calendar?niche=KEY (URL stays clean)
+  if (NICHE_CALENDAR_MAP[pathname]) {
+    const nicheKey = NICHE_CALENDAR_MAP[pathname];
+    return NextResponse.rewrite(new URL(`/calendar?niche=${nicheKey}`, req.url));
   }
 
   return NextResponse.next();

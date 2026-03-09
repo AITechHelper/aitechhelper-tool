@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useMemo, useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import React, { useMemo, useState, useEffect, useCallback, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getImageStyleOption } from "../lib/imageStyleOptions";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
@@ -11,6 +11,7 @@ import {
   getTemplate,
   getPillarForWorkdayIndex,
   weekdayToWorkdayIndex,
+  nicheKeyFromLabel,
 } from "../lib/nicheTemplates";
 
 type ImageStyle =
@@ -360,10 +361,10 @@ function getFirstDayOfMonth(year: number, month: number) {
   return new Date(year, month, 1).getDay();
 }
 
-function buildMonthPlan(year: number, month: number): DayPlan[] {
+function buildMonthPlan(year: number, month: number, nicheKey?: string): DayPlan[] {
   const daysInMonth = getDaysInMonth(year, month);
   const plans: DayPlan[] = [];
-  const template = getTemplate(); // V1: always realtor
+  const template = getTemplate(nicheKey);
 
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
@@ -446,8 +447,9 @@ function capitalize(s: string): string {
 
 /* ----------------------------- Page ----------------------------- */
 
-export default function CalendarPage() {
+function CalendarPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const tokenBalance = useTokenBalance();
   const { addToast } = useToast();
   const today = new Date();
@@ -455,6 +457,14 @@ export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [selectedDay, setSelectedDay] = useState<DayPlan | null>(null);
   const [activeBrandProfile, setActiveBrandProfile] = useState<any>(null);
+
+  // Niche key: prefer URL param (?niche=realtor), fall back to active brand profile's niche
+  const nicheKey = useMemo(() => {
+    const urlNiche = searchParams.get("niche");
+    if (urlNiche) return urlNiche;
+    if (activeBrandProfile?.niche) return nicheKeyFromLabel(activeBrandProfile.niche);
+    return undefined;
+  }, [searchParams, activeBrandProfile]);
   const [showOutOfTokens, setShowOutOfTokens] = useState(false);
 
   // Drawer state
@@ -516,8 +526,8 @@ export default function CalendarPage() {
   }, [loadGalleryData]);
 
   const plan = useMemo(
-    () => buildMonthPlan(currentYear, currentMonth),
-    [currentYear, currentMonth]
+    () => buildMonthPlan(currentYear, currentMonth, nicheKey),
+    [currentYear, currentMonth, nicheKey]
   );
   const firstDayOfMonth = getFirstDayOfMonth(currentYear, currentMonth);
 
@@ -1897,5 +1907,13 @@ export default function CalendarPage() {
         totalTokens={tokenBalance.totalMonthlyTokens}
       />
     </div>
+  );
+}
+
+export default function CalendarPage() {
+  return (
+    <Suspense>
+      <CalendarPageInner />
+    </Suspense>
   );
 }
