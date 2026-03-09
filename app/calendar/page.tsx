@@ -470,6 +470,7 @@ function CalendarPageInner() {
   // Drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [extraDetails, setExtraDetails] = useState("");
+  const [userThought, setUserThought] = useState("");
   const [dayPostsMap, setDayPostsMap] = useState<Map<number, SavedPost>>(new Map());
   const [drawerImage, setDrawerImage] = useState<string | null>(null);
   const [drawerImageLoading, setDrawerImageLoading] = useState(false);
@@ -560,6 +561,7 @@ function CalendarPageInner() {
   function openDrawer(dayPlan: DayPlan) {
     setSelectedDay(dayPlan);
     setExtraDetails("");
+    setUserThought("");
     setDrawerImage(null);
     setCopiedField(null);
 
@@ -591,6 +593,7 @@ function CalendarPageInner() {
       setDrawerImage(null);
       setDrawerView("plan");
       setExtraDetails("");
+      setUserThought("");
       setCopiedField(null);
     }, 300);
   }
@@ -630,9 +633,13 @@ function CalendarPageInner() {
       sp.set("pillarType", p.pillarType);
     }
 
-    // Extra details
+    // Extra details (topic/detail hint → specificRequest)
     if (extraDetails.trim()) {
       sp.set("specificRequest", extraDetails.trim());
+    }
+    // Personal thought → woven into caption body
+    if (userThought.trim()) {
+      sp.set("userThought", userThought.trim());
     }
 
     sp.set("autogen", "1");
@@ -1325,24 +1332,27 @@ function CalendarPageInner() {
         />
       )}
 
-      {/* ============ DRAWER PANEL ============ */}
+      {/* ============ DRAWER PANEL (centered modal) ============ */}
       <div
         style={{
           position: "fixed",
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: 480,
-          maxWidth: "100vw",
+          top: "50%",
+          left: "50%",
+          width: 720,
+          maxWidth: "96vw",
+          maxHeight: "92vh",
           background: "#101a33",
-          borderLeft: "1px solid rgba(255,255,255,0.1)",
+          border: "1px solid rgba(255,255,255,0.1)",
+          borderRadius: 20,
           zIndex: 101,
-          transform: drawerOpen ? "translateX(0)" : "translateX(100%)",
-          transition: "transform 0.3s ease",
+          transform: drawerOpen ? "translate(-50%, -50%)" : "translate(-50%, -46%)",
+          opacity: drawerOpen ? 1 : 0,
+          pointerEvents: drawerOpen ? "auto" : "none",
+          transition: "transform 0.25s ease, opacity 0.25s ease",
           overflowY: "auto",
           display: "flex",
           flexDirection: "column",
-          boxShadow: drawerOpen ? "-10px 0 40px rgba(0,0,0,0.4)" : "none",
+          boxShadow: "0 30px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.07)",
           fontFamily: "Verdana, Geneva, sans-serif",
           color: "#e6edf7",
         }}
@@ -1587,8 +1597,8 @@ function CalendarPageInner() {
                       {selectedDay.postType === "Market Authority" && (
                         <>AI will position you as the <strong>local market expert</strong>. Expect confident, data-informed content that gives buyers and sellers a genuine reason to trust your insight over anyone else's.</>
                       )}
-                      {selectedDay.postType === "Active Listing" && (
-                        <>AI will write <strong>lifestyle-focused listing copy</strong> that creates desire and drives showing requests — not just a list of features, but a vision of what it feels like to live there.</>
+                      {selectedDay.postType === "Home Feature Spotlight" && (
+                        <>AI will write <strong>aspirational, feature-focused content</strong> that makes buyers picture themselves in the home — no listing language, just the feeling of living in a space they love.</>
                       )}
                       {selectedDay.postType === "Educational" && (
                         <>AI will share <strong>genuinely useful tips</strong> that teach buyers or sellers something they didn't know. Builds trust by making you the resource they turn to before making any real estate decision.</>
@@ -1609,13 +1619,13 @@ function CalendarPageInner() {
                   </div>
 
                   {/* Post ideas for this day */}
-                  {selectedDay.pillarType && getTemplate().pillars[selectedDay.pillarType]?.postIdeas?.length > 0 && (
+                  {selectedDay.pillarType && getTemplate(nicheKey).pillars[selectedDay.pillarType]?.postIdeas?.length > 0 && (
                     <div style={{ marginBottom: 20 }}>
                       <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 10 }}>
                         Post ideas for today
                       </div>
                       <div style={{ display: "flex", flexDirection: "column" as const, gap: 7 }}>
-                        {getTemplate().pillars[selectedDay.pillarType].postIdeas.slice(0, 5).map((idea, i) => (
+                        {getTemplate(nicheKey).pillars[selectedDay.pillarType].postIdeas.slice(0, 5).map((idea, i) => (
                           <div
                             key={i}
                             style={{
@@ -1642,7 +1652,7 @@ function CalendarPageInner() {
                   )}
 
                   {/* Example caption hook preview */}
-                  {selectedDay.pillarType && (getTemplate().pillars[selectedDay.pillarType]?.captionHooks?.length ?? 0) > 0 && (
+                  {selectedDay.pillarType && (getTemplate(nicheKey).pillars[selectedDay.pillarType]?.captionHooks?.length ?? 0) > 0 && (
                     <div style={{ marginBottom: 20 }}>
                       <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 10 }}>
                         Example caption opener
@@ -1657,7 +1667,7 @@ function CalendarPageInner() {
                         fontStyle: "italic",
                         color: "rgba(167, 139, 250, 0.9)",
                       }}>
-                        "{getTemplate().pillars[selectedDay.pillarType!].captionHooks[0]}"
+                        "{getTemplate(nicheKey).pillars[selectedDay.pillarType!].captionHooks[0]}"
                       </div>
                       <div style={{ fontSize: 11, opacity: 0.35, marginTop: 6, textAlign: "center" as const }}>
                         Your actual caption will be unique and tailored to your brand
@@ -1725,42 +1735,81 @@ function CalendarPageInner() {
                     </div>
                   </div>
 
-                  {/* Extra details textarea */}
-                  <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 8 }}>
-                      Extra Details (Optional)
+                  {/* Optional inputs */}
+                  <div style={{ marginBottom: 20, display: "flex", flexDirection: "column" as const, gap: 14 }}>
+                    {/* Field 1: Topic detail */}
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 6 }}>
+                        Add a detail <span style={{ fontWeight: 400, opacity: 0.6, textTransform: "none" as const, letterSpacing: 0 }}>(optional)</span>
+                      </div>
+                      <textarea
+                        value={extraDetails}
+                        onChange={(e) => setExtraDetails(e.target.value)}
+                        placeholder={
+                          selectedDay.postType === "Market Authority"
+                            ? "E.g. Interest rates just dropped 0.25%..."
+                            : selectedDay.postType === "Home Feature Spotlight"
+                            ? "E.g. modern kitchen, big backyard, home office..."
+                            : selectedDay.postType === "Educational"
+                            ? "E.g. pre-approval vs pre-qualification..."
+                            : selectedDay.postType === "Social Proof"
+                            ? "E.g. sold price, days on market, specific win..."
+                            : selectedDay.postType === "Community"
+                            ? "E.g. coffee shop name, neighborhood, local event..."
+                            : selectedDay.postType === "Workout Tip"
+                            ? "E.g. legs workout, squat form, core training..."
+                            : selectedDay.postType === "Nutrition Advice"
+                            ? "E.g. protein intake, meal prep, hydration..."
+                            : selectedDay.postType === "Menu Feature"
+                            ? "E.g. burgers, tacos, pasta, weekend special..."
+                            : "E.g. specific topic, feature, or angle to focus on..."
+                        }
+                        style={{
+                          width: "100%",
+                          minHeight: 68,
+                          background: "rgba(255,255,255,0.06)",
+                          border: "1px solid rgba(255,255,255,0.12)",
+                          borderRadius: 10,
+                          padding: 12,
+                          color: "#e6edf7",
+                          fontFamily: "Verdana, Geneva, sans-serif",
+                          fontSize: 13,
+                          resize: "none",
+                          outline: "none",
+                          boxSizing: "border-box",
+                          lineHeight: 1.5,
+                        }}
+                      />
                     </div>
-                    <textarea
-                      value={extraDetails}
-                      onChange={(e) => setExtraDetails(e.target.value)}
-                      placeholder={
-                        selectedDay.postType === "Market Authority"
-                          ? "E.g. Interest rates just dropped 0.25% — share what that means for buyers..."
-                          : selectedDay.postType === "Active Listing"
-                          ? "E.g. 4 bed 3 bath in Riverside Heights, renovated kitchen, $649K, stunning backyard..."
-                          : selectedDay.postType === "Educational"
-                          ? "E.g. Explain the difference between pre-approval and pre-qualification..."
-                          : selectedDay.postType === "Social Proof"
-                          ? "E.g. Client quote, sold price, days on market, or any specific win to highlight..."
-                          : selectedDay.postType === "Community"
-                          ? "E.g. Name a local spot, neighborhood, event, or what makes your area special..."
-                          : "Add any specific details, angles, or instructions for your post..."
-                      }
-                      style={{
-                        width: "100%",
-                        minHeight: 80,
-                        background: "rgba(255,255,255,0.06)",
-                        border: "1px solid rgba(255,255,255,0.12)",
-                        borderRadius: 10,
-                        padding: 12,
-                        color: "#e6edf7",
-                        fontFamily: "Verdana, Geneva, sans-serif",
-                        fontSize: 13,
-                        resize: "vertical",
-                        outline: "none",
-                        boxSizing: "border-box",
-                      }}
-                    />
+                    {/* Field 2: Personal thought */}
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 6 }}>
+                        Add your own thought <span style={{ fontWeight: 400, opacity: 0.6, textTransform: "none" as const, letterSpacing: 0 }}>(optional)</span>
+                      </div>
+                      <textarea
+                        value={userThought}
+                        onChange={(e) => setUserThought(e.target.value)}
+                        placeholder="E.g. Just helped a first-time buyer close last week — most emotional closing I've had..."
+                        style={{
+                          width: "100%",
+                          minHeight: 68,
+                          background: "rgba(255,255,255,0.06)",
+                          border: "1px solid rgba(255,255,255,0.12)",
+                          borderRadius: 10,
+                          padding: 12,
+                          color: "#e6edf7",
+                          fontFamily: "Verdana, Geneva, sans-serif",
+                          fontSize: 13,
+                          resize: "none",
+                          outline: "none",
+                          boxSizing: "border-box",
+                          lineHeight: 1.5,
+                        }}
+                      />
+                      <div style={{ fontSize: 11, opacity: 0.35, marginTop: 5 }}>
+                        AI will weave this into the caption naturally
+                      </div>
+                    </div>
                   </div>
 
                   {/* Token count */}
@@ -1836,7 +1885,7 @@ function CalendarPageInner() {
           .ath-page { padding: 10px !important; }
           .desktop-calendar { display: none !important; }
           .mobile-calendar { display: block !important; }
-          .calendar-drawer { width: 100vw !important; padding-bottom: env(safe-area-inset-bottom, 0px); }
+          .calendar-drawer { width: 96vw !important; max-height: 88vh !important; border-radius: 16px !important; padding-bottom: env(safe-area-inset-bottom, 0px); }
           .calendar-drawer-header { padding: 16px 16px 14px !important; }
 
           .mobile-list-item:hover {

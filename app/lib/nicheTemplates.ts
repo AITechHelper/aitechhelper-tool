@@ -128,87 +128,90 @@ WHAT NOT TO DO:
 
   active_listing: {
     id: "active_listing",
-    label: "Active Listing",
-    detail: "Showcase a property and drive showing requests.",
+    label: "Home Feature Spotlight",
+    detail: "Highlight the features buyers love — kitchens, backyards, open layouts.",
     postTypeHint: "Promotion",
     imageStyleHint: "lifestyle_photo",
     captionLength: "Medium",
-    hashtagPack: "heavy",
+    hashtagPack: "standard",
     promptRules: `
-This is an Active Listing post for a real estate agent.
-Goal: Showcase a property in a way that creates genuine desire and drives showing requests or DM inquiries.
+This is a Home Feature Spotlight post for a real estate agent.
+Goal: Showcase a desirable home feature or space that buyers love — creating aspiration and desire without implying a specific property is actively for sale.
 
 CONTENT APPROACH:
-- If specific property details are provided (beds, baths, features, location, price, sqft), use them exactly — they are verified by the agent
-- If no details are provided, write compelling listing copy that:
-  - Focuses on the LIFESTYLE the home enables (not just square footage)
-  - Paints a picture with sensory language: "morning light pouring through the kitchen windows", "the backyard made for summer evenings"
-  - Highlights what buyers actually care about: space, natural light, storage, outdoor living, neighborhood, community
+- Focus on a specific home FEATURE or space category: a kitchen, backyard, primary suite, open-concept living room, home office, mudroom, etc.
+- If the user has provided a feature detail (e.g. "modern kitchen", "big backyard", "home office"), use it as the focus
+- If no feature is provided, choose from these high-desire categories:
+  - Natural light and open layouts
+  - Kitchen upgrades (island, quartz counters, gas range, butler's pantry)
+  - Backyard and outdoor living spaces (patio, pool, pergola)
+  - Primary suites and spa-style bathrooms
+  - Home offices, flex rooms, and bonus spaces
 
 CAPTION STRUCTURE:
-- Hook: Paint a lifestyle scene or describe the feeling of the home in the first line
-  Strong examples: "Imagine waking up to this every morning."
-                   "This is not just a house — it's your next chapter."
-                   "Everything you've been searching for, finally under one roof."
-                   "The one you've been waiting for just hit the market."
-- Body: 2-3 compelling property highlights focused on lifestyle benefits + key features
+- Hook: Paint a lifestyle scene or ask a question that makes the reader imagine living there
+  Strong examples: "Morning coffee just hits different in a kitchen like this."
+                   "The backyard that was made for summer evenings."
+                   "This is the home office setup people actually want to work from."
+                   "Natural light changes everything about how a home feels."
+- Body: 2-3 lines describing the feature through lifestyle and feeling — not specs
   Translate features into benefits:
-  - Instead of "3 bedrooms" → "room for everyone, and then some"
-  - Instead of "updated kitchen" → "a kitchen you'll actually want to cook in"
-  - Instead of "large backyard" → "the backyard that was made for summer entertaining"
-- CTA: Create real urgency to schedule a showing
+  - "Open-concept kitchen" → "the kind of kitchen that becomes the heart of every gathering"
+  - "Large backyard" → "room to breathe, entertain, and actually use your outdoor space"
+  - "Home office" → "a dedicated space that makes remote work feel like a choice, not a compromise"
+- CTA: Invite them to DM to find homes with features they love
 
 TONE & VOICE:
-- Excited, aspirational, benefit-focused
-- Make the reader feel what it would be like to LIVE there
-- Avoid dry feature checklists — connect every detail to a feeling or benefit
+- Aspirational, warm, and sensory — make them picture themselves there
+- Connect every detail to a feeling or lifestyle benefit, not specs or square footage
+- Do NOT position this as a listing for sale — this is about the dream, not a transaction
 
 WHAT NOT TO DO:
-- Do NOT fabricate specific addresses, prices, or square footage unless user provided them
-- Do NOT write dry feature lists without emotional benefit
-- Do NOT be generic — make this property feel special and distinctly desirable
-- Do NOT say "stunning" or "gorgeous" without backing it up with something specific
+- Do NOT write as if this is an active listing (no "just listed", no addresses, no listing price)
+- Do NOT fabricate specific property details unless the user provided them
+- Do NOT use transactional language like "schedule a showing" or "coming soon"
+- DO make it feel like you deeply understand what buyers love and why it matters
 `,
     ctaBank: [
-      "DM me to schedule a private showing",
-      "Link in bio for full listing details",
-      "Call or text me today to see this home",
-      "Don't wait — homes like this move fast",
-      "Want to see it in person? Let's make it happen",
-      "Serious buyers: DM me now — showings are filling up",
-      "Comment 'TOUR' and I'll send you the details",
-      "This one won't last. Reach out today.",
+      "DM me to find homes with features like this",
+      "What's the feature you'd never compromise on? Drop it below",
+      "Follow for weekly home feature inspiration",
+      "Looking for a home with this? Let's connect",
+      "Comment your must-have home feature below",
+      "Save this if your next home needs this space",
+      "DM me — I know exactly what's available right now",
+      "What would you do with a space like this?",
     ],
     hashtagBank: [
-      "#forsale", "#justlisted", "#newhome", "#homeforsale",
-      "#realestate", "#realtorlife", "#dreamhome", "#househunting",
-      "#openhouse", "#homesearch", "#propertyoftheday", "#buythishome",
-      "#homesforsale", "#newlisting", "#housegoals", "#moveready",
-      "#realestateagent", "#listingday", "#showingready", "#propertylistings",
-      "#realty", "#listingagent", "#homesweethome", "#dreamhome",
-      "#newhomeowner", "#homeinspiration", "#luxuryhomes", "#homedesign",
+      "#homedesign", "#dreamhome", "#homeinspo", "#interiordesign",
+      "#kitchendesign", "#backyardgoals", "#homestyle", "#housegoals",
+      "#realestate", "#realtor", "#homefeature", "#homelife",
+      "#modernhome", "#homesweethome", "#realestatestyle", "#propertyfeatures",
+      "#homebuying", "#homebuyers", "#househunting", "#homeinspiration",
+      "#realtorlife", "#localrealestate", "#realestateagent", "#homesearch",
+      "#dreamspace", "#homeideas", "#openfloorplan", "#modernkitchen",
     ],
     postIdeas: [
-      "Showcase the morning light flooding through that open-concept living room",
-      "The backyard that was literally made for summer entertaining — pool optional",
-      "Newly renovated kitchen with everything buyers have been asking for",
-      "Move-in ready in the neighborhood everyone's been asking about",
-      "Natural light, open floor plan, and room to grow — all under one roof",
-      "The home that checks every box on the wishlist (yes, including that one)",
+      "The kitchen island that changes how a family actually lives together",
+      "Why buyers keep asking for this one backyard feature above everything else",
+      "The home office setup that makes remote work feel like a real choice",
+      "Why natural light is the feature buyers consistently underestimate — until they have it",
+      "Open-concept living: why buyers say it changes how they use the whole house",
+      "Primary suite goals: the features that make a bedroom feel like a real retreat",
     ],
     captionHooks: [
-      "Imagine waking up to this every morning.",
-      "This is not just a house. It's your next chapter.",
-      "Everything you've been searching for — all under one roof.",
-      "The one you've been waiting for just hit the market.",
-      "Stop scrolling. This might be the one.",
+      "Morning coffee just hits different in a kitchen like this.",
+      "The backyard that was literally made for summer evenings.",
+      "This is the feature buyers keep coming back for — and now I understand why.",
+      "Home offices don't have to feel like an afterthought.",
+      "Natural light changes everything about how a home feels.",
     ],
     imageSceneBank: [
-      "Bright airy living room with natural light streaming through large windows, tasteful modern furniture, clean and aspirational, professional real estate photography style",
-      "Stunning home exterior with manicured landscaping, professional curb appeal, blue sky, inviting driveway, high-end real estate photography",
-      "Luxury kitchen with clean countertops, stainless steel appliances, natural light, open to living area, aspirational lifestyle real estate photography",
-      "Inviting backyard with patio and lush green grass, warm afternoon light, perfect for entertaining, professional lifestyle real estate photography",
-      "Master bedroom with natural light, vaulted ceilings, elegant but approachable interior design, real estate photography style",
+      "Bright modern kitchen with large island, quartz countertops, pendant lighting, and natural light streaming in, warm and inviting, professional lifestyle real estate photography — no for sale signs, no addresses",
+      "Beautiful backyard patio with string lights, comfortable outdoor seating, and lush greenery, warm golden hour evening light, aspirational outdoor living photography — no listing signs or addresses",
+      "Open-concept living and dining area with warm natural light, modern furniture, clean lines, spacious and airy feel, professional lifestyle photography — no signage",
+      "Elegant primary bedroom suite with large windows, soft natural lighting, clean modern design, spa-like calm, aspirational home photography — no for sale signs",
+      "Well-designed home office with large window, clean desk setup, warm natural light, productive and beautiful, modern home lifestyle photography — no signage",
     ],
   },
 

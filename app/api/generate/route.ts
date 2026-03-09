@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import OpenAI from "openai";
 import { getTokenStatus, useToken, type TokenStatus } from "../../lib/tokens";
-import { getTemplate, buildPillarPromptEnrichment, getRandomPillarScene, type ContentPillar } from "../../lib/nicheTemplates";
+import { getTemplate, buildPillarPromptEnrichment, getRandomPillarScene, nicheKeyFromLabel, type ContentPillar } from "../../lib/nicheTemplates";
 
 export const runtime = "nodejs";
 
@@ -57,6 +57,9 @@ type Body = {
 
   // Niche template pillar (e.g., "market_authority") — drives prompt enrichment
   pillarType?: string;
+
+  // Optional personal thought to weave naturally into the caption body
+  userThought?: string;
 };
 
 type PostTypeGuidance = {
@@ -783,7 +786,7 @@ export async function POST(req: Request) {
     let pillarEnrichment = "";
     let activePillar: ContentPillar | null = null;
     if (pillarType) {
-      const template = getTemplate();
+      const template = getTemplate(nicheKeyFromLabel(niche));
       const pillar = template.pillars[pillarType];
       if (pillar) {
         activePillar = pillar;
@@ -794,6 +797,7 @@ export async function POST(req: Request) {
     // Page.tsx uses `goal` as post type label
     const postType = body.goal?.trim() || "Basic post";
     const specific = String(body.specificRequest || "").trim();
+    const userThought = String(body.userThought || "").trim();
 
     const maxCaptionChars = captionMax(body.captionLength);
     const hashtagCount = clampInt(Number(body.hashtagCount ?? 12), 0, 30);
@@ -910,6 +914,7 @@ Rules for scene_plan:
 - It must NOT contain product packaging or labels (unless reference image exists AND style allows).
 - If unsure, choose a generic lifestyle/service/action scene that represents the niche.
 ${pillarEnrichment ? `\nNICHE TEMPLATE CONTEXT (follow these pillar-specific guidelines):\n${pillarEnrichment}` : ""}
+${userThought ? `\nUSER PERSONAL THOUGHT — integrate this naturally and authentically into the BODY of the caption. Do NOT quote it verbatim. Do NOT make it sound forced. Weave it in as if the author is speaking from experience:\n"${userThought}"` : ""}
 `;
 
     const textResp = await client.responses.create({
