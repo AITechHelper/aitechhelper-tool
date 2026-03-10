@@ -41,6 +41,12 @@ const nicheOptions = [
     label: "Restaurant Owner",
     desc: "Restaurants & cafes",
   },
+  {
+    value: "Generic",
+    icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9",
+    label: "Generic Post",
+    desc: "Any business or niche",
+  },
 ];
 
 // Post types with icons and short descriptions
@@ -298,6 +304,7 @@ export default function Page() {
 
   const [imageDescription, setImageDescription] = useState<string>("");
   const [hasBrandProfile, setHasBrandProfile] = useState(false);
+  const [brandProfileName, setBrandProfileName] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState<string>("");
@@ -308,13 +315,6 @@ export default function Page() {
     detail: string;
   } | null>(null);
   const [autogenRequested, setAutogenRequested] = useState(false);
-
-  // Step navigation
-  const [currentStep, setCurrentStep] = useState(0);
-  const [slideDirection, setSlideDirection] = useState<"left" | "right">(
-    "left"
-  );
-
 
   // Specific request input ref + pulse animation
   const specificRequestRef = useRef<HTMLInputElement>(null);
@@ -396,10 +396,9 @@ export default function Page() {
         if (brandData.hashtagCount)
           updates.hashtagCount = brandData.hashtagCount;
         if (brandData.imageStyle) updates.imageStyle = brandData.imageStyle;
+        setBrandProfileName(brandData.name || brandData.businessName || "");
       } catch {}
-      // Skip step 0 (Business) since brand profile already has those answers
       setHasBrandProfile(true);
-      setCurrentStep(1);
     }
 
     // Apply all updates if any exist
@@ -451,67 +450,6 @@ export default function Page() {
     tokenBalance.isLoading,
     tokenBalance.tokensRemaining,
   ]);
-
-  // Step definitions: 0=Business, 1=PostType, 2=ImageStyle, 3=CaptionSettings, 4=BrandColors, 5=ImageDescription, 6=Review
-  const totalSteps = 7;
-
-  const isStepComplete = (step: number): boolean => {
-    switch (step) {
-      case 0:
-        return form.niche.trim().length > 0 && form.audience.trim().length > 0;
-      case 1:
-        return form.postType.length > 0;
-      case 2:
-        return form.imageStyle.length > 0;
-      case 3:
-        return true;
-      case 4:
-        return true;
-      case 5:
-        return true;
-      default:
-        return true;
-    }
-  };
-
-  const scrollToTopInParent = () => {
-    window.scrollTo(0, 0);
-    if (window.self !== window.top) {
-      try {
-        window.parent.postMessage({ type: "AIT_HELPER_SCROLL_TOP" }, "*");
-      } catch (error) {
-        // Silently fail if blocked
-      }
-    }
-  };
-
-  const goToNextStep = () => {
-    if (currentStep < totalSteps - 1 && isStepComplete(currentStep)) {
-      setSlideDirection("left");
-      // When brand profile active, skip the pre-filled steps (2, 3, 4)
-      if (hasBrandProfile && currentStep === 1) {
-        setCurrentStep(5);
-      } else {
-        setCurrentStep(currentStep + 1);
-      }
-      scrollToTopInParent();
-    }
-  };
-
-  const goToPrevStep = () => {
-    if (currentStep > 0) {
-      setSlideDirection("right");
-      // When brand profile active, skip back over pre-filled steps
-      if (hasBrandProfile && currentStep === 5) {
-        setCurrentStep(1);
-      } else if (hasBrandProfile && currentStep === 1) {
-        // stay at 1 (no step 0 to go back to when brand profile active)
-      } else {
-        setCurrentStep(currentStep - 1);
-      }
-      scrollToTopInParent();
-    }
-  };
 
   function updateForm<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -735,7 +673,7 @@ export default function Page() {
     // Niche selection cards
     nicheCardGrid: {
       display: "grid",
-      gridTemplateColumns: "repeat(3, 1fr)",
+      gridTemplateColumns: "repeat(4, 1fr)",
       gap: 12,
       marginBottom: 4,
     },
@@ -1162,6 +1100,27 @@ export default function Page() {
             <img src="/logo-icon.png" alt="AI Social Helper" style={{ width: 28, height: 28, objectFit: "contain" }} />
             AI-powered image + caption + hashtags
           </p>
+          {form.niche && (
+            <div style={{ marginTop: 8 }}>
+              <span style={{
+                background: "rgba(44,107,237,0.15)",
+                border: "1px solid rgba(44,107,237,0.3)",
+                borderRadius: 20,
+                padding: "3px 12px",
+                fontSize: 12,
+                color: "#7eb3ff",
+                fontWeight: 600,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+              }}>
+                for {form.niche}
+                {hasBrandProfile && brandProfileName && (
+                  <span style={{ opacity: 0.65 }}>· {brandProfileName}</span>
+                )}
+              </span>
+            </div>
+          )}
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <a
@@ -1239,927 +1198,331 @@ export default function Page() {
       </div>
 
       <div style={styles.container}>
-        {/* Step indicator */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            marginBottom: 20,
-          }}
-        >
-          <div style={styles.stepIndicator}>
-            {Array.from({ length: totalSteps }).map((_, i) => {
-              const isSkipped = hasBrandProfile && [0, 2, 3, 4].includes(i);
-              const isDone = i < currentStep || isSkipped;
-              return (
+        {/* Active brand profile notice */}
+        {hasBrandProfile && brandProfileName && (
+          <div style={{ background: "rgba(44,107,237,0.1)", border: "1px solid rgba(44,107,237,0.25)", borderRadius: 10, padding: "10px 16px", marginBottom: 16, fontSize: 13, color: "#7eb3ff", display: "flex", alignItems: "center", gap: 8 }}>
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            Using profile: <strong style={{ marginLeft: 2 }}>{brandProfileName}</strong>
+            <span style={{ opacity: 0.7, marginLeft: 4 }}>— settings pre-filled, edit any to override.</span>
+          </div>
+        )}
+
+        {/* Section: Your Business */}
+        <div style={styles.card} className="hover-card">
+          <h2 style={styles.cardTitle}>Your Business</h2>
+          <p style={styles.cardHint}>Tell us about your business and audience</p>
+          {/* Niche cards */}
+          <div style={styles.field}>
+            <div style={styles.label}>
+              Your Niche <span style={styles.pill}>Required</span>
+            </div>
+            <div style={styles.nicheCardGrid} className="ath-nicheCardGrid">
+              {nicheOptions.map((n) => (
                 <div
-                  key={i}
-                  style={{
-                    ...styles.stepDot,
-                    ...(i === currentStep ? styles.stepDotActive : {}),
-                    ...(isDone ? styles.stepDotCompleted : {}),
-                  }}
-                />
-              );
-            })}
+                  key={n.value}
+                  style={{ ...styles.nicheCard, ...(form.niche === n.value ? styles.nicheCardSelected : {}) }}
+                  onClick={() => updateForm("niche", n.value)}
+                  className="hover-card-item"
+                >
+                  <svg style={{ width: 28, height: 28, opacity: 0.85, flexShrink: 0 }} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d={n.icon} />
+                  </svg>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#e6edf7" }}>{n.label}</div>
+                  <div style={{ fontSize: 11, opacity: 0.55 }}>{n.desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Audience */}
+          <div style={styles.field}>
+            <div style={styles.label}>
+              Audience <span style={styles.pill}>Required</span>
+              <Tooltip text="Who you're trying to reach. The more specific, the better your content.">
+                <svg style={styles.tooltipIcon} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Tooltip>
+            </div>
+            <input
+              style={styles.input}
+              value={form.audience}
+              onChange={(e) => updateForm("audience", e.target.value)}
+              placeholder='e.g., "local homeowners", "busy moms"'
+              className="hover-input"
+            />
           </div>
         </div>
 
-        {/* Step 0: Your Business */}
-        {currentStep === 0 && (
-          <div
-            key={`step-0-${slideDirection}`}
-            className={`slide-card ${slideDirection === "left" ? "slide-from-right" : "slide-from-left"}`}
-          >
-            <div style={styles.card} className="hover-card">
-              <h2 style={styles.cardTitle}>Your Business</h2>
-              <p style={styles.cardHint}>
-                Tell us about your business and audience
-              </p>
-
-              {/* Niche cards */}
-              <div style={styles.field}>
-                <div style={styles.label}>
-                  Your Niche <span style={styles.pill}>Required</span>
-                </div>
-                <div style={styles.nicheCardGrid} className="ath-nicheCardGrid">
-                  {nicheOptions.map((n) => (
-                    <div
-                      key={n.value}
-                      style={{
-                        ...styles.nicheCard,
-                        ...(form.niche === n.value ? styles.nicheCardSelected : {}),
-                      }}
-                      onClick={() => updateForm("niche", n.value)}
-                      className="hover-card-item"
-                    >
-                      <svg
-                        style={{ width: 28, height: 28, opacity: 0.85, flexShrink: 0 }}
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d={n.icon} />
-                      </svg>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#e6edf7" }}>{n.label}</div>
-                      <div style={{ fontSize: 11, opacity: 0.55 }}>{n.desc}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Audience */}
-              <div style={styles.field}>
-                <div style={styles.label}>
-                  Audience <span style={styles.pill}>Required</span>
-                  <Tooltip text="Who you're trying to reach. The more specific, the better your content.">
-                    <svg
-                      style={styles.tooltipIcon}
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
+        {/* Section: Post Type */}
+        <div style={styles.card} className="hover-card">
+          <h2 style={styles.cardTitle}>Post Type</h2>
+          <p style={styles.cardHint}>
+            {activePillars ? "Choose a content pillar for today's post" : "What kind of post do you want to create?"}
+          </p>
+          <div style={styles.postTypeGrid} className="ath-postTypeGrid">
+            {activePillars && activeWeeklyStructure ? (
+              activeWeeklyStructure.map((pillarId) => {
+                const pillar = activePillars[pillarId];
+                if (!pillar) return null;
+                const isSelected = form.pillarType === pillarId;
+                return (
+                  <div
+                    key={pillarId}
+                    style={{ ...styles.postTypeCard, ...(isSelected ? styles.postTypeCardSelected : {}) }}
+                    onClick={() => handlePostTypeSelect(pillar.postTypeHint, pillarId)}
+                    className="hover-card-item"
+                    title={pillar.detail}
+                  >
+                    <svg style={styles.postTypeIcon} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
-                  </Tooltip>
-                </div>
-                <input
-                  style={styles.input}
-                  value={form.audience}
-                  onChange={(e) => updateForm("audience", e.target.value)}
-                  placeholder='e.g., "local homeowners", "busy moms"'
-                  className="hover-input"
-                />
-              </div>
-              {/* Navigation */}
-              <div style={styles.stepNavigation}>
-                <div></div>
-                <button
-                  style={{
-                    ...styles.nextBtn,
-                    ...(isStepComplete(0) ? {} : styles.nextBtnDisabled),
-                  }}
-                  onClick={goToNextStep}
-                  disabled={!isStepComplete(0)}
-                  className="hover-btn"
-                >
-                  Next
-                  <svg
-                    width="16"
-                    height="16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Step 1: Post Type Cards */}
-        {currentStep === 1 && (
-          <div
-            key={`step-1-${slideDirection}`}
-            className={`slide-card ${slideDirection === "left" ? "slide-from-right" : "slide-from-left"}`}
-          >
-            <div style={styles.card} className="hover-card">
-              <h2 style={styles.cardTitle}>Post Type</h2>
-              <p style={styles.cardHint}>
-                {activePillars
-                  ? "Choose a content pillar for today's post"
-                  : "What kind of post do you want to create?"}
-              </p>
-              <div style={styles.postTypeGrid} className="ath-postTypeGrid">
-                {activePillars && activeWeeklyStructure ? (
-                  activeWeeklyStructure.map((pillarId) => {
-                    const pillar = activePillars[pillarId];
-                    if (!pillar) return null;
-                    const isSelected = form.pillarType === pillarId;
-                    return (
-                      <div
-                        key={pillarId}
-                        style={{
-                          ...styles.postTypeCard,
-                          ...(isSelected ? styles.postTypeCardSelected : {}),
-                        }}
-                        onClick={() => handlePostTypeSelect(pillar.postTypeHint, pillarId)}
-                        className="hover-card-item"
-                        title={pillar.detail}
-                      >
-                        <svg
-                          style={styles.postTypeIcon}
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                          />
-                        </svg>
-                        <div style={styles.postTypeName}>{pillar.label}</div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  postTypes.map((pt) => (
-                    <Tooltip key={pt.value} text={pt.tooltip}>
-                      <div
-                        style={{
-                          ...styles.postTypeCard,
-                          ...(form.postType === pt.value
-                            ? styles.postTypeCardSelected
-                            : {}),
-                        }}
-                        onClick={() => handlePostTypeSelect(pt.value)}
-                        className="hover-card-item"
-                      >
-                        <svg
-                          style={styles.postTypeIcon}
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d={pt.icon}
-                          />
-                        </svg>
-                        <div style={styles.postTypeName}>
-                          {pt.value.split(" / ")[0]}
-                        </div>
-                      </div>
-                    </Tooltip>
-                  ))
-                )}
-              </div>
-
-              {specificUI.show && (
-                <div ref={specificRequestWrapRef} style={{ ...styles.field, marginTop: 16 }}>
-                  <div style={styles.label}>
-                    {specificUI.label}
-                    <span
-                      style={{
-                        ...styles.pill,
-                        background: "rgba(255,255,255,0.1)",
-                        color: getCharCountColor(
-                          form.specificRequest.length,
-                          MAX_SPECIFIC_REQUEST_CHARS
-                        ),
-                      }}
-                    >
-                      {form.specificRequest.length}/{MAX_SPECIFIC_REQUEST_CHARS}
-                    </span>
+                    <div style={styles.postTypeName}>{pillar.label}</div>
                   </div>
-                  <input
-                    ref={specificRequestRef}
-                    style={styles.input}
-                    value={form.specificRequest}
-                    onChange={(e) =>
-                      updateForm(
-                        "specificRequest",
-                        e.target.value.slice(0, MAX_SPECIFIC_REQUEST_CHARS)
-                      )
-                    }
-                    placeholder={specificUI.placeholder}
-                    className={`hover-input${inputPulse ? " input-pulse" : ""}`}
-                  />
-                  <div style={{ marginTop: 6, fontSize: 11, opacity: 0.6 }}>
-                    {specificUI.helper}
-                  </div>
-                </div>
-              )}
-              {/* Navigation */}
-              <div style={styles.stepNavigation}>
-                <button
-                  style={styles.backBtn}
-                  onClick={goToPrevStep}
-                  disabled={hasBrandProfile && currentStep === 1}
-                  className="hover-btn"
-                >
-                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                  </svg>
-                  Back
-                </button>
-                <button
-                  style={{
-                    ...styles.nextBtn,
-                    ...(isStepComplete(1) ? {} : styles.nextBtnDisabled),
-                  }}
-                  onClick={goToNextStep}
-                  disabled={!isStepComplete(1)}
-                  className="hover-btn"
-                >
-                  Next
-                  <svg
-                    width="16"
-                    height="16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
+                );
+              })
+            ) : (
+              postTypes.map((pt) => (
+                <Tooltip key={pt.value} text={pt.tooltip}>
+                  <div
+                    style={{ ...styles.postTypeCard, ...(form.postType === pt.value ? styles.postTypeCardSelected : {}) }}
+                    onClick={() => handlePostTypeSelect(pt.value)}
+                    className="hover-card-item"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Step 2: Image Style */}
-        {currentStep === 2 && (
-          <div
-            key={`step-2-${slideDirection}`}
-            className={`slide-card ${slideDirection === "left" ? "slide-from-right" : "slide-from-left"}`}
-          >
-            <div style={styles.card} className="hover-card">
-              <h2 style={styles.cardTitle}>Image Style</h2>
-              <p style={styles.cardHint}>Choose how your image will look</p>
-              <div style={styles.styleCardGrid} className="ath-styleCardGrid">
-                {imageStyles.map((s) => (
-                  <Tooltip key={s.value} text={s.tooltip}>
-                    <div
-                      style={{
-                        ...styles.styleCard,
-                        ...(form.imageStyle === s.value
-                          ? styles.styleCardSelected
-                          : {}),
-                      }}
-                      onClick={() => updateForm("imageStyle", s.value)}
-                      className="hover-card-item"
-                    >
-                      {form.imageStyle === s.value && (
-                        <div style={styles.checkmark}>
-                          <svg
-                            width="12"
-                            height="12"
-                            fill="none"
-                            stroke="#fff"
-                            strokeWidth="3"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        </div>
-                      )}
-                      <svg
-                        style={styles.styleCardIcon}
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d={s.icon}
-                        />
-                      </svg>
-                      <div style={styles.styleCardName}>{s.name}</div>
-                      <div style={styles.styleCardDesc}>{s.description}</div>
-                    </div>
-                  </Tooltip>
-                ))}
-              </div>
-              {/* Navigation */}
-              <div style={styles.stepNavigation}>
-                <button
-                  style={styles.backBtn}
-                  onClick={goToPrevStep}
-                  className="hover-btn"
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
-                  Back
-                </button>
-                <button
-                  style={{
-                    ...styles.nextBtn,
-                    ...(isStepComplete(2) ? {} : styles.nextBtnDisabled),
-                  }}
-                  onClick={goToNextStep}
-                  disabled={!isStepComplete(2)}
-                  className="hover-btn"
-                >
-                  Next
-                  <svg
-                    width="16"
-                    height="16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Step 3: Caption Settings */}
-        {currentStep === 3 && (
-          <div
-            key={`step-3-${slideDirection}`}
-            className={`slide-card ${slideDirection === "left" ? "slide-from-right" : "slide-from-left"}`}
-          >
-            <div style={styles.card} className="hover-card">
-              <h2 style={styles.cardTitle}>Caption Settings</h2>
-              <p style={styles.cardHint}>Customize your caption and hashtags</p>
-              <div style={styles.row2} className="ath-row2">
-                <div style={styles.field}>
-                  <div style={styles.label}>
-                    Tone
-                    <Tooltip text="The voice and personality of your caption. Match it to your brand.">
-                      <svg
-                        style={styles.tooltipIcon}
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </Tooltip>
-                  </div>
-                  <select
-                    style={styles.select}
-                    value={form.tone}
-                    onChange={(e) => updateForm("tone", e.target.value)}
-                  >
-                    {toneOptions.map((v) => (
-                      <option key={v} value={v}>
-                        {v}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div style={styles.field}>
-                  <div style={styles.label}>
-                    Caption Length
-                    <Tooltip text="Short for quick hits, Long for storytelling or detailed info.">
-                      <svg
-                        style={styles.tooltipIcon}
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </Tooltip>
-                  </div>
-                  <select
-                    style={styles.select}
-                    value={form.captionLength}
-                    onChange={(e) =>
-                      updateForm(
-                        "captionLength",
-                        e.target.value as FormState["captionLength"]
-                      )
-                    }
-                  >
-                    <option value="Short">Short (1-2 sentences)</option>
-                    <option value="Medium">Medium (3-4 sentences)</option>
-                    <option value="Long">Long (5+ sentences)</option>
-                  </select>
-                </div>
-              </div>
-              <div style={styles.field}>
-                <div style={styles.label}>
-                  Hashtag Count
-                  <Tooltip text="More hashtags = more reach, but can look spammy. 10-15 is usually ideal.">
-                    <svg
-                      style={styles.tooltipIcon}
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
+                    <svg style={styles.postTypeIcon} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d={pt.icon} />
                     </svg>
-                  </Tooltip>
-                </div>
-                <div style={styles.sliderContainer}>
-                  <div style={styles.sliderLabels}>
-                    <span>None</span>
-                    <span>Few</span>
-                    <span>Standard</span>
-                    <span>Many</span>
-                    <span>Max</span>
+                    <div style={styles.postTypeName}>{pt.value.split(" / ")[0]}</div>
                   </div>
-                  <input
-                    style={styles.slider}
-                    type="range"
-                    min={0}
-                    max={30}
-                    value={form.hashtagCount}
-                    onChange={(e) =>
-                      updateForm("hashtagCount", Number(e.target.value))
-                    }
-                  />
-                  <div style={styles.sliderValue}>
-                    {form.hashtagCount} hashtags (
-                    {getHashtagLabel(form.hashtagCount)})
-                  </div>
-                </div>
-              </div>
-              {/* Navigation */}
-              <div style={styles.stepNavigation}>
-                <button
-                  style={styles.backBtn}
-                  onClick={goToPrevStep}
-                  className="hover-btn"
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
-                  Back
-                </button>
-                <button
-                  style={{
-                    ...styles.nextBtn,
-                    ...(isStepComplete(3) ? {} : styles.nextBtnDisabled),
-                  }}
-                  onClick={goToNextStep}
-                  disabled={!isStepComplete(3)}
-                  className="hover-btn"
-                >
-                  Next
-                  <svg
-                    width="16"
-                    height="16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
+                </Tooltip>
+              ))
+            )}
           </div>
-        )}
-
-        {/* Step 4: Brand Colors */}
-        {currentStep === 4 && (
-          <div
-            key={`step-4-${slideDirection}`}
-            className={`slide-card ${slideDirection === "left" ? "slide-from-right" : "slide-from-left"}`}
-          >
-            <div style={styles.card} className="hover-card">
-              <h2 style={styles.cardTitle}>Brand Colors</h2>
-              <p style={styles.cardHint}>Used for branded image styles</p>
-              <div style={styles.row2} className="ath-row2">
-                <div style={styles.field}>
-                  <div style={styles.label}>Primary Color</div>
-                  <div style={styles.colorPickerRow}>
-                    <input
-                      type="color"
-                      value={form.primaryColor}
-                      onChange={(e) =>
-                        updateForm("primaryColor", e.target.value)
-                      }
-                      style={{
-                        ...styles.colorSwatch,
-                        background: form.primaryColor,
-                      }}
-                    />
-                    <input
-                      type="text"
-                      value={form.primaryColor}
-                      onChange={(e) =>
-                        updateForm("primaryColor", e.target.value)
-                      }
-                      style={styles.colorInput}
-                      placeholder="#000000"
-                    />
-                  </div>
-                </div>
-                <div style={styles.field}>
-                  <div style={styles.label}>Secondary Color</div>
-                  <div style={styles.colorPickerRow}>
-                    <input
-                      type="color"
-                      value={form.secondaryColor}
-                      onChange={(e) =>
-                        updateForm("secondaryColor", e.target.value)
-                      }
-                      style={{
-                        ...styles.colorSwatch,
-                        background: form.secondaryColor,
-                      }}
-                    />
-                    <input
-                      type="text"
-                      value={form.secondaryColor}
-                      onChange={(e) =>
-                        updateForm("secondaryColor", e.target.value)
-                      }
-                      style={styles.colorInput}
-                      placeholder="#ffffff"
-                    />
-                  </div>
-                </div>
+          {specificUI.show && (
+            <div ref={specificRequestWrapRef} style={{ ...styles.field, marginTop: 16 }}>
+              <div style={styles.label}>
+                {specificUI.label}
+                <span style={{ ...styles.pill, background: "rgba(255,255,255,0.1)", color: getCharCountColor(form.specificRequest.length, MAX_SPECIFIC_REQUEST_CHARS) }}>
+                  {form.specificRequest.length}/{MAX_SPECIFIC_REQUEST_CHARS}
+                </span>
               </div>
-              {/* Navigation */}
-              <div style={styles.stepNavigation}>
-                <button
-                  style={styles.backBtn}
-                  onClick={goToPrevStep}
-                  className="hover-btn"
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
-                  Back
-                </button>
-                <button
-                  style={{
-                    ...styles.nextBtn,
-                    ...(isStepComplete(4) ? {} : styles.nextBtnDisabled),
-                  }}
-                  onClick={goToNextStep}
-                  disabled={!isStepComplete(4)}
-                  className="hover-btn"
-                >
-                  Next
-                  <svg
-                    width="16"
-                    height="16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </button>
-              </div>
+              <input
+                ref={specificRequestRef}
+                style={styles.input}
+                value={form.specificRequest}
+                onChange={(e) => updateForm("specificRequest", e.target.value.slice(0, MAX_SPECIFIC_REQUEST_CHARS))}
+                placeholder={specificUI.placeholder}
+                className={`hover-input${inputPulse ? " input-pulse" : ""}`}
+              />
+              <div style={{ marginTop: 6, fontSize: 11, opacity: 0.6 }}>{specificUI.helper}</div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* Step 5: Image Description */}
-        {currentStep === 5 && (
-          <div
-            key={`step-5-${slideDirection}`}
-            className={`slide-card ${slideDirection === "left" ? "slide-from-right" : "slide-from-left"}`}
-          >
-            <div style={styles.card} className="hover-card">
-              <h2 style={styles.cardTitle}>Image Description</h2>
-              <p style={styles.cardHint}>
-                Describe what you want the image to show — or leave blank to let AI decide
-              </p>
-
-              <div style={styles.field}>
-                <textarea
-                  style={{
-                    ...styles.input,
-                    minHeight: 100,
-                    resize: "vertical",
-                    fontFamily: "inherit",
-                  } as React.CSSProperties}
-                  value={imageDescription}
-                  onChange={(e) => setImageDescription(e.target.value)}
-                  placeholder='e.g., "A couple touring a bright, modern kitchen with large windows" or "A confident agent reviewing documents at a desk"'
-                  className="hover-input"
-                />
-                <div style={{ marginTop: 6, fontSize: 11, opacity: 0.6 }}>
-                  Optional — leave blank and AI will pick a scene that fits your post type.
-                </div>
-              </div>
-
-              {dayContext && (
+        {/* Section: Image Style */}
+        <div style={styles.card} className="hover-card">
+          <h2 style={styles.cardTitle}>Image Style</h2>
+          <p style={styles.cardHint}>Choose how your image will look</p>
+          <div style={styles.styleCardGrid} className="ath-styleCardGrid">
+            {imageStyles.map((s) => (
+              <Tooltip key={s.value} text={s.tooltip}>
                 <div
-                  style={{
-                    ...styles.card,
-                    background: "rgba(44, 107, 237, 0.1)",
-                    marginTop: 16,
-                  }}
+                  style={{ ...styles.styleCard, ...(form.imageStyle === s.value ? styles.styleCardSelected : {}) }}
+                  onClick={() => updateForm("imageStyle", s.value)}
+                  className="hover-card-item"
                 >
-                  <strong>Calendar: Day {dayContext.day}</strong>
-                  <br />
-                  {dayContext.title} — {dayContext.detail}
-                </div>
-              )}
-
-              {/* Navigation */}
-              <div style={styles.stepNavigation}>
-                <button
-                  style={styles.backBtn}
-                  onClick={goToPrevStep}
-                  className="hover-btn"
-                >
-                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                  </svg>
-                  Back
-                </button>
-                <button
-                  style={styles.nextBtn}
-                  onClick={goToNextStep}
-                  className="hover-btn"
-                >
-                  Review & Generate
-                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Step 6: Review & Generate */}
-        {currentStep === 6 && (
-          <div
-            key={`step-6-${slideDirection}`}
-            className={`slide-card ${slideDirection === "left" ? "slide-from-right" : "slide-from-left"}`}
-          >
-            <div style={styles.card} className="hover-card">
-              <h2 style={styles.cardTitle}>Review & Generate</h2>
-              <p style={styles.cardHint}>Check your setup, customize the output, then generate.</p>
-
-              {/* Settings summary (read-only) */}
-              <div style={{
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: 12,
-                padding: 16,
-                marginBottom: 20,
-              }}>
-                <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 12 }}>
-                  Your Setup
-                </div>
-                <div style={styles.previewGrid}>
-                  <div style={styles.previewItem}>
-                    <div style={styles.previewLabel}>Niche</div>
-                    <div style={styles.previewValue}>{form.niche}</div>
-                  </div>
-                  <div style={styles.previewItem}>
-                    <div style={styles.previewLabel}>Audience</div>
-                    <div style={styles.previewValue}>{form.audience || "—"}</div>
-                  </div>
-                  <div style={styles.previewItem}>
-                    <div style={styles.previewLabel}>Post Type</div>
-                    <div style={styles.previewValue}>
-                      {form.pillarType && activePillars?.[form.pillarType]
-                        ? activePillars[form.pillarType].label
-                        : form.postType}
-                    </div>
-                  </div>
-                  <div style={styles.previewItem}>
-                    <div style={styles.previewLabel}>Image Style</div>
-                    <div style={styles.previewValue}>
-                      {imageStyles.find((s) => s.value === form.imageStyle)?.name}
-                    </div>
-                  </div>
-                  <div style={styles.previewItem}>
-                    <div style={styles.previewLabel}>Brand Colors</div>
-                    <div style={{ display: "flex", gap: 6, alignItems: "center", marginTop: 2 }}>
-                      <div style={{ width: 18, height: 18, borderRadius: 4, background: form.primaryColor, border: "1px solid rgba(255,255,255,0.2)", flexShrink: 0 }} />
-                      <div style={{ width: 18, height: 18, borderRadius: 4, background: form.secondaryColor, border: "1px solid rgba(255,255,255,0.2)", flexShrink: 0 }} />
-                    </div>
-                  </div>
-                  {imageDescription && (
-                    <div style={{ ...styles.previewItem, gridColumn: "1 / -1" }}>
-                      <div style={styles.previewLabel}>Image Direction</div>
-                      <div style={{ ...styles.previewValue, fontWeight: 400, opacity: 0.85, fontSize: 12 }}>{imageDescription}</div>
+                  {form.imageStyle === s.value && (
+                    <div style={styles.checkmark}>
+                      <svg width="12" height="12" fill="none" stroke="#fff" strokeWidth="3" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
                     </div>
                   )}
+                  <svg style={styles.styleCardIcon} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d={s.icon} />
+                  </svg>
+                  <div style={styles.styleCardName}>{s.name}</div>
+                  <div style={styles.styleCardDesc}>{s.description}</div>
                 </div>
-              </div>
+              </Tooltip>
+            ))}
+          </div>
+        </div>
 
-              {/* Output customization (editable) */}
-              <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 12 }}>
-                Customize Output
+        {/* Section: Caption Settings + Brand Colors */}
+        <div style={styles.card} className="hover-card">
+          <h2 style={styles.cardTitle}>Caption Settings</h2>
+          <p style={styles.cardHint}>Customize your caption, hashtags, and brand colors</p>
+          <div style={styles.row2} className="ath-row2">
+            <div style={styles.field}>
+              <div style={styles.label}>
+                Tone
+                <Tooltip text="The voice and personality of your caption. Match it to your brand.">
+                  <svg style={styles.tooltipIcon} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </Tooltip>
               </div>
-              <div style={styles.row2} className="ath-row2">
-                <div style={styles.field}>
-                  <div style={styles.label}>Tone</div>
-                  <select
-                    style={styles.select}
-                    value={form.tone}
-                    onChange={(e) => updateForm("tone", e.target.value)}
-                  >
-                    {toneOptions.map((v) => (
-                      <option key={v} value={v}>{v}</option>
-                    ))}
-                  </select>
-                </div>
-                <div style={styles.field}>
-                  <div style={styles.label}>Caption Length</div>
-                  <select
-                    style={styles.select}
-                    value={form.captionLength}
-                    onChange={(e) => updateForm("captionLength", e.target.value as FormState["captionLength"])}
-                  >
-                    <option value="Short">Short (1-2 sentences)</option>
-                    <option value="Medium">Medium (3-4 sentences)</option>
-                    <option value="Long">Long (5+ sentences)</option>
-                  </select>
+              <select style={styles.select} value={form.tone} onChange={(e) => updateForm("tone", e.target.value)}>
+                {toneOptions.map((v) => <option key={v} value={v}>{v}</option>)}
+              </select>
+            </div>
+            <div style={styles.field}>
+              <div style={styles.label}>
+                Caption Length
+                <Tooltip text="Short for quick hits, Long for storytelling or detailed info.">
+                  <svg style={styles.tooltipIcon} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </Tooltip>
+              </div>
+              <select style={styles.select} value={form.captionLength} onChange={(e) => updateForm("captionLength", e.target.value as FormState["captionLength"])}>
+                <option value="Short">Short (1-2 sentences)</option>
+                <option value="Medium">Medium (3-4 sentences)</option>
+                <option value="Long">Long (5+ sentences)</option>
+              </select>
+            </div>
+          </div>
+          <div style={styles.field}>
+            <div style={styles.label}>
+              Hashtag Count
+              <Tooltip text="More hashtags = more reach, but can look spammy. 10-15 is usually ideal.">
+                <svg style={styles.tooltipIcon} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Tooltip>
+            </div>
+            <div style={styles.sliderContainer}>
+              <div style={styles.sliderLabels}>
+                <span>None</span><span>Few</span><span>Standard</span><span>Many</span><span>Max</span>
+              </div>
+              <input style={styles.slider} type="range" min={0} max={30} value={form.hashtagCount} onChange={(e) => updateForm("hashtagCount", Number(e.target.value))} />
+              <div style={styles.sliderValue}>{form.hashtagCount} hashtags ({getHashtagLabel(form.hashtagCount)})</div>
+            </div>
+          </div>
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 16, marginTop: 4 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.55, marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: 0.5 }}>Brand Colors</div>
+            <div style={styles.row2} className="ath-row2">
+              <div style={styles.field}>
+                <div style={styles.label}>Primary Color</div>
+                <div style={styles.colorPickerRow}>
+                  <input type="color" value={form.primaryColor} onChange={(e) => updateForm("primaryColor", e.target.value)} style={{ ...styles.colorSwatch, background: form.primaryColor }} />
+                  <input type="text" value={form.primaryColor} onChange={(e) => updateForm("primaryColor", e.target.value)} style={styles.colorInput} placeholder="#000000" />
                 </div>
               </div>
               <div style={styles.field}>
-                <div style={styles.label}>
-                  Hashtag Count
-                  <span style={{ ...styles.pill, marginLeft: 8 }}>{form.hashtagCount}</span>
+                <div style={styles.label}>Secondary Color</div>
+                <div style={styles.colorPickerRow}>
+                  <input type="color" value={form.secondaryColor} onChange={(e) => updateForm("secondaryColor", e.target.value)} style={{ ...styles.colorSwatch, background: form.secondaryColor }} />
+                  <input type="text" value={form.secondaryColor} onChange={(e) => updateForm("secondaryColor", e.target.value)} style={styles.colorInput} placeholder="#ffffff" />
                 </div>
-                <div style={styles.sliderContainer}>
-                  <div style={styles.sliderLabels}>
-                    <span>None</span>
-                    <span>Few</span>
-                    <span>Standard</span>
-                    <span>Many</span>
-                    <span>Max</span>
-                  </div>
-                  <input
-                    style={styles.slider}
-                    type="range"
-                    min={0}
-                    max={30}
-                    value={form.hashtagCount}
-                    onChange={(e) => updateForm("hashtagCount", Number(e.target.value))}
-                  />
-                  <div style={styles.sliderValue}>
-                    {form.hashtagCount} hashtags ({getHashtagLabel(form.hashtagCount)})
-                  </div>
-                </div>
-              </div>
-
-              {statusMsg && <div style={styles.status}>{statusMsg}</div>}
-              {errorMsg && <div style={styles.danger}>{errorMsg}</div>}
-
-              {/* Navigation with Generate button */}
-              <div style={styles.stepNavigation}>
-                <button style={styles.backBtn} onClick={goToPrevStep} className="hover-btn">
-                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                  </svg>
-                  Back
-                </button>
-                <button
-                  style={{
-                    ...styles.nextBtn,
-                    padding: "12px 28px",
-                    fontSize: 15,
-                    ...(canGenerate ? {} : styles.nextBtnDisabled),
-                  }}
-                  onClick={() => {
-                    if (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) {
-                      setShowOutOfTokens(true);
-                      addToast("You've used all your tokens this month.", "warning");
-                      return;
-                    }
-                    generatePost();
-                  }}
-                  disabled={!canGenerate || isLoading}
-                  className="hover-btn"
-                >
-                  {isLoading
-                    ? "Generating…"
-                    : !tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0
-                      ? "Token limit reached"
-                      : canGenerate
-                        ? "Generate Post"
-                        : "Fill in Niche & Audience"}
-                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </button>
               </div>
             </div>
           </div>
-        )}
+        </div>
+
+        {/* Section: Image Direction */}
+        <div style={styles.card} className="hover-card">
+          <h2 style={styles.cardTitle}>Image Direction</h2>
+          <p style={styles.cardHint}>Describe what you want the image to show — or leave blank to let AI decide</p>
+          <div style={styles.field}>
+            <textarea
+              style={{ ...styles.input, minHeight: 100, resize: "vertical", fontFamily: "inherit" } as React.CSSProperties}
+              value={imageDescription}
+              onChange={(e) => setImageDescription(e.target.value)}
+              placeholder='e.g., "A couple touring a bright, modern kitchen with large windows" or "A confident agent reviewing documents at a desk"'
+              className="hover-input"
+            />
+            <div style={{ marginTop: 6, fontSize: 11, opacity: 0.6 }}>
+              Optional — leave blank and AI will pick a scene that fits your post type.
+            </div>
+          </div>
+          {dayContext && (
+            <div style={{ ...styles.card, background: "rgba(44, 107, 237, 0.1)", marginTop: 16 }}>
+              <strong>Calendar: Day {dayContext.day}</strong>
+              <br />
+              {dayContext.title} — {dayContext.detail}
+            </div>
+          )}
+        </div>
+
+        {/* Section: Review */}
+        <div style={styles.card} className="hover-card">
+          <h2 style={styles.cardTitle}>Review</h2>
+          <p style={styles.cardHint}>Check your setup, then generate.</p>
+          <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 16, marginBottom: 20 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 12 }}>Your Setup</div>
+            <div style={styles.previewGrid}>
+              <div style={styles.previewItem}>
+                <div style={styles.previewLabel}>Niche</div>
+                <div style={styles.previewValue}>{form.niche}</div>
+              </div>
+              <div style={styles.previewItem}>
+                <div style={styles.previewLabel}>Audience</div>
+                <div style={styles.previewValue}>{form.audience || "—"}</div>
+              </div>
+              <div style={styles.previewItem}>
+                <div style={styles.previewLabel}>Post Type</div>
+                <div style={styles.previewValue}>
+                  {form.pillarType && activePillars?.[form.pillarType] ? activePillars[form.pillarType].label : form.postType}
+                </div>
+              </div>
+              <div style={styles.previewItem}>
+                <div style={styles.previewLabel}>Image Style</div>
+                <div style={styles.previewValue}>{imageStyles.find((s) => s.value === form.imageStyle)?.name}</div>
+              </div>
+              <div style={styles.previewItem}>
+                <div style={styles.previewLabel}>Brand Colors</div>
+                <div style={{ display: "flex", gap: 6, alignItems: "center", marginTop: 2 }}>
+                  <div style={{ width: 18, height: 18, borderRadius: 4, background: form.primaryColor, border: "1px solid rgba(255,255,255,0.2)", flexShrink: 0 }} />
+                  <div style={{ width: 18, height: 18, borderRadius: 4, background: form.secondaryColor, border: "1px solid rgba(255,255,255,0.2)", flexShrink: 0 }} />
+                </div>
+              </div>
+              {imageDescription && (
+                <div style={{ ...styles.previewItem, gridColumn: "1 / -1" }}>
+                  <div style={styles.previewLabel}>Image Direction</div>
+                  <div style={{ ...styles.previewValue, fontWeight: 400, opacity: 0.85, fontSize: 12 }}>{imageDescription}</div>
+                </div>
+              )}
+            </div>
+          </div>
+          {statusMsg && <div style={styles.status}>{statusMsg}</div>}
+          {errorMsg && <div style={styles.danger}>{errorMsg}</div>}
+          <button
+            style={{
+              ...styles.nextBtn,
+              width: "100%",
+              padding: "14px 20px",
+              fontSize: 15,
+              justifyContent: "center",
+              borderRadius: 12,
+              marginTop: 8,
+              ...(canGenerate ? {} : styles.nextBtnDisabled),
+            }}
+            onClick={() => {
+              if (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) {
+                setShowOutOfTokens(true);
+                addToast("You've used all your tokens this month.", "warning");
+                return;
+              }
+              generatePost();
+            }}
+            disabled={!canGenerate || isLoading}
+            className="hover-btn"
+          >
+            {isLoading
+              ? "Generating…"
+              : !tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0
+                ? "Token limit reached"
+                : canGenerate
+                  ? "Generate"
+                  : "Fill in Niche & Audience"}
+            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Instructions Modal */}
@@ -2294,6 +1657,7 @@ export default function Page() {
           .ath-row2 { grid-template-columns: 1fr !important; }
           .ath-styleCardGrid { grid-template-columns: repeat(2, 1fr) !important; }
           .ath-postTypeGrid { grid-template-columns: repeat(3, 1fr) !important; }
+          .ath-nicheCardGrid { grid-template-columns: repeat(2, 1fr) !important; }
           .ath-page input, .ath-page select, .ath-page textarea { font-size: 16px !important; }
         }
         @media (max-width: 480px) {
