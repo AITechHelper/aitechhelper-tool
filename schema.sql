@@ -103,6 +103,18 @@ CREATE TABLE IF NOT EXISTS saved_posts (
 
 CREATE INDEX IF NOT EXISTS idx_saved_posts_user_id ON saved_posts(user_id);
 
+-- Media assets (user-uploaded photos for the media library)
+CREATE TABLE IF NOT EXISTS media_assets (
+  id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  name TEXT,
+  image_base64 TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_media_assets_user_id ON media_assets(user_id);
+
 -- Migration: add logo, website, and phone to brand profiles
 -- Run these ALTER TABLE statements if upgrading an existing database:
 --

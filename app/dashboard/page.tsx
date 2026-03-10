@@ -1746,6 +1746,52 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Media Library section */}
+        <div style={{ ...styles.section, marginTop: 28 }}>
+          <div
+            style={{
+              background: "linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.04) 100%)",
+              border: "1px solid rgba(16, 185, 129, 0.18)",
+              borderRadius: 16,
+              padding: "20px 24px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 16,
+              flexWrap: "wrap" as const,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                background: "linear-gradient(135deg, rgba(16,185,129,0.25), rgba(16,185,129,0.12))",
+                border: "1px solid rgba(16,185,129,0.3)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <svg width="22" height="22" fill="none" stroke="#6ee7b7" strokeWidth="1.8" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 3 }}>Media Library</div>
+                <div style={{ fontSize: 13, opacity: 0.6 }}>Upload photos and plan posts from your own images</div>
+              </div>
+            </div>
+            <div
+              style={{
+                background: "linear-gradient(135deg, #10b981, #059669)",
+                borderRadius: 10, padding: "10px 20px",
+                color: "#fff", fontSize: 13, fontWeight: 700,
+                cursor: "pointer", boxShadow: "0 4px 14px rgba(16,185,129,0.3)",
+                whiteSpace: "nowrap" as const,
+              }}
+              onClick={() => router.push("/media")}
+            >
+              Open Library →
+            </div>
+          </div>
+        </div>
+
         <div style={{ ...styles.section, marginTop: 28 }}>
           {/* Recent Posts & Gallery Section */}
           <div
