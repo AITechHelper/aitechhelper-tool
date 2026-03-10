@@ -981,10 +981,10 @@ export default function DashboardPage() {
         <div style={{ display: "flex", flexDirection: "column" as const }}>
 
         {/* 3-col section: Brand Profile | Social Medias | Recent Posts */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, order: 1, marginTop: 40 }} className="dash-side-by-side">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 16, order: 1, marginTop: 40 }} className="dash-side-by-side">
 
         {/* Brand Profiles section - always show */}
-        <div style={{ ...styles.heroSection, flex: 1, marginBottom: 0 }} className="primary-section">
+        <div style={{ ...styles.heroSection, minWidth: 0, marginBottom: 0 }} className="primary-section">
           <div style={styles.sectionHeader}>
             <div>
               <h2 style={styles.sectionTitle}>
@@ -1152,7 +1152,7 @@ export default function DashboardPage() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fill, minmax(min(280px, 100%), 1fr))",
                 gap: 20,
                 marginTop: 20,
               }}
