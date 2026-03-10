@@ -977,8 +977,11 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Side-by-side: Agent Profile + Social Connections */}
-        <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }} className="dash-side-by-side">
+        {/* Flex column wrapper — action cards render first via order:0, 3-col section second via order:1 */}
+        <div style={{ display: "flex", flexDirection: "column" as const }}>
+
+        {/* 3-col section: Brand Profile | Social Medias | Recent Posts */}
+        <div style={{ display: "flex", gap: 20, alignItems: "flex-start", order: 1, marginTop: 40 }} className="dash-side-by-side">
 
         {/* Brand Profiles section - always show */}
         <div style={{ ...styles.heroSection, flex: 1, marginBottom: 0 }} className="primary-section">
@@ -1308,194 +1311,8 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Right column: Recent Posts + Social Connections */}
-        <div style={{ display: "flex", flexDirection: "column" as const, gap: 12, flex: "0 0 420px", minWidth: 280 }} className="dash-social-col">
-
-          {/* Recent Posts */}
-          <div
-            style={{
-              background: "linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%)",
-              border: "1px solid rgba(124, 58, 237, 0.2)",
-              borderRadius: 16,
-              padding: 24,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 20,
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <svg
-                  width="20"
-                  height="20"
-                  fill="none"
-                  stroke="#a78bfa"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <rect x="3" y="3" width="7" height="7" rx="1" />
-                  <rect x="14" y="3" width="7" height="7" rx="1" />
-                  <rect x="3" y="14" width="7" height="7" rx="1" />
-                  <rect x="14" y="14" width="7" height="7" rx="1" />
-                </svg>
-                <span
-                  style={{ fontWeight: 700, fontSize: 16, color: "#e6edf7" }}
-                >
-                  Recent Posts
-                </span>
-              </div>
-            </div>
-
-            {recentPosts.length > 0 ? (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-                  gap: 16,
-                }}
-              >
-                {recentPosts.map((post) => (
-                  <div
-                    key={post.id}
-                    onClick={() => setSelectedPost(post)}
-                    style={{
-                      background: "#0b1220",
-                      borderRadius: 12,
-                      overflow: "hidden",
-                      cursor: "pointer",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      transition: "all 0.2s ease",
-                    }}
-                    className="hover-card"
-                  >
-                    <div
-                      style={{
-                        width: "100%",
-                        aspectRatio: "1",
-                        backgroundImage: postImages[post.id]
-                          ? `url(${postImages[post.id]})`
-                          : "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      {!postImages[post.id] && (
-                        <svg
-                          width="32"
-                          height="32"
-                          fill="none"
-                          stroke="rgba(255,255,255,0.2)"
-                          strokeWidth="1.5"
-                          viewBox="0 0 24 24"
-                        >
-                          <rect x="3" y="3" width="18" height="18" rx="2" />
-                          <circle cx="8.5" cy="8.5" r="1.5" />
-                          <path d="M21 15l-5-5L5 21" />
-                        </svg>
-                      )}
-                    </div>
-                    <div style={{ padding: 10 }}>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: "#a78bfa",
-                          marginBottom: 4,
-                        }}
-                      >
-                        {post.postType}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          color: "rgba(255,255,255,0.5)",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          marginBottom: 8,
-                        }}
-                      >
-                        {post.caption.slice(0, 40)}...
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedPost(post);
-                        }}
-                        style={{
-                          width: "100%",
-                          background: "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(124, 58, 237, 0.2) 100%)",
-                          border: "1px solid rgba(44, 107, 237, 0.3)",
-                          borderRadius: 6,
-                          color: "#7eb3ff",
-                          padding: "7px 8px",
-                          fontSize: 11,
-                          fontWeight: 700,
-                          cursor: "pointer",
-                          transition: "all 0.15s ease",
-                        }}
-                        className="hover-btn"
-                      >
-                        Manage Post
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "40px 20px",
-                  color: "rgba(255,255,255,0.5)",
-                }}
-              >
-                <svg
-                  width="48"
-                  height="48"
-                  fill="none"
-                  stroke="rgba(255,255,255,0.2)"
-                  strokeWidth="1.5"
-                  viewBox="0 0 24 24"
-                  style={{ margin: "0 auto 12px" }}
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <circle cx="8.5" cy="8.5" r="1.5" />
-                  <path d="M21 15l-5-5L5 21" />
-                </svg>
-                <div style={{ fontSize: 14, marginBottom: 8 }}>
-                  No posts yet
-                </div>
-                <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 16 }}>
-                  Generate your first post to see it here
-                </div>
-                <button
-                  style={{
-                    background: "#2c6bed",
-                    border: "none",
-                    borderRadius: 10,
-                    padding: "12px 24px",
-                    color: "#fff",
-                    fontSize: 13,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                  }}
-                  onClick={() => router.push("/generator")}
-                  className="hover-btn-primary"
-                >
-                  Generate Your First Post
-                </button>
-              </div>
-            )}
-          </div>
+        {/* Social Medias column: Instagram + Facebook */}
+        <div style={{ display: "flex", flexDirection: "column" as const, gap: 12, flex: 1 }} className="dash-social-col">
 
         {/* Instagram Connection */}
         <div
@@ -1663,10 +1480,95 @@ export default function DashboardPage() {
         </div>
 
         </div>{/* end dash-social-col */}
+
+        {/* Recent Posts column */}
+        <div style={{ flex: 1 }}>
+          <div
+            style={{
+              background: "linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%)",
+              border: "1px solid rgba(124, 58, 237, 0.2)",
+              borderRadius: 16,
+              padding: 24,
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <svg width="20" height="20" fill="none" stroke="#a78bfa" strokeWidth="2" viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="7" height="7" rx="1" />
+                  <rect x="14" y="3" width="7" height="7" rx="1" />
+                  <rect x="3" y="14" width="7" height="7" rx="1" />
+                  <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+                <span style={{ fontWeight: 700, fontSize: 16, color: "#e6edf7" }}>Recent Posts</span>
+              </div>
+            </div>
+
+            {recentPosts.length > 0 ? (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 16 }}>
+                {recentPosts.map((post) => (
+                  <div
+                    key={post.id}
+                    onClick={() => setSelectedPost(post)}
+                    style={{ background: "#0b1220", borderRadius: 12, overflow: "hidden", cursor: "pointer", border: "1px solid rgba(255,255,255,0.08)", transition: "all 0.2s ease" }}
+                    className="hover-card"
+                  >
+                    <div
+                      style={{
+                        width: "100%", aspectRatio: "1",
+                        backgroundImage: postImages[post.id] ? `url(${postImages[post.id]})` : "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
+                        backgroundSize: "cover", backgroundPosition: "center",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}
+                    >
+                      {!postImages[post.id] && (
+                        <svg width="32" height="32" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" viewBox="0 0 24 24">
+                          <rect x="3" y="3" width="18" height="18" rx="2" />
+                          <circle cx="8.5" cy="8.5" r="1.5" />
+                          <path d="M21 15l-5-5L5 21" />
+                        </svg>
+                      )}
+                    </div>
+                    <div style={{ padding: 10 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: "#a78bfa", marginBottom: 4 }}>{post.postType}</div>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 8 }}>
+                        {post.caption.slice(0, 40)}...
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setSelectedPost(post); }}
+                        style={{ width: "100%", background: "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(124, 58, 237, 0.2) 100%)", border: "1px solid rgba(44, 107, 237, 0.3)", borderRadius: 6, color: "#7eb3ff", padding: "7px 8px", fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "all 0.15s ease" }}
+                        className="hover-btn"
+                      >
+                        Manage Post
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ textAlign: "center", padding: "40px 20px", color: "rgba(255,255,255,0.5)" }}>
+                <svg width="48" height="48" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" viewBox="0 0 24 24" style={{ margin: "0 auto 12px" }}>
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <path d="M21 15l-5-5L5 21" />
+                </svg>
+                <div style={{ fontSize: 14, marginBottom: 8 }}>No posts yet</div>
+                <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 16 }}>Generate your first post to see it here</div>
+                <button
+                  style={{ background: "#2c6bed", border: "none", borderRadius: 10, padding: "12px 24px", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", transition: "all 0.15s ease" }}
+                  onClick={() => router.push("/generator")}
+                  className="hover-btn-primary"
+                >
+                  Generate Your First Post
+                </button>
+              </div>
+            )}
+          </div>
+        </div>{/* end Recent Posts column */}
+
         </div>{/* end dash-side-by-side */}
 
         {/* Main Actions - Enhanced Cards */}
-        <div style={styles.section}>
+        <div style={{ ...styles.section, order: 0, marginBottom: 0 }}>
           <div style={styles.actionGrid} className="ath-actionGrid">
             {/* Generate a Post Card */}
             <div
@@ -2018,6 +1920,8 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        </div>{/* end flex-column wrapper */}
 
         {/* Post Detail Modal */}
         {selectedPost && (
