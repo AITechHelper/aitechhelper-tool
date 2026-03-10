@@ -416,7 +416,7 @@ export default function DashboardPage() {
     },
     actionGrid: {
       display: "grid",
-      gridTemplateColumns: "repeat(2, 1fr)",
+      gridTemplateColumns: "repeat(3, 1fr)",
       gap: 16,
     },
     actionCard: {
@@ -1743,51 +1743,85 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Media Library section */}
-        <div style={{ ...styles.section, marginTop: 28 }}>
-          <div
-            style={{
-              background: "linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.04) 100%)",
-              border: "1px solid rgba(16, 185, 129, 0.18)",
-              borderRadius: 16,
-              padding: "20px 24px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 16,
-              flexWrap: "wrap" as const,
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <div style={{
-                width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-                background: "linear-gradient(135deg, rgba(16,185,129,0.25), rgba(16,185,129,0.12))",
-                border: "1px solid rgba(16,185,129,0.3)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <svg width="22" height="22" fill="none" stroke="#6ee7b7" strokeWidth="1.8" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 3 }}>Media Library</div>
-                <div style={{ fontSize: 13, opacity: 0.6 }}>Upload photos and plan posts from your own images</div>
-              </div>
-            </div>
+            {/* Media Library Card */}
             <div
               style={{
-                background: "linear-gradient(135deg, #10b981, #059669)",
-                borderRadius: 10, padding: "10px 20px",
-                color: "#fff", fontSize: 13, fontWeight: 700,
-                cursor: "pointer", boxShadow: "0 4px 14px rgba(16,185,129,0.3)",
-                whiteSpace: "nowrap" as const,
+                ...styles.actionCard,
+                padding: 0,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column" as const,
               }}
+              className="primary-action-card hover-card"
               onClick={() => router.push("/media")}
             >
-              Open Library →
+              {/* Card Header */}
+              <div
+                style={{
+                  background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                  padding: "24px 24px 20px",
+                  textAlign: "center" as const,
+                }}
+              >
+                <div style={{ fontSize: 48, marginBottom: 8 }}>🖼️</div>
+                <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
+                  Media Library
+                </div>
+                <div style={{ fontSize: 13, opacity: 0.85 }}>
+                  Post with your own photos
+                </div>
+              </div>
+
+              {/* Card Body */}
+              <div
+                style={{
+                  padding: "20px 24px 24px",
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column" as const,
+                }}
+              >
+                <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.5, marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: 1 }}>
+                  What you get
+                </div>
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, marginBottom: 20 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 16 }}>📸</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>Upload your own photos to a media bank</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 16 }}>✍️</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>AI writes the caption and hashtags for you</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 16 }}>🎨</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>Raw, text overlay, or branded treatment</span>
+                  </div>
+                </div>
+
+                <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.5, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: 1 }}>
+                  Best for
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.7, lineHeight: 1.5, marginBottom: 20 }}>
+                  You already have great photos and just need the caption, hashtags, and a calendar slot.
+                </div>
+
+                <div
+                  style={{
+                    marginTop: "auto",
+                    background: "#10b981",
+                    borderRadius: 10,
+                    padding: "14px 20px",
+                    textAlign: "center" as const,
+                    fontWeight: 700,
+                    fontSize: 14,
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  Open Library →
+                </div>
+              </div>
             </div>
           </div>
         </div>
