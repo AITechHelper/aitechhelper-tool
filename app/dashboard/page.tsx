@@ -427,7 +427,7 @@ export default function DashboardPage() {
       cursor: "pointer",
       transition: "all 0.15s ease",
       textAlign: "center" as const,
-      boxShadow: "0 6px 18px rgba(0,0,0,0.35), 0 2px 6px rgba(44,107,237,0.1)",
+      boxShadow: "0 6px 18px rgba(0,0,0,0.35), 0 0 30px rgba(44,107,237,0.15)",
     },
     secondaryActionCard: {
       background: "#101a33",
@@ -1327,6 +1327,7 @@ export default function DashboardPage() {
             justifyContent: "space-between",
             flexWrap: "wrap" as const,
             gap: 12,
+            boxShadow: "0 0 30px rgba(44, 107, 237, 0.15)",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -1414,6 +1415,7 @@ export default function DashboardPage() {
             justifyContent: "space-between",
             flexWrap: "wrap" as const,
             gap: 12,
+            boxShadow: "0 0 30px rgba(44, 107, 237, 0.15)",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -1488,6 +1490,7 @@ export default function DashboardPage() {
               background: "linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%)",
               border: "1px solid rgba(124, 58, 237, 0.2)",
               borderRadius: 16,
+              boxShadow: "0 0 30px rgba(44, 107, 237, 0.15)",
               padding: 24,
             }}
           >
