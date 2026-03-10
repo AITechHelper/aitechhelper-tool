@@ -981,7 +981,7 @@ export default function DashboardPage() {
         <div style={{ display: "flex", flexDirection: "column" as const }}>
 
         {/* 3-col section: Brand Profile | Social Medias | Recent Posts */}
-        <div style={{ display: "flex", gap: 20, alignItems: "flex-start", order: 1, marginTop: 40 }} className="dash-side-by-side">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, order: 1, marginTop: 40 }} className="dash-side-by-side">
 
         {/* Brand Profiles section - always show */}
         <div style={{ ...styles.heroSection, flex: 1, marginBottom: 0 }} className="primary-section">
@@ -1312,7 +1312,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Social Medias column: Instagram + Facebook */}
-        <div style={{ display: "flex", flexDirection: "column" as const, gap: 12, flex: 1 }} className="dash-social-col">
+        <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }} className="dash-social-col">
 
         {/* Instagram Connection */}
         <div
@@ -1482,7 +1482,7 @@ export default function DashboardPage() {
         </div>{/* end dash-social-col */}
 
         {/* Recent Posts column */}
-        <div style={{ flex: 1 }}>
+        <div>
           <div
             style={{
               background: "linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%)",
