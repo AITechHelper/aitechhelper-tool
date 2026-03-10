@@ -52,6 +52,12 @@ const nicheOptions = [
 // Post types with icons and short descriptions
 const postTypes = [
   {
+    value: "Generic Post",
+    icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9",
+    desc: "Any niche, any style",
+    tooltip: "A flexible, general-purpose post for any business or niche. AI decides the format.",
+  },
+  {
     value: "Everyday Post",
     icon: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z",
     desc: "Daily brand presence",
@@ -1244,27 +1250,18 @@ export default function Page() {
             <div style={styles.card} className="hover-card">
               <h2 style={styles.cardTitle}>Your Business</h2>
               <p style={styles.cardHint}>Tell us about your business and audience</p>
-              {/* Niche cards */}
+              {/* Niche input */}
               <div style={styles.field}>
                 <div style={styles.label}>
                   Your Niche <span style={styles.pill}>Required</span>
                 </div>
-                <div style={styles.nicheCardGrid} className="ath-nicheCardGrid">
-                  {nicheOptions.map((n) => (
-                    <div
-                      key={n.value}
-                      style={{ ...styles.nicheCard, ...(form.niche === n.value ? styles.nicheCardSelected : {}) }}
-                      onClick={() => updateForm("niche", n.value)}
-                      className="hover-card-item"
-                    >
-                      <svg style={{ width: 28, height: 28, opacity: 0.85, flexShrink: 0 }} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d={n.icon} />
-                      </svg>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#e6edf7" }}>{n.label}</div>
-                      <div style={{ fontSize: 11, opacity: 0.55 }}>{n.desc}</div>
-                    </div>
-                  ))}
-                </div>
+                <input
+                  style={styles.input}
+                  value={form.niche}
+                  onChange={(e) => updateForm("niche", e.target.value)}
+                  placeholder='e.g., "Real Estate Agent", "Fitness Coach", "Restaurant Owner"'
+                  className="hover-input"
+                />
               </div>
               {/* Audience */}
               <div style={styles.field}>
