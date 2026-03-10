@@ -80,12 +80,16 @@ export async function getTokenStatus(userId: string): Promise<TokenStatus> {
 
   // Sync allowance if plan changed mid-month (e.g. upgrade/downgrade or leaving test mode)
   if (row.allowance !== allowance) {
+    // On upgrade, reset usage so the user starts fresh on their new plan.
+    // On downgrade, preserve usage (remaining is just clamped to the lower allowance).
+    const isUpgrade = allowance > row.allowance;
+    const newUsed = isUpgrade ? 0 : row.used;
     await sql`
       UPDATE user_tokens
-      SET allowance = ${allowance}, updated_at = NOW()
+      SET allowance = ${allowance}, used = ${newUsed}, updated_at = NOW()
       WHERE user_id = ${userId}
     `;
-    return { allowance, used: row.used, remaining: allowance - row.used, plan };
+    return { allowance, used: newUsed, remaining: allowance - newUsed, plan };
   }
 
   return { allowance: row.allowance, used: row.used, remaining: row.allowance - row.used, plan };
