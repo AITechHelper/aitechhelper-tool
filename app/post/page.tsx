@@ -188,6 +188,7 @@ export default function PostPage() {
   const [profileId, setProfileId] = useState<string | null>(null);
   const [pillarType, setPillarType] = useState<string>("");
   const [userThought, setUserThought] = useState<string>("");
+  const [imageDescription, setImageDescription] = useState<string>("");
   const [formReady, setFormReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string>("Preparing…");
@@ -329,6 +330,9 @@ export default function PostPage() {
 
       const userThoughtParam = params.get("userThought");
       if (userThoughtParam) setUserThought(userThoughtParam);
+
+      const imageDescriptionParam = params.get("imageDescription");
+      if (imageDescriptionParam) setImageDescription(imageDescriptionParam);
 
       // Mark form as ready after URL params are loaded
       setFormReady(true);
@@ -477,6 +481,7 @@ export default function PostPage() {
       profileId: activeProfileId || "default",
       ...(pillarType ? { pillarType } : {}),
       ...(userThought ? { userThought } : {}),
+      ...(imageDescription ? { imageDescription } : {}),
       ...(refinementOverride
         ? {
             refinementText: refinementOverride,

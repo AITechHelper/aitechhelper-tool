@@ -60,6 +60,9 @@ type Body = {
 
   // Optional personal thought to weave naturally into the caption body
   userThought?: string;
+
+  // Optional image scene description from the user to guide scene_plan generation
+  imageDescription?: string;
 };
 
 type PostTypeGuidance = {
@@ -798,6 +801,7 @@ export async function POST(req: Request) {
     const postType = body.goal?.trim() || "Basic post";
     const specific = String(body.specificRequest || "").trim();
     const userThought = String(body.userThought || "").trim();
+    const imageDescription = String(body.imageDescription || "").trim();
 
     const maxCaptionChars = captionMax(body.captionLength);
     const hashtagCount = clampInt(Number(body.hashtagCount ?? 12), 0, 30);
@@ -915,6 +919,7 @@ Rules for scene_plan:
 - If unsure, choose a generic lifestyle/service/action scene that represents the niche.
 ${pillarEnrichment ? `\nNICHE TEMPLATE CONTEXT (follow these pillar-specific guidelines):\n${pillarEnrichment}` : ""}
 ${userThought ? `\nUSER PERSONAL THOUGHT — integrate this naturally and authentically into the BODY of the caption. Do NOT quote it verbatim. Do NOT make it sound forced. Weave it in as if the author is speaking from experience:\n"${userThought}"` : ""}
+${imageDescription ? `\nIMAGE SCENE DIRECTION — when generating scene_plan, base it on this description from the user: "${imageDescription}". Stay faithful to this visual but ensure it still obeys all ImageStyle rules.` : ""}
 `;
 
     const textResp = await client.responses.create({

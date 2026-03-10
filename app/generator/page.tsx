@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { imageStyles } from "../lib/imageStyleOptions";
+import { getTemplate } from "../lib/nicheTemplates";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
@@ -10,6 +11,7 @@ type FormState = {
   niche: string;
   audience: string;
   postType: string;
+  pillarType?: string;
   specificRequest: string;
   tone: string;
   captionLength: "Short" | "Medium" | "Long";
@@ -17,12 +19,6 @@ type FormState = {
   imageStyle: string;
   primaryColor: string;
   secondaryColor: string;
-};
-
-type UploadRef = {
-  name: string;
-  mime: string;
-  dataUrl: string;
 };
 
 // Common niche suggestions
@@ -312,6 +308,7 @@ export default function Page() {
     niche: "Real Estate Agent",
     audience: "",
     postType: "Everyday Post",
+    pillarType: undefined,
     specificRequest: "",
     tone: "Confident",
     captionLength: "Medium",
@@ -321,8 +318,8 @@ export default function Page() {
     secondaryColor: "#ffffff",
   });
 
-  const [uploadRef, setUploadRef] = useState<UploadRef | null>(null);
-  const [uploadError, setUploadError] = useState<string>("");
+  const [imageDescription, setImageDescription] = useState<string>("");
+  const [hasBrandProfile, setHasBrandProfile] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState<string>("");
@@ -344,10 +341,6 @@ export default function Page() {
   const [showNicheSuggestions, setShowNicheSuggestions] = useState(false);
   const [filteredNiches, setFilteredNiches] = useState<string[]>([]);
   const nicheInputRef = useRef<HTMLInputElement>(null);
-
-  // Drag and drop
-  const [isDragging, setIsDragging] = useState(false);
-  const dropRef = useRef<HTMLDivElement>(null);
 
   // Specific request input ref + pulse animation
   const specificRequestRef = useRef<HTMLInputElement>(null);
@@ -430,6 +423,9 @@ export default function Page() {
           updates.hashtagCount = brandData.hashtagCount;
         if (brandData.imageStyle) updates.imageStyle = brandData.imageStyle;
       } catch {}
+      // Skip step 0 (Business) since brand profile already has those answers
+      setHasBrandProfile(true);
+      setCurrentStep(1);
     }
 
     // Apply all updates if any exist
@@ -468,6 +464,18 @@ export default function Page() {
       setFilteredNiches(nicheSuggestions.slice(0, 6));
     }
   }, [form.niche]);
+
+  // Niche-to-template-key mapping — only recognized niches get pillar-based post types
+  const NICHE_TEMPLATE_MAP: Record<string, string> = {
+    "Real Estate Agent": "realtor",
+    "Fitness Coach": "fitness",
+    "Restaurant Owner": "restaurant",
+  };
+
+  const nicheTemplateKey = NICHE_TEMPLATE_MAP[form.niche];
+  const activeTemplate = nicheTemplateKey ? getTemplate(nicheTemplateKey) : null;
+  const activePillars = activeTemplate ? activeTemplate.pillars : null;
+  const activeWeeklyStructure = activeTemplate ? activeTemplate.weeklyStructure : null;
 
   const canGenerate = useMemo(() => {
     const hasRequiredFields =
@@ -518,7 +526,12 @@ export default function Page() {
   const goToNextStep = () => {
     if (currentStep < totalSteps - 1 && isStepComplete(currentStep)) {
       setSlideDirection("left");
-      setCurrentStep(currentStep + 1);
+      // When brand profile active, skip the pre-filled steps (2, 3, 4)
+      if (hasBrandProfile && currentStep === 1) {
+        setCurrentStep(5);
+      } else {
+        setCurrentStep(currentStep + 1);
+      }
       scrollToTopInParent();
     }
   };
@@ -526,7 +539,14 @@ export default function Page() {
   const goToPrevStep = () => {
     if (currentStep > 0) {
       setSlideDirection("right");
-      setCurrentStep(currentStep - 1);
+      // When brand profile active, skip back over pre-filled steps
+      if (hasBrandProfile && currentStep === 5) {
+        setCurrentStep(1);
+      } else if (hasBrandProfile && currentStep === 1) {
+        // stay at 1 (no step 0 to go back to when brand profile active)
+      } else {
+        setCurrentStep(currentStep - 1);
+      }
       scrollToTopInParent();
     }
   };
@@ -535,8 +555,8 @@ export default function Page() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  function handlePostTypeSelect(value: string) {
-    updateForm("postType", value);
+  function handlePostTypeSelect(value: string, pillarId?: string) {
+    setForm((prev) => ({ ...prev, postType: value, pillarType: pillarId }));
     // Scroll to + focus the specific request input so users fill it out
     setTimeout(() => {
       const wrap = specificRequestWrapRef.current;
@@ -552,49 +572,6 @@ export default function Page() {
     }, 60);
   }
 
-  // Handle file from input or drop
-  function handleFile(file: File) {
-    setUploadError("");
-    if (!file.type.startsWith("image/")) {
-      setUploadError("Please upload an image file.");
-      return;
-    }
-    if (file.size > 2 * 1024 * 1024) {
-      setUploadError("Image too large. Max 2MB.");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () =>
-      setUploadRef({
-        name: file.name,
-        mime: file.type,
-        dataUrl: String(reader.result || ""),
-      });
-    reader.onerror = () => setUploadError("Failed to read image.");
-    reader.readAsDataURL(file);
-  }
-
-  async function handleUploadChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) handleFile(file);
-  }
-
-  // Drag and drop handlers
-  function handleDragOver(e: React.DragEvent) {
-    e.preventDefault();
-    setIsDragging(true);
-  }
-  function handleDragLeave(e: React.DragEvent) {
-    e.preventDefault();
-    setIsDragging(false);
-  }
-  function handleDrop(e: React.DragEvent) {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) handleFile(file);
-  }
-
   async function generatePost() {
     setIsLoading(true);
     setErrorMsg("");
@@ -605,7 +582,9 @@ export default function Page() {
       sp.set("audience", form.audience);
       sp.set("postType", form.postType);
       sp.set("goal", form.postType);
+      if (form.pillarType) sp.set("pillarType", form.pillarType);
       if (form.specificRequest) sp.set("specificRequest", form.specificRequest);
+      if (imageDescription.trim()) sp.set("imageDescription", imageDescription.trim());
       sp.set("tone", form.tone);
       sp.set("captionLength", form.captionLength);
       sp.set("hashtagCount", String(form.hashtagCount));
@@ -615,29 +594,6 @@ export default function Page() {
       if (dayContext?.day) sp.set("day", dayContext.day);
       if (dayContext?.title) sp.set("title", dayContext.title);
       if (dayContext?.detail) sp.set("detail", dayContext.detail);
-      if (uploadRef?.dataUrl) {
-        try {
-          sessionStorage.setItem(
-            "ath_reference_image_dataurl",
-            uploadRef.dataUrl
-          );
-          sessionStorage.setItem(
-            "ath_reference_image_name",
-            uploadRef.name || ""
-          );
-          sessionStorage.setItem(
-            "ath_reference_image_mime",
-            uploadRef.mime || ""
-          );
-          sp.set("hasRef", "1");
-        } catch {}
-      } else {
-        try {
-          sessionStorage.removeItem("ath_reference_image_dataurl");
-          sessionStorage.removeItem("ath_reference_image_name");
-          sessionStorage.removeItem("ath_reference_image_mime");
-        } catch {}
-      }
       sp.set("autogen", "1");
       // Generate unique genId for this post generation
       const genId =
@@ -1305,16 +1261,19 @@ export default function Page() {
           }}
         >
           <div style={styles.stepIndicator}>
-            {Array.from({ length: totalSteps }).map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  ...styles.stepDot,
-                  ...(i === currentStep ? styles.stepDotActive : {}),
-                  ...(i < currentStep ? styles.stepDotCompleted : {}),
-                }}
-              />
-            ))}
+            {Array.from({ length: totalSteps }).map((_, i) => {
+              const isSkipped = hasBrandProfile && [0, 2, 3, 4].includes(i);
+              return (
+                <div
+                  key={i}
+                  style={{
+                    ...styles.stepDot,
+                    ...(i === currentStep ? styles.stepDotActive : {}),
+                    ...(i < currentStep || isSkipped ? styles.stepDotCompleted : {}),
+                  }}
+                />
+              );
+            })}
           </div>
         </div>
 
@@ -1455,40 +1414,77 @@ export default function Page() {
             <div style={styles.card} className="hover-card">
               <h2 style={styles.cardTitle}>Post Type</h2>
               <p style={styles.cardHint}>
-                What kind of post do you want to create?
+                {activePillars
+                  ? "Choose a content pillar for today's post"
+                  : "What kind of post do you want to create?"}
               </p>
               <div style={styles.postTypeGrid} className="ath-postTypeGrid">
-                {postTypes.map((pt) => (
-                  <Tooltip key={pt.value} text={pt.tooltip}>
-                    <div
-                      style={{
-                        ...styles.postTypeCard,
-                        ...(form.postType === pt.value
-                          ? styles.postTypeCardSelected
-                          : {}),
-                      }}
-                      onClick={() => handlePostTypeSelect(pt.value)}
-                      className="hover-card-item"
-                    >
-                      <svg
-                        style={styles.postTypeIcon}
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        viewBox="0 0 24 24"
+                {activePillars && activeWeeklyStructure ? (
+                  activeWeeklyStructure.map((pillarId) => {
+                    const pillar = activePillars[pillarId];
+                    if (!pillar) return null;
+                    const isSelected = form.pillarType === pillarId;
+                    return (
+                      <div
+                        key={pillarId}
+                        style={{
+                          ...styles.postTypeCard,
+                          ...(isSelected ? styles.postTypeCardSelected : {}),
+                        }}
+                        onClick={() => handlePostTypeSelect(pillar.postTypeHint, pillarId)}
+                        className="hover-card-item"
+                        title={pillar.detail}
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d={pt.icon}
-                        />
-                      </svg>
-                      <div style={styles.postTypeName}>
-                        {pt.value.split(" / ")[0]}
+                        <svg
+                          style={styles.postTypeIcon}
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
+                        <div style={styles.postTypeName}>{pillar.label}</div>
                       </div>
-                    </div>
-                  </Tooltip>
-                ))}
+                    );
+                  })
+                ) : (
+                  postTypes.map((pt) => (
+                    <Tooltip key={pt.value} text={pt.tooltip}>
+                      <div
+                        style={{
+                          ...styles.postTypeCard,
+                          ...(form.postType === pt.value
+                            ? styles.postTypeCardSelected
+                            : {}),
+                        }}
+                        onClick={() => handlePostTypeSelect(pt.value)}
+                        className="hover-card-item"
+                      >
+                        <svg
+                          style={styles.postTypeIcon}
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d={pt.icon}
+                          />
+                        </svg>
+                        <div style={styles.postTypeName}>
+                          {pt.value.split(" / ")[0]}
+                        </div>
+                      </div>
+                    </Tooltip>
+                  ))
+                )}
               </div>
 
               {specificUI.show && (
@@ -1528,27 +1524,31 @@ export default function Page() {
               )}
               {/* Navigation */}
               <div style={styles.stepNavigation}>
-                <button
-                  style={styles.backBtn}
-                  onClick={goToPrevStep}
-                  className="hover-btn"
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
+                {hasBrandProfile ? (
+                  <div />
+                ) : (
+                  <button
+                    style={styles.backBtn}
+                    onClick={goToPrevStep}
+                    className="hover-btn"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
-                  Back
-                </button>
+                    <svg
+                      width="16"
+                      height="16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15 19l-7-7 7-7"
+                      />
+                    </svg>
+                    Back
+                  </button>
+                )}
                 <button
                   style={{
                     ...styles.nextBtn,
@@ -1977,86 +1977,35 @@ export default function Page() {
           </div>
         )}
 
-        {/* Step 5: Reference Image - Drag & Drop */}
+        {/* Step 5: Image Description */}
         {currentStep === 5 && (
           <div
             key={`step-5-${slideDirection}`}
             className={`slide-card ${slideDirection === "left" ? "slide-from-right" : "slide-from-left"}`}
           >
             <div style={styles.card} className="hover-card">
-              <h2 style={styles.cardTitle}>Reference Image</h2>
+              <h2 style={styles.cardTitle}>Image Description</h2>
               <p style={styles.cardHint}>
-                Optional: Upload an image for visual inspiration
+                Describe what you want the image to show — or leave blank to let AI decide
               </p>
 
-              <div
-                ref={dropRef}
-                style={{
-                  ...styles.dropZone,
-                  ...(isDragging ? styles.dropZoneActive : {}),
-                }}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => document.getElementById("file-input")?.click()}
-              >
-                <input
-                  id="file-input"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleUploadChange}
-                  style={{ display: "none" }}
+              <div style={styles.field}>
+                <textarea
+                  style={{
+                    ...styles.input,
+                    minHeight: 100,
+                    resize: "vertical",
+                    fontFamily: "inherit",
+                  } as React.CSSProperties}
+                  value={imageDescription}
+                  onChange={(e) => setImageDescription(e.target.value)}
+                  placeholder='e.g., "A couple touring a bright, modern kitchen with large windows" or "A confident agent reviewing documents at a desk"'
+                  className="hover-input"
                 />
-                <svg
-                  width="40"
-                  height="40"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  viewBox="0 0 24 24"
-                  style={{ opacity: 0.5, marginBottom: 8 }}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>
-                  {isDragging ? "Drop image here" : "Drag & drop an image here"}
-                </div>
-                <div style={{ fontSize: 12, opacity: 0.6 }}>
-                  or click to browse (max 2MB)
+                <div style={{ marginTop: 6, fontSize: 11, opacity: 0.6 }}>
+                  Optional — leave blank and AI will pick a scene that fits your post type.
                 </div>
               </div>
-
-              {uploadRef && (
-                <div style={{ marginTop: 12 }}>
-                  <img
-                    src={uploadRef.dataUrl}
-                    alt="Reference"
-                    style={{
-                      width: "100%",
-                      maxHeight: 150,
-                      objectFit: "cover",
-                      borderRadius: 10,
-                      border: "1px solid rgba(255,255,255,0.1)",
-                    }}
-                  />
-                  <button
-                    style={{
-                      ...styles.secondaryBtn,
-                      marginTop: 8,
-                      width: "100%",
-                    }}
-                    onClick={() => setUploadRef(null)}
-                    className="hover-btn"
-                  >
-                    Remove
-                  </button>
-                </div>
-              )}
-              {uploadError && <div style={styles.danger}>{uploadError}</div>}
 
               {dayContext && (
                 <div
@@ -2078,7 +2027,11 @@ export default function Page() {
                 <div style={styles.previewGrid}>
                   <div style={styles.previewItem}>
                     <div style={styles.previewLabel}>Post Type</div>
-                    <div style={styles.previewValue}>{form.postType}</div>
+                    <div style={styles.previewValue}>
+                      {form.pillarType && activePillars?.[form.pillarType]
+                        ? activePillars[form.pillarType].label
+                        : form.postType}
+                    </div>
                   </div>
                   <div style={styles.previewItem}>
                     <div style={styles.previewLabel}>Image Style</div>
