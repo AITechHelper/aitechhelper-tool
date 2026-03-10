@@ -1492,7 +1492,10 @@ export default function DashboardPage() {
                 flexDirection: "column" as const,
               }}
               className="primary-action-card hover-card"
-              onClick={() => { setNavLoading("generator"); router.push("/generator"); }}
+              onClick={() => {
+                if (!tokenBalance.isLoading && tokenBalance.tokensRemaining === 0) { router.push("/subscribe"); return; }
+                setNavLoading("generator"); router.push("/generator");
+              }}
             >
               {/* Card Header with gradient */}
               <div
@@ -1622,6 +1625,7 @@ export default function DashboardPage() {
               }}
               className="primary-action-card hover-card"
               onClick={() => {
+                if (!tokenBalance.isLoading && tokenBalance.tokensRemaining === 0) { router.push("/subscribe"); return; }
                 setNavLoading("calendar");
                 const activeProfile = profiles.find(p => p.id === activeProfileId);
                 router.push(getNicheCalendarPath(activeProfile?.niche ?? ""));
@@ -1754,7 +1758,10 @@ export default function DashboardPage() {
                 flexDirection: "column" as const,
               }}
               className="primary-action-card hover-card"
-              onClick={() => router.push("/media")}
+              onClick={() => {
+                if (!tokenBalance.isLoading && tokenBalance.tokensRemaining === 0) { router.push("/subscribe"); return; }
+                router.push("/media");
+              }}
             >
               {/* Card Header */}
               <div
