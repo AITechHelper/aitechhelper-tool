@@ -21,48 +21,26 @@ type FormState = {
   secondaryColor: string;
 };
 
-// Common niche suggestions
-const nicheSuggestions = [
-  "Coffee Shop",
-  "Restaurant",
-  "Personal Trainer",
-  "Real Estate Agent",
-  "Hair Salon",
-  "Dentist",
-  "Chiropractor",
-  "Law Firm",
-  "Accounting Firm",
-  "Marketing Agency",
-  "Web Design Agency",
-  "Photography Studio",
-  "Yoga Studio",
-  "Gym",
-  "Spa",
-  "Auto Repair Shop",
-  "Landscaping",
-  "Plumber",
-  "Electrician",
-  "HVAC",
-  "Pet Grooming",
-  "Veterinarian",
-  "Bakery",
-  "Food Truck",
-  "Catering",
-  "Clothing Boutique",
-  "Jewelry Store",
-  "Florist",
-  "Interior Designer",
-  "Architect",
-  "Life Coach",
-  "Business Consultant",
-  "Financial Advisor",
-  "Insurance Agent",
-  "Mortgage Broker",
-  "AI Agency",
-  "SaaS Company",
-  "E-commerce Store",
-  "Podcast",
-  "YouTube Channel",
+// Supported niche options
+const nicheOptions = [
+  {
+    value: "Real Estate Agent",
+    icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
+    label: "Real Estate Agent",
+    desc: "Realtors & brokers",
+  },
+  {
+    value: "Fitness Coach",
+    icon: "M13 10V3L4 14h7v7l9-11h-7z",
+    label: "Fitness Coach",
+    desc: "Trainers & coaches",
+  },
+  {
+    value: "Restaurant Owner",
+    icon: "M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z",
+    label: "Restaurant Owner",
+    desc: "Restaurants & cafes",
+  },
 ];
 
 // Post types with icons and short descriptions
@@ -337,10 +315,6 @@ export default function Page() {
     "left"
   );
 
-  // Niche autocomplete
-  const [showNicheSuggestions, setShowNicheSuggestions] = useState(false);
-  const [filteredNiches, setFilteredNiches] = useState<string[]>([]);
-  const nicheInputRef = useRef<HTMLInputElement>(null);
 
   // Specific request input ref + pulse animation
   const specificRequestRef = useRef<HTMLInputElement>(null);
@@ -453,18 +427,6 @@ export default function Page() {
     generatePost();
   }, [autogenRequested, dayContext, form.niche, form.audience]);
 
-  // Filter niche suggestions
-  useEffect(() => {
-    if (form.niche.length > 0) {
-      const filtered = nicheSuggestions
-        .filter((n) => n.toLowerCase().includes(form.niche.toLowerCase()))
-        .slice(0, 6);
-      setFilteredNiches(filtered);
-    } else {
-      setFilteredNiches(nicheSuggestions.slice(0, 6));
-    }
-  }, [form.niche]);
-
   // Niche-to-template-key mapping — only recognized niches get pillar-based post types
   const NICHE_TEMPLATE_MAP: Record<string, string> = {
     "Real Estate Agent": "realtor",
@@ -490,8 +452,8 @@ export default function Page() {
     tokenBalance.tokensRemaining,
   ]);
 
-  // Step definitions: 0=Business, 1=PostType, 2=ImageStyle, 3=CaptionSettings, 4=BrandColors, 5=ReferenceImage
-  const totalSteps = 6;
+  // Step definitions: 0=Business, 1=PostType, 2=ImageStyle, 3=CaptionSettings, 4=BrandColors, 5=ImageDescription, 6=Review
+  const totalSteps = 7;
 
   const isStepComplete = (step: number): boolean => {
     switch (step) {
@@ -768,6 +730,31 @@ export default function Page() {
       fontSize: 11,
       opacity: 0.6,
       background: "rgba(0,0,0,0.2)",
+    },
+
+    // Niche selection cards
+    nicheCardGrid: {
+      display: "grid",
+      gridTemplateColumns: "repeat(3, 1fr)",
+      gap: 12,
+      marginBottom: 4,
+    },
+    nicheCard: {
+      background: "rgba(255,255,255,0.03)",
+      border: "1px solid rgba(255,255,255,0.08)",
+      borderRadius: 14,
+      padding: "20px 12px",
+      cursor: "pointer",
+      transition: "all 0.15s ease",
+      textAlign: "center" as const,
+      display: "flex",
+      flexDirection: "column" as const,
+      alignItems: "center",
+      gap: 8,
+    },
+    nicheCardSelected: {
+      background: "rgba(44, 107, 237, 0.15)",
+      border: "1px solid rgba(44, 107, 237, 0.5)",
     },
 
     // Post type cards
@@ -1263,13 +1250,14 @@ export default function Page() {
           <div style={styles.stepIndicator}>
             {Array.from({ length: totalSteps }).map((_, i) => {
               const isSkipped = hasBrandProfile && [0, 2, 3, 4].includes(i);
+              const isDone = i < currentStep || isSkipped;
               return (
                 <div
                   key={i}
                   style={{
                     ...styles.stepDot,
                     ...(i === currentStep ? styles.stepDotActive : {}),
-                    ...(i < currentStep || isSkipped ? styles.stepDotCompleted : {}),
+                    ...(isDone ? styles.stepDotCompleted : {}),
                   }}
                 />
               );
@@ -1289,88 +1277,65 @@ export default function Page() {
                 Tell us about your business and audience
               </p>
 
-              <div style={styles.row2} className="ath-row2">
-                <div style={styles.field}>
-                  <div style={styles.label}>
-                    Niche <span style={styles.pill}>Required</span>
-                    <Tooltip text="Your business type or industry. Be specific for better results.">
+              {/* Niche cards */}
+              <div style={styles.field}>
+                <div style={styles.label}>
+                  Your Niche <span style={styles.pill}>Required</span>
+                </div>
+                <div style={styles.nicheCardGrid} className="ath-nicheCardGrid">
+                  {nicheOptions.map((n) => (
+                    <div
+                      key={n.value}
+                      style={{
+                        ...styles.nicheCard,
+                        ...(form.niche === n.value ? styles.nicheCardSelected : {}),
+                      }}
+                      onClick={() => updateForm("niche", n.value)}
+                      className="hover-card-item"
+                    >
                       <svg
-                        style={styles.tooltipIcon}
+                        style={{ width: 28, height: 28, opacity: 0.85, flexShrink: 0 }}
                         fill="none"
                         stroke="currentColor"
-                        strokeWidth="2"
+                        strokeWidth="1.5"
                         viewBox="0 0 24 24"
                       >
-                        <path
-                          d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
+                        <path strokeLinecap="round" strokeLinejoin="round" d={n.icon} />
                       </svg>
-                    </Tooltip>
-                  </div>
-                  <div style={styles.autocompleteWrap}>
-                    <input
-                      ref={nicheInputRef}
-                      style={styles.input}
-                      value={form.niche}
-                      onChange={(e) => updateForm("niche", e.target.value)}
-                      onFocus={() => setShowNicheSuggestions(true)}
-                      onBlur={() =>
-                        setTimeout(() => setShowNicheSuggestions(false), 150)
-                      }
-                      placeholder="Type or select a niche..."
-                      className="hover-input"
-                    />
-                    {showNicheSuggestions && filteredNiches.length > 0 && (
-                      <div style={styles.suggestions}>
-                        <div style={styles.suggestionHint}>
-                          Suggestions (or type your own)
-                        </div>
-                        {filteredNiches.map((n) => (
-                          <div
-                            key={n}
-                            style={styles.suggestionItem}
-                            className="hover-suggestion"
-                            onMouseDown={() => {
-                              updateForm("niche", n);
-                              setShowNicheSuggestions(false);
-                            }}
-                          >
-                            {n}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#e6edf7" }}>{n.label}</div>
+                      <div style={{ fontSize: 11, opacity: 0.55 }}>{n.desc}</div>
+                    </div>
+                  ))}
                 </div>
-                <div style={styles.field}>
-                  <div style={styles.label}>
-                    Audience <span style={styles.pill}>Required</span>
-                    <Tooltip text="Who you're trying to reach. The more specific, the better your content.">
-                      <svg
-                        style={styles.tooltipIcon}
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </Tooltip>
-                  </div>
-                  <input
-                    style={styles.input}
-                    value={form.audience}
-                    onChange={(e) => updateForm("audience", e.target.value)}
-                    placeholder='e.g., "local homeowners", "busy moms"'
-                    className="hover-input"
-                  />
+              </div>
+
+              {/* Audience */}
+              <div style={styles.field}>
+                <div style={styles.label}>
+                  Audience <span style={styles.pill}>Required</span>
+                  <Tooltip text="Who you're trying to reach. The more specific, the better your content.">
+                    <svg
+                      style={styles.tooltipIcon}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </Tooltip>
                 </div>
+                <input
+                  style={styles.input}
+                  value={form.audience}
+                  onChange={(e) => updateForm("audience", e.target.value)}
+                  placeholder='e.g., "local homeowners", "busy moms"'
+                  className="hover-input"
+                />
               </div>
               {/* Navigation */}
               <div style={styles.stepNavigation}>
@@ -1524,31 +1489,17 @@ export default function Page() {
               )}
               {/* Navigation */}
               <div style={styles.stepNavigation}>
-                {hasBrandProfile ? (
-                  <div />
-                ) : (
-                  <button
-                    style={styles.backBtn}
-                    onClick={goToPrevStep}
-                    className="hover-btn"
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M15 19l-7-7 7-7"
-                      />
-                    </svg>
-                    Back
-                  </button>
-                )}
+                <button
+                  style={styles.backBtn}
+                  onClick={goToPrevStep}
+                  disabled={hasBrandProfile && currentStep === 1}
+                  className="hover-btn"
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Back
+                </button>
                 <button
                   style={{
                     ...styles.nextBtn,
@@ -2021,10 +1972,63 @@ export default function Page() {
                 </div>
               )}
 
-              {/* Live Preview */}
-              <div style={{ ...styles.previewCard, marginTop: 16 }}>
-                <div style={styles.previewTitle}>Your settings summary</div>
+              {/* Navigation */}
+              <div style={styles.stepNavigation}>
+                <button
+                  style={styles.backBtn}
+                  onClick={goToPrevStep}
+                  className="hover-btn"
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Back
+                </button>
+                <button
+                  style={styles.nextBtn}
+                  onClick={goToNextStep}
+                  className="hover-btn"
+                >
+                  Review & Generate
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 6: Review & Generate */}
+        {currentStep === 6 && (
+          <div
+            key={`step-6-${slideDirection}`}
+            className={`slide-card ${slideDirection === "left" ? "slide-from-right" : "slide-from-left"}`}
+          >
+            <div style={styles.card} className="hover-card">
+              <h2 style={styles.cardTitle}>Review & Generate</h2>
+              <p style={styles.cardHint}>Check your setup, customize the output, then generate.</p>
+
+              {/* Settings summary (read-only) */}
+              <div style={{
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: 12,
+                padding: 16,
+                marginBottom: 20,
+              }}>
+                <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 12 }}>
+                  Your Setup
+                </div>
                 <div style={styles.previewGrid}>
+                  <div style={styles.previewItem}>
+                    <div style={styles.previewLabel}>Niche</div>
+                    <div style={styles.previewValue}>{form.niche}</div>
+                  </div>
+                  <div style={styles.previewItem}>
+                    <div style={styles.previewLabel}>Audience</div>
+                    <div style={styles.previewValue}>{form.audience || "—"}</div>
+                  </div>
                   <div style={styles.previewItem}>
                     <div style={styles.previewLabel}>Post Type</div>
                     <div style={styles.previewValue}>
@@ -2036,21 +2040,78 @@ export default function Page() {
                   <div style={styles.previewItem}>
                     <div style={styles.previewLabel}>Image Style</div>
                     <div style={styles.previewValue}>
-                      {
-                        imageStyles.find((s) => s.value === form.imageStyle)
-                          ?.name
-                      }
+                      {imageStyles.find((s) => s.value === form.imageStyle)?.name}
                     </div>
                   </div>
                   <div style={styles.previewItem}>
-                    <div style={styles.previewLabel}>Tone</div>
-                    <div style={styles.previewValue}>{form.tone}</div>
-                  </div>
-                  <div style={styles.previewItem}>
-                    <div style={styles.previewLabel}>Caption</div>
-                    <div style={styles.previewValue}>
-                      {form.captionLength} · {form.hashtagCount} hashtags
+                    <div style={styles.previewLabel}>Brand Colors</div>
+                    <div style={{ display: "flex", gap: 6, alignItems: "center", marginTop: 2 }}>
+                      <div style={{ width: 18, height: 18, borderRadius: 4, background: form.primaryColor, border: "1px solid rgba(255,255,255,0.2)", flexShrink: 0 }} />
+                      <div style={{ width: 18, height: 18, borderRadius: 4, background: form.secondaryColor, border: "1px solid rgba(255,255,255,0.2)", flexShrink: 0 }} />
                     </div>
+                  </div>
+                  {imageDescription && (
+                    <div style={{ ...styles.previewItem, gridColumn: "1 / -1" }}>
+                      <div style={styles.previewLabel}>Image Direction</div>
+                      <div style={{ ...styles.previewValue, fontWeight: 400, opacity: 0.85, fontSize: 12 }}>{imageDescription}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Output customization (editable) */}
+              <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 12 }}>
+                Customize Output
+              </div>
+              <div style={styles.row2} className="ath-row2">
+                <div style={styles.field}>
+                  <div style={styles.label}>Tone</div>
+                  <select
+                    style={styles.select}
+                    value={form.tone}
+                    onChange={(e) => updateForm("tone", e.target.value)}
+                  >
+                    {toneOptions.map((v) => (
+                      <option key={v} value={v}>{v}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={styles.field}>
+                  <div style={styles.label}>Caption Length</div>
+                  <select
+                    style={styles.select}
+                    value={form.captionLength}
+                    onChange={(e) => updateForm("captionLength", e.target.value as FormState["captionLength"])}
+                  >
+                    <option value="Short">Short (1-2 sentences)</option>
+                    <option value="Medium">Medium (3-4 sentences)</option>
+                    <option value="Long">Long (5+ sentences)</option>
+                  </select>
+                </div>
+              </div>
+              <div style={styles.field}>
+                <div style={styles.label}>
+                  Hashtag Count
+                  <span style={{ ...styles.pill, marginLeft: 8 }}>{form.hashtagCount}</span>
+                </div>
+                <div style={styles.sliderContainer}>
+                  <div style={styles.sliderLabels}>
+                    <span>None</span>
+                    <span>Few</span>
+                    <span>Standard</span>
+                    <span>Many</span>
+                    <span>Max</span>
+                  </div>
+                  <input
+                    style={styles.slider}
+                    type="range"
+                    min={0}
+                    max={30}
+                    value={form.hashtagCount}
+                    onChange={(e) => updateForm("hashtagCount", Number(e.target.value))}
+                  />
+                  <div style={styles.sliderValue}>
+                    {form.hashtagCount} hashtags ({getHashtagLabel(form.hashtagCount)})
                   </div>
                 </div>
               </div>
@@ -2060,32 +2121,17 @@ export default function Page() {
 
               {/* Navigation with Generate button */}
               <div style={styles.stepNavigation}>
-                <button
-                  style={styles.backBtn}
-                  onClick={goToPrevStep}
-                  className="hover-btn"
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 19l-7-7 7-7"
-                    />
+                <button style={styles.backBtn} onClick={goToPrevStep} className="hover-btn">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                   </svg>
                   Back
                 </button>
                 <button
                   style={{
                     ...styles.nextBtn,
-                    padding: "12px 24px",
-                    fontSize: 14,
+                    padding: "12px 28px",
+                    fontSize: 15,
                     ...(canGenerate ? {} : styles.nextBtnDisabled),
                   }}
                   onClick={() => {
@@ -2106,19 +2152,8 @@ export default function Page() {
                       : canGenerate
                         ? "Generate Post"
                         : "Fill in Niche & Audience"}
-                  <svg
-                    width="16"
-                    height="16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </button>
               </div>
