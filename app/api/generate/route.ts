@@ -1018,6 +1018,19 @@ ${imageDescription ? `\nIMAGE SCENE DIRECTION — when generating scene_plan, ba
     // Get a pillar-specific visual scene suggestion if available
     const pillarSceneSuggestion = activePillar ? getRandomPillarScene(activePillar) : "";
 
+    const layoutGuidelinesRule = styleSpec.allowText
+      ? `LAYOUT GUIDELINES:
+- Large bold headline, centered, high contrast — readable at mobile size.
+- Text hierarchy: headline → optional subline → optional supporting detail → brand footer.
+- Choose one layout pattern: (1) headline over photo with gradient/blur behind text, (2) semi-transparent panel with headline + bullet tips, (3) rounded card/block with headline over photo.
+- Background photo should have one clear subject, avoid busy cluttered scenes.
+- Ensure text readability with gradient fades, blur zones, or semi-transparent panels behind text.
+- Subtle bottom footer zone for brand info (website/phone) when appropriate.
+- Sleek and modern — graphic elements should enhance, not clutter.`
+      : `LAYOUT GUIDELINES:
+- One clear subject in the background, avoid busy cluttered scenes.
+- Sleek, modern, Instagram-quality composition.`;
+
     let imageInstruction = [
       priority.coreLock,
       priority.styleMustDifferentiate,
@@ -1045,6 +1058,8 @@ ${imageDescription ? `\nIMAGE SCENE DIRECTION — when generating scene_plan, ba
       specific
         ? `SpecificRequest (visual interpretation, do not invent products): ${specific}`
         : "",
+
+      layoutGuidelinesRule,
 
       "Quality: premium, Instagram-ready, high-end commercial aesthetic.",
       "No logos. Avoid brand names. No watermarks.",
