@@ -1232,12 +1232,31 @@ export function weekdayToWorkdayIndex(jsWeekday: number): number | null {
 
 // Returns the pillar-specific prompt enrichment string injected into the generate API.
 export function buildPillarPromptEnrichment(pillar: ContentPillar): string {
-  return [
+  const parts: string[] = [
     `CONTENT PILLAR: ${pillar.label}`,
     pillar.promptRules.trim(),
+  ];
+
+  if (pillar.postIdeas?.length) {
+    parts.push(
+      `TOPIC BANK — when no specific detail is provided, choose one of these angles as the post's focus:`,
+      pillar.postIdeas.map((idea) => `- ${idea}`).join("\n")
+    );
+  }
+
+  if (pillar.captionHooks?.length) {
+    parts.push(
+      `EXAMPLE OPENING HOOKS for this pillar (use as inspiration for hook style, not verbatim):`,
+      pillar.captionHooks.map((h) => `- ${h}`).join("\n")
+    );
+  }
+
+  parts.push(
     `Suggested CTAs for this pillar (pick the most natural one):`,
-    pillar.ctaBank.map((c) => `- ${c}`).join("\n"),
-  ].join("\n");
+    pillar.ctaBank.map((c) => `- ${c}`).join("\n")
+  );
+
+  return parts.join("\n");
 }
 
 // Returns a random image scene suggestion from the pillar's imageSceneBank.

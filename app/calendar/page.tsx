@@ -634,8 +634,17 @@ function CalendarPageInner() {
     }
 
     // Extra details (topic/detail hint → specificRequest)
+    // If blank, silently inject a topic from the pillar's postIdeas bank so the AI
+    // always has a specific, curated angle to work from (invisible to the user).
     if (extraDetails.trim()) {
       sp.set("specificRequest", extraDetails.trim());
+    } else if (p.pillarType) {
+      const template = getTemplate(nicheKey);
+      const pillar = template?.pillars[p.pillarType];
+      if (pillar?.postIdeas?.length) {
+        const topic = pillar.postIdeas[p.day % pillar.postIdeas.length];
+        sp.set("specificRequest", topic);
+      }
     }
     // Personal thought → woven into caption body
     if (userThought.trim()) {
@@ -1338,7 +1347,7 @@ function CalendarPageInner() {
           position: "fixed",
           top: "50%",
           left: "50%",
-          width: 720,
+          width: 960,
           maxWidth: "96vw",
           maxHeight: "92vh",
           background: "#101a33",
@@ -1430,156 +1439,173 @@ function CalendarPageInner() {
 
               {/* ======== SAVED POST VIEW ======== */}
               {drawerView === "saved" && savedPostForDay ? (
-                <div>
-                  {/* Image */}
-                  {drawerImageLoading ? (
-                    <div style={{
-                      width: "100%",
-                      height: 280,
-                      background: "rgba(255,255,255,0.06)",
-                      borderRadius: 12,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginBottom: 16,
-                      fontSize: 13,
-                      opacity: 0.5,
-                    }}>
-                      Loading image...
-                    </div>
-                  ) : drawerImage ? (
-                    <img
-                      src={drawerImage}
-                      alt="Generated post"
-                      style={{ width: "100%", borderRadius: 12, marginBottom: 16 }}
-                    />
-                  ) : null}
-
-                  {/* Caption */}
-                  <div style={{ marginBottom: 16 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5 }}>
-                        Caption
-                      </div>
-                      <button
-                        onClick={() => copyText(savedPostForDay.caption, "caption")}
-                        style={{
-                          background: "rgba(255,255,255,0.08)",
-                          border: "1px solid rgba(255,255,255,0.12)",
-                          borderRadius: 6,
-                          padding: "4px 10px",
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: copiedField === "caption" ? "#22c55e" : "#e6edf7",
-                          cursor: "pointer",
-                        }}
-                      >
-                        {copiedField === "caption" ? "Copied!" : "Copy"}
-                      </button>
-                    </div>
-                    <div style={{
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      borderRadius: 10,
-                      padding: 14,
-                      fontSize: 13,
-                      lineHeight: 1.6,
-                      whiteSpace: "pre-wrap" as const,
-                    }}>
-                      {savedPostForDay.caption}
-                    </div>
-                  </div>
-
-                  {/* Hashtags */}
-                  <div style={{ marginBottom: 16 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5 }}>
-                        Hashtags
-                      </div>
-                      <button
-                        onClick={() => copyText(savedPostForDay.hashtags, "hashtags")}
-                        style={{
-                          background: "rgba(255,255,255,0.08)",
-                          border: "1px solid rgba(255,255,255,0.12)",
-                          borderRadius: 6,
-                          padding: "4px 10px",
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: copiedField === "hashtags" ? "#22c55e" : "#e6edf7",
-                          cursor: "pointer",
-                        }}
-                      >
-                        {copiedField === "hashtags" ? "Copied!" : "Copy"}
-                      </button>
-                    </div>
-                    <div style={{
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      borderRadius: 10,
-                      padding: 14,
-                      fontSize: 13,
-                      lineHeight: 1.6,
-                      color: "#7eb3ff",
-                    }}>
-                      {savedPostForDay.hashtags}
-                    </div>
-                  </div>
-
-                  {/* Download */}
-                  {drawerImage && (
-                    <button
-                      onClick={downloadDrawerImage}
-                      style={{
+                <div style={{ display: "flex", gap: 20 }}>
+                  {/* LEFT: Image + download + generate new */}
+                  <div style={{ flex: "0 0 42%", display: "flex", flexDirection: "column", gap: 10 }}>
+                    {drawerImageLoading ? (
+                      <div style={{
                         width: "100%",
-                        padding: "12px 20px",
-                        borderRadius: 10,
-                        border: "1px solid rgba(255,255,255,0.12)",
+                        height: 220,
                         background: "rgba(255,255,255,0.06)",
-                        color: "#e6edf7",
-                        fontSize: 13,
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        marginBottom: 16,
+                        borderRadius: 12,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        gap: 8,
+                        fontSize: 13,
+                        opacity: 0.5,
+                      }}>
+                        Loading image...
+                      </div>
+                    ) : drawerImage ? (
+                      <img
+                        src={drawerImage}
+                        alt="Generated post"
+                        style={{ width: "100%", borderRadius: 12 }}
+                      />
+                    ) : (
+                      <div style={{
+                        width: "100%",
+                        height: 160,
+                        background: "rgba(255,255,255,0.04)",
+                        borderRadius: 12,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 13,
+                        opacity: 0.35,
+                      }}>
+                        No image
+                      </div>
+                    )}
+                    {drawerImage && (
+                      <button
+                        onClick={downloadDrawerImage}
+                        style={{
+                          width: "100%",
+                          padding: "10px 16px",
+                          borderRadius: 10,
+                          border: "1px solid rgba(255,255,255,0.12)",
+                          background: "rgba(255,255,255,0.06)",
+                          color: "#e6edf7",
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 8,
+                        }}
+                        className="hover-btn"
+                      >
+                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                        </svg>
+                        Download Image
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setDrawerView("plan")}
+                      style={{
+                        width: "100%",
+                        padding: "12px 16px",
+                        borderRadius: 12,
+                        border: "1px solid rgba(124, 58, 237, 0.3)",
+                        background: "linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(44, 107, 237, 0.1) 100%)",
+                        color: "#a78bfa",
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        fontFamily: "Verdana, Geneva, sans-serif",
+                        marginTop: "auto",
                       }}
                       className="hover-btn"
                     >
-                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
-                      </svg>
-                      Download Image
+                      Generate New Post for This Day
                     </button>
-                  )}
+                  </div>
 
-                  {/* Divider */}
-                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", margin: "20px 0" }} />
+                  {/* RIGHT: Caption + Hashtags */}
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 14 }}>
+                    {/* Caption */}
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5 }}>
+                          Caption
+                        </div>
+                        <button
+                          onClick={() => copyText(savedPostForDay.caption, "caption")}
+                          style={{
+                            background: "rgba(255,255,255,0.08)",
+                            border: "1px solid rgba(255,255,255,0.12)",
+                            borderRadius: 6,
+                            padding: "4px 10px",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: copiedField === "caption" ? "#22c55e" : "#e6edf7",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {copiedField === "caption" ? "Copied!" : "Copy"}
+                        </button>
+                      </div>
+                      <div style={{
+                        background: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(255,255,255,0.08)",
+                        borderRadius: 10,
+                        padding: 14,
+                        fontSize: 13,
+                        lineHeight: 1.6,
+                        whiteSpace: "pre-wrap" as const,
+                        maxHeight: 280,
+                        overflowY: "auto" as const,
+                      }}>
+                        {savedPostForDay.caption}
+                      </div>
+                    </div>
 
-                  {/* Generate new button */}
-                  <button
-                    onClick={() => setDrawerView("plan")}
-                    style={{
-                      width: "100%",
-                      padding: "14px 20px",
-                      borderRadius: 12,
-                      border: "1px solid rgba(124, 58, 237, 0.3)",
-                      background: "linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(44, 107, 237, 0.1) 100%)",
-                      color: "#a78bfa",
-                      fontSize: 14,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      fontFamily: "Verdana, Geneva, sans-serif",
-                    }}
-                    className="hover-btn"
-                  >
-                    Generate New Post for This Day
-                  </button>
+                    {/* Hashtags */}
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5 }}>
+                          Hashtags
+                        </div>
+                        <button
+                          onClick={() => copyText(savedPostForDay.hashtags, "hashtags")}
+                          style={{
+                            background: "rgba(255,255,255,0.08)",
+                            border: "1px solid rgba(255,255,255,0.12)",
+                            borderRadius: 6,
+                            padding: "4px 10px",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: copiedField === "hashtags" ? "#22c55e" : "#e6edf7",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {copiedField === "hashtags" ? "Copied!" : "Copy"}
+                        </button>
+                      </div>
+                      <div style={{
+                        background: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(255,255,255,0.08)",
+                        borderRadius: 10,
+                        padding: 14,
+                        fontSize: 13,
+                        lineHeight: 1.6,
+                        color: "#7eb3ff",
+                        maxHeight: 120,
+                        overflowY: "auto" as const,
+                      }}>
+                        {savedPostForDay.hashtags}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 /* ======== PLAN / GENERATE VIEW ======== */
-                <div>
+                <div style={{ display: "flex", gap: 20 }}>
+                  {/* ---- LEFT COLUMN ---- */}
+                  <div style={{ flex: "0 0 50%", display: "flex", flexDirection: "column", gap: 14 }}>
                   {/* Post type explanation */}
                   <div
                     style={{
@@ -1625,7 +1651,7 @@ function CalendarPageInner() {
                         Post ideas for today
                       </div>
                       <div style={{ display: "flex", flexDirection: "column" as const, gap: 7 }}>
-                        {getTemplate(nicheKey).pillars[selectedDay.pillarType].postIdeas.slice(0, 5).map((idea, i) => (
+                        {getTemplate(nicheKey).pillars[selectedDay.pillarType].postIdeas.slice(0, 4).map((idea, i) => (
                           <div
                             key={i}
                             style={{
@@ -1674,38 +1700,41 @@ function CalendarPageInner() {
                       </div>
                     </div>
                   )}
+                  </div>{/* end left column */}
 
+                  {/* ---- RIGHT COLUMN ---- */}
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
                   {/* What you'll get */}
-                  <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 14 }}>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 10 }}>
                       What you'll get
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
+                    <div style={{ display: "flex", flexDirection: "column" as const, gap: 7 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ width: 30, height: 30, borderRadius: 8, background: "linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, flexShrink: 0 }}>
                           🖼️
                         </div>
                         <div>
-                          <div style={{ fontWeight: 600, fontSize: 14 }}>Custom AI Image</div>
-                          <div style={{ fontSize: 12, opacity: 0.6 }}>Designed to match your brand colors</div>
+                          <div style={{ fontWeight: 600, fontSize: 13 }}>Custom AI Image</div>
+                          <div style={{ fontSize: 11, opacity: 0.6 }}>Designed to match your brand colors</div>
                         </div>
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(44, 107, 237, 0.1) 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ width: 30, height: 30, borderRadius: 8, background: "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(44, 107, 237, 0.1) 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, flexShrink: 0 }}>
                           ✍️
                         </div>
                         <div>
-                          <div style={{ fontWeight: 600, fontSize: 14 }}>Engaging Caption</div>
-                          <div style={{ fontSize: 12, opacity: 0.6 }}>Written in your brand voice</div>
+                          <div style={{ fontWeight: 600, fontSize: 13 }}>Engaging Caption</div>
+                          <div style={{ fontSize: 11, opacity: 0.6 }}>Written in your brand voice</div>
                         </div>
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ width: 30, height: 30, borderRadius: 8, background: "linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, flexShrink: 0 }}>
                           #️⃣
                         </div>
                         <div>
-                          <div style={{ fontWeight: 600, fontSize: 14 }}>Relevant Hashtags</div>
-                          <div style={{ fontSize: 12, opacity: 0.6 }}>Optimized for your niche</div>
+                          <div style={{ fontWeight: 600, fontSize: 13 }}>Relevant Hashtags</div>
+                          <div style={{ fontSize: 11, opacity: 0.6 }}>Optimized for your niche</div>
                         </div>
                       </div>
                     </div>
@@ -1717,11 +1746,10 @@ function CalendarPageInner() {
                       background: "linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%)",
                       border: "1px solid rgba(16, 185, 129, 0.3)",
                       borderRadius: 12,
-                      padding: 16,
+                      padding: 12,
                       display: "flex",
                       alignItems: "center",
-                      gap: 12,
-                      marginBottom: 20,
+                      gap: 10,
                     }}
                   >
                     <div style={{ fontSize: 22 }}>✅</div>
@@ -1736,7 +1764,7 @@ function CalendarPageInner() {
                   </div>
 
                   {/* Optional inputs */}
-                  <div style={{ marginBottom: 20, display: "flex", flexDirection: "column" as const, gap: 14 }}>
+                  <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
                     {/* Field 1: Topic detail */}
                     <div>
                       <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 6 }}>
@@ -1766,7 +1794,7 @@ function CalendarPageInner() {
                         }
                         style={{
                           width: "100%",
-                          minHeight: 68,
+                          minHeight: 56,
                           background: "rgba(255,255,255,0.06)",
                           border: "1px solid rgba(255,255,255,0.12)",
                           borderRadius: 10,
@@ -1792,7 +1820,7 @@ function CalendarPageInner() {
                         placeholder="E.g. Just helped a first-time buyer close last week — most emotional closing I've had..."
                         style={{
                           width: "100%",
-                          minHeight: 68,
+                          minHeight: 56,
                           background: "rgba(255,255,255,0.06)",
                           border: "1px solid rgba(255,255,255,0.12)",
                           borderRadius: 10,
@@ -1813,12 +1841,13 @@ function CalendarPageInner() {
                   </div>
 
                   {/* Token count */}
-                  <div style={{ fontSize: 12, textAlign: "center" as const, opacity: 0.5, marginBottom: 8 }}>
+                  <div style={{ fontSize: 12, textAlign: "center" as const, opacity: 0.5, marginTop: "auto", paddingTop: 8 }}>
                     {tokenBalance.isLoading
                       ? "Loading tokens..."
                       : `${tokenBalance.tokensRemaining} tokens remaining this month`}
                   </div>
-                </div>
+                  </div>{/* end right column */}
+                </div>{/* end flex row */}
               )}
             </div>
 
