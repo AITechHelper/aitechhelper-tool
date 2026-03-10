@@ -733,7 +733,7 @@ export default function Page() {
     // Post type cards
     postTypeGrid: {
       display: "grid",
-      gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+      gridTemplateColumns: "repeat(3, 1fr)",
       gap: 8,
       gridAutoRows: "112px",
       alignItems: "stretch",
