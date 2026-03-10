@@ -85,3 +85,25 @@ export async function deletePost(userId: string, postId: string): Promise<void> 
     DELETE FROM saved_posts WHERE id = ${postId} AND user_id = ${userId}
   `;
 }
+
+export async function updatePost(
+  userId: string,
+  postId: string,
+  updates: {
+    caption?: string;
+    hashtags?: string;
+    postType?: string;
+    imageBase64?: string;
+    hasImage?: boolean;
+  }
+): Promise<void> {
+  await sql`
+    UPDATE saved_posts SET
+      caption      = COALESCE(${updates.caption ?? null}, caption),
+      hashtags     = COALESCE(${updates.hashtags ?? null}, hashtags),
+      post_type    = COALESCE(${updates.postType ?? null}, post_type),
+      image_base64 = COALESCE(${updates.imageBase64 ?? null}, image_base64),
+      has_image    = COALESCE(${updates.hasImage ?? null}::boolean, has_image)
+    WHERE id = ${postId} AND user_id = ${userId}
+  `;
+}

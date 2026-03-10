@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useToast } from "../_components/ToastProvider";
-import { resizePhotoForStorage, applyRawTreatment, applyPhotoWithText, applyBrandingWithPhotoAndText } from "../lib/photoTreatments";
+import { resizePhotoForStorage } from "../lib/photoTreatments";
+import { saveImage } from "../lib/imageStorage";
 
 type MediaAsset = {
   id: string;
@@ -115,38 +116,52 @@ export default function MediaPage() {
     }
   }
 
+  const MAX_PHOTOS = 10;
+
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      addToast("Please select an image file", "error");
+    const files = Array.from(e.target.files ?? []).filter((f) => f.type.startsWith("image/"));
+    if (files.length === 0) return;
+
+    const slotsAvailable = MAX_PHOTOS - assets.length;
+    if (slotsAvailable <= 0) {
+      addToast(`You've reached the 10-photo limit. Delete some photos to upload more.`, "error");
+      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
+
+    const toUpload = files.slice(0, slotsAvailable);
+    if (files.length > slotsAvailable) {
+      addToast(`Only ${slotsAvailable} slot${slotsAvailable !== 1 ? "s" : ""} remaining — uploading first ${slotsAvailable}.`, "warning");
+    }
+
     setIsUploading(true);
+    let succeeded = 0;
     try {
-      const reader = new FileReader();
-      reader.onload = async (ev) => {
-        try {
-          const raw = ev.target?.result as string;
-          const resized = await resizePhotoForStorage(raw);
-          const res = await fetch("/api/media-assets", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name: file.name.replace(/\.[^.]+$/, ""), imageBase64: resized }),
-          });
-          if (!res.ok) throw new Error("Upload failed");
-          await fetchAssets();
-          addToast("Photo uploaded!", "success");
-        } catch {
-          addToast("Upload failed. Please try again.", "error");
-        } finally {
-          setIsUploading(false);
-          if (fileInputRef.current) fileInputRef.current.value = "";
-        }
-      };
-      reader.readAsDataURL(file);
-    } catch {
+      for (const file of toUpload) {
+        await new Promise<void>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = async (ev) => {
+            try {
+              const raw = ev.target?.result as string;
+              const resized = await resizePhotoForStorage(raw);
+              const res = await fetch("/api/media-assets", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: file.name.replace(/\.[^.]+$/, ""), imageBase64: resized }),
+              });
+              if (res.ok) succeeded++;
+            } catch {}
+            resolve();
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+      await fetchAssets();
+      if (succeeded > 0) addToast(`${succeeded} photo${succeeded !== 1 ? "s" : ""} uploaded!`, "success");
+      if (succeeded < toUpload.length) addToast("Some uploads failed. Please try again.", "error");
+    } finally {
       setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
 
@@ -177,69 +192,56 @@ export default function MediaPage() {
     setPlanStep(1);
   }
 
-  async function handleGenerateAndSave() {
+  async function handleSaveToCalendar() {
     if (!planAsset) return;
     setPlanGenerating(true);
     try {
-      // 1. Generate caption + hashtags
-      const captionRes = await fetch("/api/caption-only", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          niche: planNiche,
-          audience: planAudience,
-          tone: planTone,
-          topic: planTopic,
-          captionLength: planCaptionLength,
-          hashtagCount: planHashtagCount,
-        }),
-      });
-      const captionData = await captionRes.json();
-      if (!captionRes.ok) throw new Error(captionData.error || "Caption generation failed");
-
-      const caption: string = captionData.caption ?? "";
-      const hashtags: string = captionData.hashtags ?? "";
-
-      // 2. Apply image treatment
-      let finalImage = planAsset.imageBase64;
-      if (planTreatment === "photo_text") {
-        finalImage = await applyPhotoWithText(planAsset.imageBase64, caption);
-      } else if (planTreatment === "brand_photo_text" && activeBrandProfile) {
-        finalImage = await applyBrandingWithPhotoAndText(planAsset.imageBase64, caption, {
-          primaryColor: activeBrandProfile.primaryColor,
-          secondaryColor: activeBrandProfile.secondaryColor,
-          logoBase64: activeBrandProfile.logoBase64,
-          website: activeBrandProfile.website,
-          phone: activeBrandProfile.phone,
-        });
-      } else {
-        finalImage = applyRawTreatment(planAsset.imageBase64);
-      }
-
-      // 3. Save post
+      const postId = `media-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
       const now = new Date();
       const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+      // 1. Save raw photo to IndexedDB so calendar can display it
+      await saveImage(postId, planAsset.imageBase64);
+
+      // 2. Build the planned post record
+      const plannedPost = {
+        id: postId,
+        calendarDay: planDay ?? undefined,
+        month,
+        hasImage: true,
+        caption: planTopic,  // topic stored in caption field
+        hashtags: JSON.stringify({ captionLength: planCaptionLength, hashtagCount: planHashtagCount }),
+        postType: "Media: Planned",
+        imageStyle: planTreatment,
+        tone: planTone,
+        niche: planNiche,
+        audience: planAudience,
+        createdAt: now.toISOString(),
+      };
+
+      // 3. Save to localStorage gallery so calendar shows it immediately
+      if (planDay) {
+        try {
+          const gallery: any[] = JSON.parse(localStorage.getItem("ath_gallery") || "[]");
+          // Remove any existing post for this day+month so planned post replaces it
+          const filtered = gallery.filter(
+            (p) => !(p.calendarDay === planDay && p.month === month)
+          );
+          filtered.unshift(plannedPost);
+          localStorage.setItem("ath_gallery", JSON.stringify(filtered));
+        } catch {}
+      }
+
+      // 4. Persist to DB (imageBase64 included for cross-device access)
       const saveRes = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: `media-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          calendarDay: planDay ?? undefined,
-          month,
-          hasImage: true,
-          imageBase64: finalImage,
-          caption,
-          hashtags,
-          postType: "Media Post",
-          imageStyle: planTreatment,
-          tone: planTone,
-          niche: planNiche,
-          audience: planAudience,
-        }),
+        body: JSON.stringify({ ...plannedPost, imageBase64: planAsset.imageBase64 }),
       });
       if (!saveRes.ok) throw new Error("Failed to save post");
 
-      addToast("Post planned and saved!", "success");
+      const dayLabel = planDay ? `Day ${planDay}` : "your calendar";
+      addToast(`Post planned! Added to ${dayLabel} — generate it from the calendar.`, "success");
       closePlanModal();
     } catch (err: any) {
       addToast(err?.message || "Something went wrong", "error");
@@ -265,17 +267,27 @@ export default function MediaPage() {
             </svg>
             Dashboard
           </a>
-          <button style={s.uploadBtn} onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+          <button
+            style={{ ...s.uploadBtn, opacity: (isUploading || assets.length >= 10) ? 0.6 : 1 }}
+            onClick={() => {
+              if (assets.length >= 10) {
+                addToast("You've reached the 10-photo limit. Delete some photos to upload more.", "error");
+                return;
+              }
+              fileInputRef.current?.click();
+            }}
+            disabled={isUploading}
+          >
             {isUploading ? "Uploading…" : (
               <>
                 <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
-                Upload Photo
+                {assets.length >= 10 ? "Limit Reached (10/10)" : `Upload Photos (${assets.length}/10)`}
               </>
             )}
           </button>
-          <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
+          <input ref={fileInputRef} type="file" accept="image/*" multiple style={{ display: "none" }} onChange={handleFileChange} />
         </div>
       </div>
 
@@ -289,7 +301,7 @@ export default function MediaPage() {
             <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>No photos yet</div>
             <div style={{ opacity: 0.6, marginBottom: 20 }}>Upload your first photo to get started</div>
             <button style={s.uploadBtn} onClick={() => fileInputRef.current?.click()}>
-              Upload Photo
+              Upload Photos
             </button>
           </div>
         ) : (
@@ -502,13 +514,13 @@ export default function MediaPage() {
                   <button style={s.backBtn} onClick={() => setPlanStep(2)}>← Back</button>
                   <button
                     style={{ ...s.generateBtn, flex: 1, opacity: planGenerating ? 0.7 : 1 }}
-                    onClick={handleGenerateAndSave}
+                    onClick={handleSaveToCalendar}
                     disabled={planGenerating}
                   >
-                    {planGenerating ? "Generating…" : "Generate & Save Post"}
+                    {planGenerating ? "Saving…" : "Save to Calendar"}
                     {!planGenerating && (
                       <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                     )}
                   </button>

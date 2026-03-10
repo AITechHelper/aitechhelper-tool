@@ -6,7 +6,8 @@ import { getImageStyleOption } from "../lib/imageStyleOptions";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
-import { getImage } from "../lib/imageStorage";
+import { getImage, saveImage } from "../lib/imageStorage";
+import { applyRawTreatment, applyPhotoWithText, applyBrandingWithPhotoAndText } from "../lib/photoTreatments";
 import {
   getTemplate,
   getPillarForWorkdayIndex,
@@ -476,6 +477,7 @@ function CalendarPageInner() {
   const [drawerImageLoading, setDrawerImageLoading] = useState(false);
   const [drawerView, setDrawerView] = useState<"plan" | "saved">("plan");
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [planningGeneration, setPlanningGeneration] = useState(false);
 
   // Load gallery data for current month
   const loadGalleryData = useCallback(() => {
@@ -596,6 +598,95 @@ function CalendarPageInner() {
       setUserThought("");
       setCopiedField(null);
     }, 300);
+  }
+
+  /* ---- Generate caption from a planned media post ---- */
+
+  async function handleGenerateFromPlanned() {
+    if (!savedPostForDay || savedPostForDay.postType !== "Media: Planned") return;
+    if (!drawerImage) { addToast("Photo not available", "error"); return; }
+    setPlanningGeneration(true);
+    try {
+      // Parse caption settings stored as JSON in the hashtags field
+      let captionSettings = { captionLength: "Medium", hashtagCount: 12 };
+      try { captionSettings = JSON.parse(savedPostForDay.hashtags); } catch {}
+
+      // Generate caption via caption-only API
+      const captionRes = await fetch("/api/caption-only", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          niche: savedPostForDay.niche,
+          audience: savedPostForDay.audience,
+          tone: savedPostForDay.tone,
+          topic: savedPostForDay.caption, // topic was stored in caption field
+          captionLength: captionSettings.captionLength,
+          hashtagCount: captionSettings.hashtagCount,
+        }),
+      });
+      const captionData = await captionRes.json();
+      if (!captionRes.ok) throw new Error(captionData.error || "Caption generation failed");
+
+      const generatedCaption: string = captionData.caption ?? "";
+      const generatedHashtags: string = captionData.hashtags ?? "";
+
+      // Apply image treatment
+      let finalImage = drawerImage;
+      if (savedPostForDay.imageStyle === "photo_text") {
+        finalImage = await applyPhotoWithText(drawerImage, generatedCaption);
+      } else if (savedPostForDay.imageStyle === "brand_photo_text" && activeBrandProfile) {
+        finalImage = await applyBrandingWithPhotoAndText(drawerImage, generatedCaption, {
+          primaryColor: activeBrandProfile.primaryColor,
+          secondaryColor: activeBrandProfile.secondaryColor,
+          logoBase64: activeBrandProfile.logoBase64,
+          website: activeBrandProfile.website,
+          phone: activeBrandProfile.phone,
+        });
+      } else {
+        finalImage = applyRawTreatment(drawerImage);
+      }
+
+      // Save final image to IndexedDB (replaces raw)
+      await saveImage(savedPostForDay.id, finalImage);
+      setDrawerImage(finalImage);
+
+      // Update localStorage gallery entry
+      const gallery: any[] = JSON.parse(localStorage.getItem("ath_gallery") || "[]");
+      const updatedGallery = gallery.map((p) => {
+        if (p.id === savedPostForDay.id) {
+          return { ...p, caption: generatedCaption, hashtags: generatedHashtags, postType: "Media Post" };
+        }
+        return p;
+      });
+      localStorage.setItem("ath_gallery", JSON.stringify(updatedGallery));
+
+      // Update dayPostsMap in state
+      const updatedPost = { ...savedPostForDay, caption: generatedCaption, hashtags: generatedHashtags, postType: "Media Post" };
+      setDayPostsMap((prev) => {
+        const next = new Map(prev);
+        next.set(savedPostForDay.calendarDay!, updatedPost);
+        return next;
+      });
+
+      // Update DB record
+      await fetch(`/api/posts/${savedPostForDay.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          caption: generatedCaption,
+          hashtags: generatedHashtags,
+          postType: "Media Post",
+          imageBase64: finalImage,
+          hasImage: true,
+        }),
+      });
+
+      addToast("Caption generated and image ready!", "success");
+    } catch (err: any) {
+      addToast(err?.message || "Generation failed", "error");
+    } finally {
+      setPlanningGeneration(false);
+    }
   }
 
   /* ---- Generate — direct to /post ---- */
@@ -1135,7 +1226,9 @@ function CalendarPageInner() {
 
               const p = cell.plan;
               const imageStyleOption = getImageStyleOption(p.imageStyle);
-              const hasPost = dayPostsMap.has(p.day);
+              const savedPostCell = dayPostsMap.get(p.day);
+              const hasPost = !!savedPostCell;
+              const isPlannedPost = savedPostCell?.postType === "Media: Planned";
               return (
                 <div
                   key={p.day}
@@ -1154,15 +1247,25 @@ function CalendarPageInner() {
                       width: 18,
                       height: 18,
                       borderRadius: "50%",
-                      background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                      background: isPlannedPost
+                        ? "linear-gradient(135deg, #7c3aed 0%, #2c6bed 100%)"
+                        : "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      boxShadow: "0 2px 6px rgba(34, 197, 94, 0.4)",
+                      boxShadow: isPlannedPost
+                        ? "0 2px 6px rgba(124,58,237,0.4)"
+                        : "0 2px 6px rgba(34, 197, 94, 0.4)",
                     }}>
-                      <svg width="10" height="10" fill="none" stroke="#fff" strokeWidth="3" viewBox="0 0 24 24">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
+                      {isPlannedPost ? (
+                        <svg width="9" height="9" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        </svg>
+                      ) : (
+                        <svg width="10" height="10" fill="none" stroke="#fff" strokeWidth="3" viewBox="0 0 24 24">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
                     </div>
                   )}
                   <div
@@ -1214,7 +1317,9 @@ function CalendarPageInner() {
               const dayOfWeek = WEEKDAYS[dayPlan.date.getDay()];
               const monthName = MONTHS[dayPlan.date.getMonth()];
               const dayNum = dayPlan.day;
-              const hasPost = dayPostsMap.has(dayPlan.day);
+              const savedPostMobile = dayPostsMap.get(dayPlan.day);
+              const hasPost = !!savedPostMobile;
+              const isPlannedMobile = savedPostMobile?.postType === "Media: Planned";
 
               return (
                 <div
@@ -1245,19 +1350,25 @@ function CalendarPageInner() {
                         display: "inline-flex",
                         alignItems: "center",
                         gap: 4,
-                        background: "rgba(34, 197, 94, 0.15)",
-                        border: "1px solid rgba(34, 197, 94, 0.3)",
+                        background: isPlannedMobile ? "rgba(124,58,237,0.15)" : "rgba(34, 197, 94, 0.15)",
+                        border: isPlannedMobile ? "1px solid rgba(124,58,237,0.3)" : "1px solid rgba(34, 197, 94, 0.3)",
                         borderRadius: 6,
                         padding: "2px 8px",
                         fontSize: 10,
                         fontWeight: 600,
-                        color: "#22c55e",
+                        color: isPlannedMobile ? "#a78bfa" : "#22c55e",
                         marginTop: 4,
                       }}>
-                        <svg width="8" height="8" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        Generated
+                        {isPlannedMobile ? (
+                          <svg width="8" height="8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          </svg>
+                        ) : (
+                          <svg width="8" height="8" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                        {isPlannedMobile ? "Photo Planned" : "Generated"}
                       </div>
                     )}
                   </div>
@@ -1417,19 +1528,29 @@ function CalendarPageInner() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 6,
-                  background: "rgba(34, 197, 94, 0.15)",
-                  border: "1px solid rgba(34, 197, 94, 0.3)",
+                  background: savedPostForDay.postType === "Media: Planned"
+                    ? "rgba(124,58,237,0.15)"
+                    : "rgba(34, 197, 94, 0.15)",
+                  border: savedPostForDay.postType === "Media: Planned"
+                    ? "1px solid rgba(124,58,237,0.3)"
+                    : "1px solid rgba(34, 197, 94, 0.3)",
                   borderRadius: 8,
                   padding: "4px 10px",
                   fontSize: 11,
                   fontWeight: 600,
-                  color: "#22c55e",
+                  color: savedPostForDay.postType === "Media: Planned" ? "#a78bfa" : "#22c55e",
                   marginTop: 10,
                 }}>
-                  <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  Post Generated
+                  {savedPostForDay.postType === "Media: Planned" ? (
+                    <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    </svg>
+                  ) : (
+                    <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                  {savedPostForDay.postType === "Media: Planned" ? "📸 Photo Post Planned" : "Post Generated"}
                 </div>
               )}
             </div>
@@ -1439,6 +1560,119 @@ function CalendarPageInner() {
 
               {/* ======== SAVED POST VIEW ======== */}
               {drawerView === "saved" && savedPostForDay ? (
+
+                /* ---- PLANNED MEDIA POST VIEW ---- */
+                savedPostForDay.postType === "Media: Planned" ? (
+                  <div style={{ display: "flex", gap: 20 }}>
+                    {/* LEFT: Photo + Generate button */}
+                    <div style={{ flex: "0 0 42%", display: "flex", flexDirection: "column", gap: 10 }}>
+                      {drawerImageLoading ? (
+                        <div style={{ width: "100%", height: 200, background: "rgba(255,255,255,0.06)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, opacity: 0.5 }}>
+                          Loading photo...
+                        </div>
+                      ) : drawerImage ? (
+                        <img src={drawerImage} alt="Planned photo" style={{ width: "100%", borderRadius: 12 }} />
+                      ) : (
+                        <div style={{ width: "100%", height: 160, background: "rgba(255,255,255,0.04)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, opacity: 0.35 }}>
+                          No image
+                        </div>
+                      )}
+                      <button
+                        onClick={handleGenerateFromPlanned}
+                        disabled={planningGeneration || !drawerImage}
+                        style={{
+                          width: "100%",
+                          padding: "13px 16px",
+                          borderRadius: 12,
+                          border: "none",
+                          background: planningGeneration ? "rgba(255,255,255,0.08)" : "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                          color: planningGeneration ? "rgba(255,255,255,0.4)" : "#fff",
+                          fontSize: 14,
+                          fontWeight: 800,
+                          cursor: planningGeneration ? "not-allowed" : "pointer",
+                          fontFamily: "Verdana, Geneva, sans-serif",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 8,
+                          boxShadow: planningGeneration ? "none" : "0 4px 14px rgba(16,185,129,0.35)",
+                          transition: "all 0.15s",
+                        }}
+                      >
+                        {planningGeneration ? (
+                          <>Generating…</>
+                        ) : (
+                          <>
+                            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            Generate Caption Now
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => setDrawerView("plan")}
+                        style={{
+                          width: "100%",
+                          padding: "10px 16px",
+                          borderRadius: 10,
+                          border: "1px solid rgba(124,58,237,0.3)",
+                          background: "rgba(124,58,237,0.08)",
+                          color: "#a78bfa",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          fontFamily: "Verdana, Geneva, sans-serif",
+                        }}
+                      >
+                        Generate AI Post Instead
+                      </button>
+                    </div>
+
+                    {/* RIGHT: Post details */}
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 14 }}>
+                      <div>
+                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 6 }}>What this post is about</div>
+                        <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 14, fontSize: 13, lineHeight: 1.6 }}>
+                          {savedPostForDay.caption || <span style={{ opacity: 0.4 }}>No topic specified</span>}
+                        </div>
+                      </div>
+                      {(() => {
+                        let settings = { captionLength: "Medium", hashtagCount: 12 };
+                        try { settings = JSON.parse(savedPostForDay.hashtags); } catch {}
+                        const treatmentLabels: Record<string, string> = {
+                          raw: "Raw Photo",
+                          photo_text: "Photo + Text Overlay",
+                          brand_photo_text: "Branding + Photo + Text",
+                        };
+                        return (
+                          <div>
+                            <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 8 }}>Settings</div>
+                            <div style={{ display: "flex", flexDirection: "column" as const, gap: 6 }}>
+                              {[
+                                { label: "Image Treatment", value: treatmentLabels[savedPostForDay.imageStyle] || savedPostForDay.imageStyle },
+                                { label: "Caption Length", value: settings.captionLength },
+                                { label: "Hashtags", value: `${settings.hashtagCount} tags` },
+                                { label: "Tone", value: savedPostForDay.tone },
+                                { label: "Niche", value: savedPostForDay.niche },
+                              ].map(({ label, value }) => (
+                                <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "7px 10px" }}>
+                                  <span style={{ fontSize: 12, opacity: 0.55 }}>{label}</span>
+                                  <span style={{ fontSize: 12, fontWeight: 600 }}>{value}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
+                      <div style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.2)", borderRadius: 10, padding: "10px 12px", fontSize: 12, lineHeight: 1.5, color: "rgba(167,139,250,0.85)" }}>
+                        Click <strong>Generate Caption Now</strong> to write the caption and apply the image treatment. Your photo stays in place — no token used.
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+
+                /* ---- REGULAR GENERATED POST VIEW ---- */
                 <div style={{ display: "flex", gap: 20 }}>
                   {/* LEFT: Image + download + generate new */}
                   <div style={{ flex: "0 0 42%", display: "flex", flexDirection: "column", gap: 10 }}>
@@ -1601,6 +1835,7 @@ function CalendarPageInner() {
                     </div>
                   </div>
                 </div>
+                )  /* end inner ternary (regular generated view) */
               ) : (
                 /* ======== PLAN / GENERATE VIEW ======== */
                 <div style={{ display: "flex", gap: 20 }}>
