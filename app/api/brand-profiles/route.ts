@@ -49,6 +49,9 @@ export async function POST(request: NextRequest) {
       imageStyle: body.imageStyle || "lifestyle_photo",
       primaryColor: body.primaryColor || "#000000",
       secondaryColor: body.secondaryColor || "#ffffff",
+      logoBase64: body.logoBase64 || undefined,
+      website: body.website || "",
+      phone: body.phone || "",
       createdAt: body.createdAt || new Date().toISOString(),
     };
 

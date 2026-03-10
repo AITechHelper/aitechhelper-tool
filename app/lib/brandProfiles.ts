@@ -20,6 +20,9 @@ export interface BrandProfile {
   imageStyle: string;
   primaryColor: string;
   secondaryColor: string;
+  logoBase64?: string;
+  website?: string;
+  phone?: string;
   createdAt: string;
 }
 
@@ -31,6 +34,9 @@ export async function getProfiles(userId: string): Promise<BrandProfile[]> {
       image_style as "imageStyle",
       primary_color as "primaryColor",
       secondary_color as "secondaryColor",
+      logo_base64 as "logoBase64",
+      website,
+      phone,
       created_at as "createdAt"
     FROM brand_profiles
     WHERE user_id = ${userId}
@@ -56,7 +62,9 @@ export async function createProfile(
     INSERT INTO brand_profiles (
       id, user_id, name, niche, audience, tone,
       caption_length, hashtag_count, image_style,
-      primary_color, secondary_color, created_at, updated_at
+      primary_color, secondary_color,
+      logo_base64, website, phone,
+      created_at, updated_at
     ) VALUES (
       ${profile.id},
       ${userId},
@@ -69,6 +77,9 @@ export async function createProfile(
       ${profile.imageStyle},
       ${profile.primaryColor},
       ${profile.secondaryColor},
+      ${profile.logoBase64 ?? null},
+      ${profile.website ?? ""},
+      ${profile.phone ?? ""},
       ${profile.createdAt},
       NOW()
     )
@@ -82,7 +93,10 @@ export async function updateProfile(
   profileId: string,
   updates: Partial<BrandProfile>
 ): Promise<BrandProfile | null> {
-  // Build SET clause from provided fields
+  // logo_base64: if provided (even "") → update (empty string becomes NULL); if absent → keep existing
+  const shouldUpdateLogo = updates.logoBase64 !== undefined;
+  const logoNewVal = shouldUpdateLogo ? (updates.logoBase64 || null) : null;
+
   await sql`
     UPDATE brand_profiles SET
       name = COALESCE(${updates.name ?? null}, name),
@@ -94,6 +108,9 @@ export async function updateProfile(
       image_style = COALESCE(${updates.imageStyle ?? null}, image_style),
       primary_color = COALESCE(${updates.primaryColor ?? null}, primary_color),
       secondary_color = COALESCE(${updates.secondaryColor ?? null}, secondary_color),
+      logo_base64 = CASE WHEN ${shouldUpdateLogo} THEN ${logoNewVal} ELSE logo_base64 END,
+      website = COALESCE(${updates.website ?? null}, website),
+      phone = COALESCE(${updates.phone ?? null}, phone),
       updated_at = NOW()
     WHERE id = ${profileId} AND user_id = ${userId}
   `;
@@ -106,6 +123,9 @@ export async function updateProfile(
       image_style as "imageStyle",
       primary_color as "primaryColor",
       secondary_color as "secondaryColor",
+      logo_base64 as "logoBase64",
+      website,
+      phone,
       created_at as "createdAt"
     FROM brand_profiles
     WHERE id = ${profileId} AND user_id = ${userId}

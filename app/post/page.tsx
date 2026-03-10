@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { saveImage, deleteImage } from "../lib/imageStorage";
+import { applyBrandOverlay, CONTACT_POST_TYPES } from "../lib/imageOverlay";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
@@ -525,10 +526,34 @@ export default function PostPage() {
         );
       }
 
-      const result = data?.result as PostResult | undefined;
+      let result = data?.result as PostResult | undefined;
       if (!result || !result.caption || !result.hashtags) {
         console.error("Unexpected API shape:", data);
         throw new Error("API returned an unexpected response shape.");
+      }
+
+      // Apply brand logo / contact overlay if the active profile has branding set
+      if (result.imageBase64) {
+        try {
+          const activeBrandRaw = localStorage.getItem("ath_active_brand_profile");
+          if (activeBrandRaw) {
+            const brand = JSON.parse(activeBrandRaw);
+            if (brand.logoBase64 || brand.website || brand.phone) {
+              const includeContact = CONTACT_POST_TYPES.has(form.postType);
+              const overlaid = await applyBrandOverlay(result.imageBase64, {
+                logoBase64: brand.logoBase64 || undefined,
+                primaryColor: brand.primaryColor || "#000000",
+                secondaryColor: brand.secondaryColor || "#ffffff",
+                website: brand.website || undefined,
+                phone: brand.phone || undefined,
+                includeContact,
+              });
+              result = { ...result, imageBase64: overlaid };
+            }
+          }
+        } catch {
+          // Overlay failed — use original image
+        }
       }
 
       setPost(result);

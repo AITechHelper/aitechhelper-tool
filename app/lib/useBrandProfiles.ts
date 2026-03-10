@@ -25,6 +25,9 @@ export type BrandProfile = {
   imageStyle: string;
   primaryColor: string;
   secondaryColor: string;
+  logoBase64?: string;
+  website?: string;
+  phone?: string;
   createdAt: string;
 };
 
@@ -78,6 +81,9 @@ function syncActiveToLocal(
       imageStyle: profile.imageStyle,
       primaryColor: profile.primaryColor,
       secondaryColor: profile.secondaryColor,
+      logoBase64: profile.logoBase64 || "",
+      website: profile.website || "",
+      phone: profile.phone || "",
     };
     localStorage.setItem(ACTIVE_BRAND_KEY, JSON.stringify(activeBrandData));
   } catch {}

@@ -102,3 +102,10 @@ CREATE TABLE IF NOT EXISTS saved_posts (
 );
 
 CREATE INDEX IF NOT EXISTS idx_saved_posts_user_id ON saved_posts(user_id);
+
+-- Migration: add logo, website, and phone to brand profiles
+-- Run these ALTER TABLE statements if upgrading an existing database:
+--
+-- ALTER TABLE brand_profiles ADD COLUMN IF NOT EXISTS logo_base64 TEXT DEFAULT NULL;
+-- ALTER TABLE brand_profiles ADD COLUMN IF NOT EXISTS website TEXT NOT NULL DEFAULT '';
+-- ALTER TABLE brand_profiles ADD COLUMN IF NOT EXISTS phone TEXT NOT NULL DEFAULT '';

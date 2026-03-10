@@ -13,6 +13,7 @@ import {
 import { useInstagram } from "../lib/useInstagram";
 import { useFacebook } from "../lib/useFacebook";
 import { getNicheCalendarPath } from "../lib/nicheTemplates";
+import { resizeLogoForStorage } from "../lib/imageOverlay";
 
 type SavedPost = {
   id: string;
@@ -51,6 +52,10 @@ export default function DashboardPage() {
     useState("#000000");
   const [newProfileSecondaryColor, setNewProfileSecondaryColor] =
     useState("#ffffff");
+  const [newProfileLogo, setNewProfileLogo] = useState("");
+  const [newProfileWebsite, setNewProfileWebsite] = useState("");
+  const [newProfilePhone, setNewProfilePhone] = useState("");
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [postImages, setPostImages] = useState<Record<string, string>>({});
   const [billingLoading, setBillingLoading] = useState(false);
@@ -185,6 +190,9 @@ export default function DashboardPage() {
     setNewProfileTone(profile.tone || "Confident");
     setNewProfilePrimaryColor(profile.primaryColor);
     setNewProfileSecondaryColor(profile.secondaryColor);
+    setNewProfileLogo(profile.logoBase64 || "");
+    setNewProfileWebsite(profile.website || "");
+    setNewProfilePhone(profile.phone || "");
     setProfileStep(2);
     setShowNewProfile(true);
   };
@@ -201,6 +209,9 @@ export default function DashboardPage() {
         tone: newProfileTone,
         primaryColor: newProfilePrimaryColor,
         secondaryColor: newProfileSecondaryColor,
+        logoBase64: newProfileLogo || "",
+        website: newProfileWebsite.trim(),
+        phone: newProfilePhone.trim(),
       };
 
       const updated = await brandProfiles.updateProfile(
@@ -234,6 +245,9 @@ export default function DashboardPage() {
         imageStyle: "lifestyle_photo",
         primaryColor: newProfilePrimaryColor,
         secondaryColor: newProfileSecondaryColor,
+        logoBase64: newProfileLogo || undefined,
+        website: newProfileWebsite.trim(),
+        phone: newProfilePhone.trim(),
       });
 
       if (created) {
@@ -252,6 +266,9 @@ export default function DashboardPage() {
     setNewProfileTone("Confident");
     setNewProfilePrimaryColor("#000000");
     setNewProfileSecondaryColor("#ffffff");
+    setNewProfileLogo("");
+    setNewProfileWebsite("");
+    setNewProfilePhone("");
     setEditingProfile(null);
     setProfileStep(1);
     setShowNewProfile(false);
@@ -2304,6 +2321,9 @@ export default function DashboardPage() {
                         setNewProfileAudience("");
                         setNewProfilePrimaryColor("#000000");
                         setNewProfileSecondaryColor("#ffffff");
+                        setNewProfileLogo("");
+                        setNewProfileWebsite("");
+                        setNewProfilePhone("");
                         setEditingProfile(null);
                       }}
                     >
@@ -2466,6 +2486,157 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
+                  {/* Brand Logo */}
+                  <div style={{ marginBottom: 24 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, opacity: 0.9 }}>
+                      Brand Logo
+                    </div>
+                    <div style={{ fontSize: 12, color: "#8fa3bf", marginBottom: 12 }}>
+                      Optional. Your logo will appear in the corner of every generated post image.
+                    </div>
+                    <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                      {newProfileLogo ? (
+                        <div style={{ position: "relative" as const }}>
+                          <img
+                            src={newProfileLogo}
+                            alt="Brand logo"
+                            style={{
+                              width: 72,
+                              height: 72,
+                              objectFit: "contain",
+                              borderRadius: 8,
+                              background: newProfilePrimaryColor,
+                              border: `2px solid ${newProfileSecondaryColor}`,
+                              padding: 6,
+                              flexShrink: 0,
+                            }}
+                          />
+                          <button
+                            onClick={() => setNewProfileLogo("")}
+                            style={{
+                              position: "absolute" as const,
+                              top: -6,
+                              right: -6,
+                              width: 20,
+                              height: 20,
+                              borderRadius: "50%",
+                              background: "#ff4444",
+                              border: "none",
+                              color: "#fff",
+                              fontSize: 12,
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              lineHeight: 1,
+                              fontFamily: "Verdana, Geneva, sans-serif",
+                            }}
+                            title="Remove logo"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ) : (
+                        <div
+                          onClick={() => logoInputRef.current?.click()}
+                          style={{
+                            width: 72,
+                            height: 72,
+                            borderRadius: 8,
+                            border: "1.5px dashed rgba(255,255,255,0.25)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            color: "#8fa3bf",
+                            fontSize: 28,
+                            flexShrink: 0,
+                            background: "rgba(255,255,255,0.03)",
+                          }}
+                          title="Upload logo"
+                        >
+                          +
+                        </div>
+                      )}
+                      <div style={{ flex: 1 }}>
+                        <button
+                          onClick={() => logoInputRef.current?.click()}
+                          style={{
+                            ...styles.btn,
+                            fontSize: 13,
+                            padding: "8px 16px",
+                            marginBottom: 6,
+                          }}
+                          className="hover-btn"
+                        >
+                          {newProfileLogo ? "Replace logo" : "Upload logo"}
+                        </button>
+                        <div style={{ fontSize: 11, color: "#8fa3bf", lineHeight: 1.4 }}>
+                          PNG, JPG, or SVG. Square logos work best. Max 2MB.
+                        </div>
+                      </div>
+                    </div>
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                      style={{ display: "none" }}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 2 * 1024 * 1024) {
+                          addToast("Logo too large. Max 2MB.", "error");
+                          return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = async () => {
+                          const dataUrl = reader.result as string;
+                          const resized = await resizeLogoForStorage(dataUrl);
+                          setNewProfileLogo(resized);
+                        };
+                        reader.readAsDataURL(file);
+                        e.target.value = "";
+                      }}
+                    />
+                  </div>
+
+                  {/* Contact Info */}
+                  <div style={{ marginBottom: 24 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, opacity: 0.9 }}>
+                      Contact Info
+                    </div>
+                    <div style={{ fontSize: 12, color: "#8fa3bf", marginBottom: 12 }}>
+                      Optional. Shown on promotional and announcement posts where it makes sense.
+                    </div>
+                    <div
+                      style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 14 }}
+                      className="profile-colors-grid"
+                    >
+                      <div>
+                        <label style={{ fontSize: 12, opacity: 0.7, marginBottom: 6, display: "block" }}>
+                          Website
+                        </label>
+                        <input
+                          style={{ ...styles.input, marginBottom: 0 }}
+                          placeholder="e.g., www.yourbusiness.com"
+                          value={newProfileWebsite}
+                          onChange={(e) => setNewProfileWebsite(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 12, opacity: 0.7, marginBottom: 6, display: "block" }}>
+                          Phone
+                        </label>
+                        <input
+                          style={{ ...styles.input, marginBottom: 0 }}
+                          placeholder="e.g., (555) 123-4567"
+                          value={newProfilePhone}
+                          onChange={(e) => setNewProfilePhone(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   <p style={{ fontSize: 12, opacity: 0.6, marginBottom: 20, textAlign: "center" as const, fontStyle: "italic" as const }}>
                     You can edit or update your brand profile anytime.
                   </p>
@@ -2481,6 +2652,9 @@ export default function DashboardPage() {
                           setNewProfileAudience("");
                           setNewProfilePrimaryColor("#000000");
                           setNewProfileSecondaryColor("#ffffff");
+                          setNewProfileLogo("");
+                          setNewProfileWebsite("");
+                          setNewProfilePhone("");
                           setEditingProfile(null);
                           setProfileStep(1);
                         } else {
