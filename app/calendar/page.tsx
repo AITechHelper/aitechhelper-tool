@@ -1847,7 +1847,7 @@ function CalendarPageInner() {
                       : `${tokenBalance.tokensRemaining} tokens remaining this month`}
                   </div>
                   </div>{/* end right column */}
-                </div>{/* end flex row */}
+                </div>
               )}
             </div>
 
