@@ -1210,7 +1210,7 @@ export default function Page() {
         )}
 
         {/* Section: Your Business */}
-        <div style={styles.card} className="hover-card">
+        <div style={styles.card} className="hover-card slide-card slide-from-right">
           <h2 style={styles.cardTitle}>Your Business</h2>
           <p style={styles.cardHint}>Tell us about your business and audience</p>
           {/* Niche cards */}
@@ -1256,7 +1256,7 @@ export default function Page() {
         </div>
 
         {/* Section: Post Type */}
-        <div style={styles.card} className="hover-card">
+        <div style={styles.card} className="hover-card slide-card slide-from-right">
           <h2 style={styles.cardTitle}>Post Type</h2>
           <p style={styles.cardHint}>
             {activePillars ? "Choose a content pillar for today's post" : "What kind of post do you want to create?"}
@@ -1321,7 +1321,7 @@ export default function Page() {
         </div>
 
         {/* Section: Image Style */}
-        <div style={styles.card} className="hover-card">
+        <div style={styles.card} className="hover-card slide-card slide-from-right">
           <h2 style={styles.cardTitle}>Image Style</h2>
           <p style={styles.cardHint}>Choose how your image will look</p>
           <div style={styles.styleCardGrid} className="ath-styleCardGrid">
@@ -1351,7 +1351,7 @@ export default function Page() {
         </div>
 
         {/* Section: Caption Settings + Brand Colors */}
-        <div style={styles.card} className="hover-card">
+        <div style={styles.card} className="hover-card slide-card slide-from-right">
           <h2 style={styles.cardTitle}>Caption Settings</h2>
           <p style={styles.cardHint}>Customize your caption, hashtags, and brand colors</p>
           <div style={styles.row2} className="ath-row2">
@@ -1423,7 +1423,7 @@ export default function Page() {
         </div>
 
         {/* Section: Image Direction */}
-        <div style={styles.card} className="hover-card">
+        <div style={styles.card} className="hover-card slide-card slide-from-right">
           <h2 style={styles.cardTitle}>Image Direction</h2>
           <p style={styles.cardHint}>Describe what you want the image to show — or leave blank to let AI decide</p>
           <div style={styles.field}>
@@ -1448,7 +1448,7 @@ export default function Page() {
         </div>
 
         {/* Section: Review */}
-        <div style={styles.card} className="hover-card">
+        <div style={styles.card} className="hover-card slide-card slide-from-right">
           <h2 style={styles.cardTitle}>Review</h2>
           <p style={styles.cardHint}>Check your setup, then generate.</p>
           <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 16, marginBottom: 20 }}>
