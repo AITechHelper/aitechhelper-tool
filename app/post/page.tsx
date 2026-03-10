@@ -346,7 +346,26 @@ export default function PostPage() {
 
     const params = new URLSearchParams(window.location.search);
     const autogen = params.get("autogen") === "1";
-    if (!autogen || !form.niche.trim() || !form.audience.trim()) return;
+
+    // If no autogen flag but genId exists, the user navigated back to a completed post.
+    // Restore from cache so they see the result instead of a blank page.
+    if (!autogen) {
+      const backGenId = params.get("genId");
+      if (backGenId) {
+        const cached = getStoredPostResult(backGenId);
+        if (cached) {
+          console.log("↩️ Back navigation: restoring cached post for genId:", backGenId);
+          setPost(cached);
+          setIsFromCache(true);
+          hasStarted.current = true;
+          return;
+        }
+      }
+      // No autogen and no restorable cache — nothing to do.
+      return;
+    }
+
+    if (!form.niche.trim() || !form.audience.trim()) return;
 
     hasStarted.current = true;
 
