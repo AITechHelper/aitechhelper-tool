@@ -242,9 +242,9 @@ function Tooltip({
     <span
       style={{
         position: "relative",
-        display: "block",
-        width: "100%",
-        height: "100%",
+        display: "inline-flex",
+        alignItems: "center",
+        width: "fit-content",
       }}
       onMouseEnter={() => setShow(true)}
       onMouseLeave={() => setShow(false)}
