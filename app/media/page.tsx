@@ -80,7 +80,11 @@ export default function MediaPage() {
   const [planHashtagCount, setPlanHashtagCount] = useState(12);
   const [planTreatment, setPlanTreatment] = useState("raw");
   const [planGenerating, setPlanGenerating] = useState(false);
+  const [planSaved, setPlanSaved] = useState(false);
+  const [planSavedDay, setPlanSavedDay] = useState<number | null>(null);
   const [activeBrandProfile, setActiveBrandProfile] = useState<BrandProfile | null>(null);
+  const today = new Date();
+  const todayDay = today.getDate();
 
   // Load assets
   useEffect(() => {
@@ -184,12 +188,16 @@ export default function MediaPage() {
     setPlanTopic("");
     setPlanDay(null);
     setPlanTreatment("raw");
+    setPlanSaved(false);
+    setPlanSavedDay(null);
     loadBrandProfile();
   }
 
   function closePlanModal() {
     setPlanAsset(null);
     setPlanStep(1);
+    setPlanSaved(false);
+    setPlanSavedDay(null);
   }
 
   async function handleSaveToCalendar() {
@@ -240,9 +248,8 @@ export default function MediaPage() {
       });
       if (!saveRes.ok) throw new Error("Failed to save post");
 
-      const dayLabel = planDay ? `Day ${planDay}` : "your calendar";
-      addToast(`Post planned! Added to ${dayLabel} — generate it from the calendar.`, "success");
-      closePlanModal();
+      setPlanSavedDay(planDay);
+      setPlanSaved(true);
     } catch (err: any) {
       addToast(err?.message || "Something went wrong", "error");
     } finally {
@@ -266,6 +273,12 @@ export default function MediaPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
             Dashboard
+          </a>
+          <a href="/calendar" style={{ ...s.dashBtn, color: "#a78bfa", borderColor: "rgba(124,58,237,0.3)", background: "rgba(124,58,237,0.1)" }}>
+            <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Calendar
           </a>
           <button
             style={{ ...s.uploadBtn, opacity: (isUploading || assets.length >= 10) ? 0.6 : 1 }}
@@ -366,38 +379,21 @@ export default function MediaPage() {
             </div>
 
             {/* Step 1: Post Details */}
-            {planStep === 1 && (
+            {planStep === 1 && !planSaved && (
               <div>
                 <div style={s.modalSection}>
-                  <div style={s.fieldLabel}>What is this post about?</div>
+                  <div style={s.fieldLabel}>
+                    What is this post about? <span style={{ fontWeight: 400, opacity: 0.5, textTransform: "none" as const, letterSpacing: 0 }}>(optional)</span>
+                  </div>
                   <textarea
                     style={s.textarea}
                     value={planTopic}
                     onChange={(e) => setPlanTopic(e.target.value)}
-                    placeholder='e.g., "Just closed on a 3-bedroom home in downtown"'
-                    rows={3}
+                    placeholder='Leave blank and AI will write something great for your niche, or add a specific angle e.g. "Just closed on a 3-bedroom home in downtown"'
+                    rows={4}
                   />
                 </div>
-                <div style={s.modalSection}>
-                  <div style={s.fieldLabel}>Niche</div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    {nicheOptions.map((n) => (
-                      <button
-                        key={n.value}
-                        style={{
-                          flex: 1, padding: "10px 8px", borderRadius: 10, cursor: "pointer",
-                          border: planNiche === n.value ? "1.5px solid rgba(44,107,237,0.7)" : "1px solid rgba(255,255,255,0.1)",
-                          background: planNiche === n.value ? "rgba(44,107,237,0.15)" : "rgba(255,255,255,0.04)",
-                          color: "#e6edf7", fontSize: 12, fontWeight: 600, transition: "all 0.15s",
-                        }}
-                        onClick={() => setPlanNiche(n.value)}
-                      >
-                        {n.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
                   <div>
                     <div style={s.fieldLabel}>Audience</div>
                     <input style={s.input} value={planAudience} onChange={(e) => setPlanAudience(e.target.value)} placeholder='e.g., "local homeowners"' />
@@ -409,9 +405,16 @@ export default function MediaPage() {
                     </select>
                   </div>
                 </div>
+                {activeBrandProfile && (
+                  <div style={{ fontSize: 11, opacity: 0.45, marginBottom: 14, display: "flex", alignItems: "center", gap: 5 }}>
+                    <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Using <strong style={{ opacity: 0.75 }}>{activeBrandProfile.name}</strong> brand profile — niche &amp; colors applied automatically
+                  </div>
+                )}
                 <button
-                  style={{ ...s.nextBtn, width: "100%", opacity: planAudience.trim() ? 1 : 0.5 }}
-                  disabled={!planAudience.trim()}
+                  style={{ ...s.nextBtn, width: "100%" }}
                   onClick={() => setPlanStep(2)}
                 >
                   Next →
@@ -420,26 +423,45 @@ export default function MediaPage() {
             )}
 
             {/* Step 2: Schedule */}
-            {planStep === 2 && (
+            {planStep === 2 && !planSaved && (
               <div>
                 <div style={s.modalSection}>
                   <div style={s.fieldLabel}>Assign to calendar day <span style={{ fontWeight: 400, opacity: 0.5 }}>(optional)</span></div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 5, marginBottom: 8 }}>
-                    {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
-                      <button
-                        key={day}
-                        style={{
-                          padding: "8px 4px", borderRadius: 8, cursor: "pointer",
-                          border: planDay === day ? "1.5px solid rgba(44,107,237,0.7)" : "1px solid rgba(255,255,255,0.1)",
-                          background: planDay === day ? "rgba(44,107,237,0.2)" : "rgba(255,255,255,0.04)",
-                          color: "#e6edf7", fontSize: 12, fontWeight: planDay === day ? 700 : 400,
-                          transition: "all 0.15s",
-                        }}
-                        onClick={() => setPlanDay(planDay === day ? null : day)}
-                      >
-                        {day}
-                      </button>
-                    ))}
+                    {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => {
+                      const isPast = day < todayDay;
+                      const isToday = day === todayDay;
+                      const isSelected = planDay === day;
+                      return (
+                        <button
+                          key={day}
+                          disabled={isPast}
+                          style={{
+                            padding: "8px 4px", borderRadius: 8,
+                            cursor: isPast ? "not-allowed" : "pointer",
+                            border: isSelected
+                              ? "1.5px solid rgba(44,107,237,0.7)"
+                              : isToday
+                              ? "1.5px solid rgba(124,58,237,0.5)"
+                              : "1px solid rgba(255,255,255,0.1)",
+                            background: isSelected
+                              ? "rgba(44,107,237,0.2)"
+                              : isToday
+                              ? "rgba(124,58,237,0.12)"
+                              : isPast
+                              ? "rgba(255,255,255,0.01)"
+                              : "rgba(255,255,255,0.04)",
+                            color: isPast ? "rgba(255,255,255,0.2)" : isToday ? "#c4b5fd" : "#e6edf7",
+                            fontSize: 12,
+                            fontWeight: isSelected ? 700 : isToday ? 700 : 400,
+                            transition: "all 0.15s",
+                          }}
+                          onClick={() => !isPast && setPlanDay(planDay === day ? null : day)}
+                        >
+                          {day}
+                        </button>
+                      );
+                    })}
                   </div>
                   <div style={{ fontSize: 11, opacity: 0.45, textAlign: "center" as const }}>
                     {planDay ? `Assigned to Day ${planDay}` : "Leave unset to save without a calendar day"}
@@ -467,7 +489,7 @@ export default function MediaPage() {
             )}
 
             {/* Step 3: Image Treatment */}
-            {planStep === 3 && (
+            {planStep === 3 && !planSaved && (
               <div>
                 {/* Photo preview */}
                 <div style={{ marginBottom: 16, borderRadius: 10, overflow: "hidden", maxHeight: 180, display: "flex", justifyContent: "center", background: "#0b1220" }}>
@@ -524,6 +546,36 @@ export default function MediaPage() {
                       </svg>
                     )}
                   </button>
+                </div>
+              </div>
+            )}
+            {/* Success state */}
+            {planSaved && (
+              <div style={{ textAlign: "center" as const, padding: "10px 0 6px" }}>
+                <div style={{ fontSize: 48, marginBottom: 12 }}>🎉</div>
+                <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>Post Planned!</div>
+                <div style={{ opacity: 0.65, fontSize: 14, lineHeight: 1.6, marginBottom: 24 }}>
+                  {planSavedDay
+                    ? <>Added to <strong>Day {planSavedDay}</strong> of your calendar. Head over to generate the caption when you're ready.</>
+                    : <>Saved to your calendar without a specific day. You can assign it later.</>}
+                </div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button style={{ ...s.backBtn, flex: 1 }} onClick={closePlanModal}>Close</button>
+                  <a
+                    href="/calendar"
+                    style={{
+                      flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                      background: "linear-gradient(135deg,#7c3aed,#2c6bed)", border: "none",
+                      borderRadius: 10, padding: "12px 16px", color: "#fff",
+                      fontSize: 14, fontWeight: 700, textDecoration: "none",
+                      boxShadow: "0 4px 14px rgba(124,58,237,0.35)",
+                    }}
+                  >
+                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    View Calendar →
+                  </a>
                 </div>
               </div>
             )}
