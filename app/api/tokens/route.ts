@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
       tokensUsed: status.used,
       tokensRemaining: status.remaining,
       totalMonthlyTokens: status.allowance,
+      plan: status.plan, // null = never selected any plan; "free" | "basic" | "pro" | "premium" otherwise
     });
   } catch (error) {
     console.error("Error fetching token balance:", error);

@@ -86,6 +86,21 @@ function SubscribeContent() {
   const [loadingPlan, setLoadingPlan] = useState<PlanId | null>(null);
   const router = useRouter();
 
+  // null = loading, false = never selected a plan (show Start Free), true = already has a plan
+  const [hasPlan, setHasPlan] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    fetch("/api/tokens")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) setHasPlan(data.plan !== null);
+      })
+      .catch(() => {
+        // If we can't determine, default to showing the free option
+        setHasPlan(false);
+      });
+  }, []);
+
   // After successful checkout, give Clerk time to re-establish session then redirect to dashboard
   useEffect(() => {
     if (subSuccess) {
@@ -422,50 +437,52 @@ function SubscribeContent() {
         })}
       </div>
 
-      {/* Free plan — small option at the bottom */}
-      <div style={{
-        marginTop: 40,
-        padding: "20px 32px",
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(255,255,255,0.08)",
-        borderRadius: 16,
-        display: "flex",
-        alignItems: "center",
-        gap: 24,
-        flexWrap: "wrap" as const,
-        justifyContent: "center",
-        maxWidth: 560,
-        width: "100%",
-      }}>
-        <div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "#e6edf7", marginBottom: 4 }}>
-            Not ready to commit? Start free.
+      {/* Free plan — small option at the bottom; only shown if user has never selected any plan */}
+      {hasPlan === false && (
+        <div style={{
+          marginTop: 40,
+          padding: "20px 32px",
+          background: "rgba(255,255,255,0.03)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: 16,
+          display: "flex",
+          alignItems: "center",
+          gap: 24,
+          flexWrap: "wrap" as const,
+          justifyContent: "center",
+          maxWidth: 560,
+          width: "100%",
+        }}>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "#e6edf7", marginBottom: 4 }}>
+              Not ready to commit? Start free.
+            </div>
+            <div style={{ fontSize: 13, color: "#5a6a80" }}>
+              2 tokens to try it out — no credit card needed.
+            </div>
           </div>
-          <div style={{ fontSize: 13, color: "#5a6a80" }}>
-            2 tokens to try it out — no credit card needed.
-          </div>
+          <button
+            style={{
+              padding: "10px 24px",
+              borderRadius: 10,
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: loadingPlan ? "not-allowed" : "pointer",
+              fontFamily: "Verdana, Geneva, sans-serif",
+              background: "rgba(22,163,74,0.12)",
+              border: "1px solid rgba(22,163,74,0.35)",
+              color: "#4ade80",
+              opacity: loadingPlan ? 0.6 : 1,
+              transition: "all 0.2s ease",
+              whiteSpace: "nowrap" as const,
+            }}
+            onClick={() => handleSubscribe("free")}
+            disabled={loadingPlan !== null}
+          >
+            {loadingPlan === "free" ? "Activating..." : "Start Free →"}
+          </button>
         </div>
-        <button
-          style={{
-            padding: "10px 24px",
-            borderRadius: 10,
-            fontSize: 14,
-            fontWeight: 700,
-            cursor: loadingPlan ? "not-allowed" : "pointer",
-            fontFamily: "Verdana, Geneva, sans-serif",
-            background: "rgba(22,163,74,0.12)",
-            border: "1px solid rgba(22,163,74,0.35)",
-            color: "#4ade80",
-            opacity: loadingPlan ? 0.6 : 1,
-            transition: "all 0.2s ease",
-            whiteSpace: "nowrap" as const,
-          }}
-          onClick={() => handleSubscribe("free")}
-          disabled={loadingPlan !== null}
-        >
-          {loadingPlan === "free" ? "Activating..." : "Start Free →"}
-        </button>
-      </div>
+      )}
 
       <div style={styles.footer}>
         <p style={styles.footerText}>

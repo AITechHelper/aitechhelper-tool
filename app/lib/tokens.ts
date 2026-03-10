@@ -20,33 +20,36 @@ function getMonthKey(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
-async function getAllowanceForUser(userId: string): Promise<number> {
+async function getAllowanceForUser(userId: string): Promise<{ allowance: number; plan: string | null }> {
   const rows = await sql`
     SELECT subscription_status as "subscriptionStatus", plan
     FROM user_entitlements
     WHERE clerk_user_id = ${userId}
   `;
 
-  if (!rows[0]) return FREE_ALLOWANCE;
+  // null plan means the user has never selected any plan (no row in user_entitlements)
+  if (!rows[0]) return { allowance: FREE_ALLOWANCE, plan: null };
 
   const row = rows[0] as { subscriptionStatus: string; plan: string | null };
 
-  if (row.subscriptionStatus !== "active") return FREE_ALLOWANCE;
+  if (row.subscriptionStatus !== "active") return { allowance: FREE_ALLOWANCE, plan: row.plan };
 
   // Active subscription — look up plan, default to pro (60) if null/unknown
   const planKey = (row.plan || "").toLowerCase();
-  return PLAN_ALLOWANCES[planKey] ?? PLAN_ALLOWANCES.pro;
+  return { allowance: PLAN_ALLOWANCES[planKey] ?? PLAN_ALLOWANCES.pro, plan: row.plan };
 }
 
 export interface TokenStatus {
   allowance: number;
   used: number;
   remaining: number;
+  /** The user's current plan key ("free", "basic", "pro", "premium"), or null if they have never selected any plan. */
+  plan: string | null;
 }
 
 export async function getTokenStatus(userId: string): Promise<TokenStatus> {
   const currentMonth = getMonthKey();
-  const allowance = await getAllowanceForUser(userId);
+  const { allowance, plan } = await getAllowanceForUser(userId);
 
   const rows = await sql`
     SELECT used, month_key as "monthKey", allowance
@@ -60,7 +63,7 @@ export async function getTokenStatus(userId: string): Promise<TokenStatus> {
       INSERT INTO user_tokens (user_id, month_key, used, allowance, updated_at)
       VALUES (${userId}, ${currentMonth}, 0, ${allowance}, NOW())
     `;
-    return { allowance, used: 0, remaining: allowance };
+    return { allowance, used: 0, remaining: allowance, plan };
   }
 
   const row = rows[0] as { used: number; monthKey: string; allowance: number };
@@ -72,7 +75,7 @@ export async function getTokenStatus(userId: string): Promise<TokenStatus> {
       SET used = 0, month_key = ${currentMonth}, allowance = ${allowance}, updated_at = NOW()
       WHERE user_id = ${userId}
     `;
-    return { allowance, used: 0, remaining: allowance };
+    return { allowance, used: 0, remaining: allowance, plan };
   }
 
   // Sync allowance if plan changed mid-month (e.g. upgrade/downgrade or leaving test mode)
@@ -82,10 +85,10 @@ export async function getTokenStatus(userId: string): Promise<TokenStatus> {
       SET allowance = ${allowance}, updated_at = NOW()
       WHERE user_id = ${userId}
     `;
-    return { allowance, used: row.used, remaining: allowance - row.used };
+    return { allowance, used: row.used, remaining: allowance - row.used, plan };
   }
 
-  return { allowance: row.allowance, used: row.used, remaining: row.allowance - row.used };
+  return { allowance: row.allowance, used: row.used, remaining: row.allowance - row.used, plan };
 }
 
 export async function useToken(userId: string): Promise<TokenStatus> {
@@ -100,5 +103,5 @@ export async function useToken(userId: string): Promise<TokenStatus> {
     WHERE user_id = ${userId}
   `;
 
-  return { allowance: status.allowance, used: status.used + 1, remaining: status.remaining - 1 };
+  return { allowance: status.allowance, used: status.used + 1, remaining: status.remaining - 1, plan: status.plan };
 }
