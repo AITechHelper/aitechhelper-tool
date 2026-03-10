@@ -1,5 +1,30 @@
 // Client-side canvas utilities for applying treatments to user-uploaded photos.
 
+function hexToRgba(hex: string, alpha: number): string {
+  const cleaned = hex.replace("#", "");
+  const r = parseInt(cleaned.slice(0, 2), 16) || 0;
+  const g = parseInt(cleaned.slice(2, 4), 16) || 0;
+  const b = parseInt(cleaned.slice(4, 6), 16) || 0;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function drawRoundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number, y: number, w: number, h: number, r: number
+) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -85,8 +110,7 @@ export async function applyPhotoWithText(
 }
 
 // Treatment 3: Branding + photo + text.
-// Single-pass layout: brand-colored bar at the bottom with logo on the left,
-// caption + website stacked in the remaining space. No separate overlay step.
+// Layout: brand-colored bar at bottom with caption centered, logo badge in top-right corner.
 export async function applyBrandingWithPhotoAndText(
   imageBase64: string,
   caption: string,
@@ -108,77 +132,89 @@ export async function applyBrandingWithPhotoAndText(
 
     const w = canvas.width;
     const h = canvas.height;
-    const barH = Math.round(h * 0.18);   // tall enough for logo + two text lines
-    const pad = Math.round(w * 0.035);
+    const barH = Math.round(h * 0.18);
     const barY = h - barH;
+    const pad = Math.round(w * 0.04);
 
     // Solid brand-colored bottom bar
     ctx.fillStyle = brandOptions.primaryColor;
     ctx.fillRect(0, barY, w, barH);
 
-    // Load logo
-    let logoImg: HTMLImageElement | null = null;
-    if (brandOptions.logoBase64) {
-      try { logoImg = await loadImage(brandOptions.logoBase64); } catch {}
-    }
-
-    // Logo: square on the left side of the bar, vertically centred, with inner padding
-    let textStartX = pad;
-    if (logoImg) {
-      const logoSize = Math.round(barH * 0.72);
-      const lx = pad;
-      const ly = barY + (barH - logoSize) / 2;
-      const logoAR = logoImg.width / logoImg.height;
-      let lw = logoSize;
-      let lh = logoSize;
-      if (logoAR > 1) lh = Math.round(logoSize / logoAR);
-      else lw = Math.round(logoSize * logoAR);
-      ctx.drawImage(logoImg, lx + (logoSize - lw) / 2, ly + (logoSize - lh) / 2, lw, lh);
-      textStartX = pad + logoSize + pad;
-    }
-
-    // Text area: from textStartX to right edge minus pad
-    const textAreaW = w - textStartX - pad;
+    // Centered text in the bottom bar
     const hasWebsite = !!(brandOptions.website || brandOptions.phone);
+    const firstLine = caption.split(/[.!?\n]/)[0]?.trim() ?? caption;
 
     if (hasWebsite) {
-      // Two lines: caption (bold, larger) then website (smaller, 70% opacity)
+      // Two lines: caption (bold, larger) then website/phone (smaller, 75% opacity)
       const captionFontSize = Math.round(barH * 0.30);
       const subFontSize = Math.round(barH * 0.20);
 
-      // Caption line — first sentence, truncated to fit
-      const firstLine = caption.split(/[.!?\n]/)[0]?.trim() ?? caption;
-      const maxChars = Math.floor(textAreaW / (captionFontSize * 0.55));
+      const maxChars = Math.floor(w / (captionFontSize * 0.55));
       const displayCaption = firstLine.length > maxChars
         ? firstLine.slice(0, maxChars - 1) + "…"
         : firstLine;
 
       ctx.font = `bold ${captionFontSize}px Arial, Helvetica, sans-serif`;
       ctx.fillStyle = brandOptions.secondaryColor;
-      ctx.textAlign = "left";
+      ctx.textAlign = "center";
       ctx.textBaseline = "alphabetic";
-      ctx.fillText(displayCaption, textStartX, barY + barH * 0.50);
+      ctx.fillText(displayCaption, w / 2, barY + barH * 0.50);
 
-      // Website / phone line
       const contactText = [brandOptions.website, brandOptions.phone].filter(Boolean).join("  ·  ");
       ctx.font = `${subFontSize}px Arial, Helvetica, sans-serif`;
       ctx.globalAlpha = 0.75;
-      ctx.fillText(contactText, textStartX, barY + barH * 0.80);
+      ctx.fillText(contactText, w / 2, barY + barH * 0.80);
       ctx.globalAlpha = 1;
     } else {
-      // Single centred caption line
+      // Single centered caption line, vertically centered in bar
       const captionFontSize = Math.round(barH * 0.33);
-      const firstLine = caption.split(/[.!?\n]/)[0]?.trim() ?? caption;
-      const maxChars = Math.floor(textAreaW / (captionFontSize * 0.55));
+      const maxChars = Math.floor(w / (captionFontSize * 0.55));
       const displayCaption = firstLine.length > maxChars
         ? firstLine.slice(0, maxChars - 1) + "…"
         : firstLine;
 
       ctx.font = `bold ${captionFontSize}px Arial, Helvetica, sans-serif`;
       ctx.fillStyle = brandOptions.secondaryColor;
-      ctx.textAlign = "left";
+      ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(displayCaption, textStartX, barY + barH / 2);
+      ctx.fillText(displayCaption, w / 2, barY + barH / 2);
+    }
+
+    // Logo badge — top-right corner
+    if (brandOptions.logoBase64) {
+      try {
+        const logoImg = await loadImage(brandOptions.logoBase64);
+        const badgeSize = Math.round(w * 0.14);
+        const margin = Math.round(w * 0.028);
+        const bx = w - badgeSize - margin;
+        const by = margin;
+        const radius = Math.round(badgeSize * 0.12);
+
+        // Badge background
+        ctx.fillStyle = hexToRgba(brandOptions.primaryColor, 0.92);
+        drawRoundRect(ctx, bx, by, badgeSize, badgeSize, radius);
+        ctx.fill();
+
+        // Badge border
+        ctx.strokeStyle = brandOptions.secondaryColor;
+        ctx.lineWidth = Math.round(w * 0.003);
+        drawRoundRect(ctx, bx, by, badgeSize, badgeSize, radius);
+        ctx.stroke();
+
+        // Logo inside badge, maintaining aspect ratio
+        const innerPad = badgeSize * 0.14;
+        const maxLogoSize = badgeSize - innerPad * 2;
+        const ar = logoImg.width / logoImg.height;
+        let lw = maxLogoSize;
+        let lh = maxLogoSize;
+        if (ar > 1) lh = maxLogoSize / ar;
+        else lw = maxLogoSize * ar;
+        const lx = bx + (badgeSize - lw) / 2;
+        const ly = by + (badgeSize - lh) / 2;
+        ctx.drawImage(logoImg, lx, ly, lw, lh);
+      } catch {
+        // Logo failed to load — skip it, image is still usable
+      }
     }
 
     return canvas.toDataURL("image/jpeg", 0.92);
