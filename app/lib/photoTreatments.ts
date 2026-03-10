@@ -34,8 +34,47 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
+// Wrap text to at most maxLines. Each line fits within maxWidth pixels.
+function wrapTextToLines(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  maxLines: number
+): string[] {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let current = "";
+
+  for (let i = 0; i < words.length; i++) {
+    const test = current ? current + " " + words[i] : words[i];
+    if (ctx.measureText(test).width > maxWidth && current) {
+      lines.push(current);
+      if (lines.length >= maxLines) return lines;
+      if (lines.length === maxLines - 1) {
+        // Last allowed line — fit remaining words, truncate with … if needed
+        let last = words.slice(i).join(" ");
+        if (ctx.measureText(last).width > maxWidth) {
+          let trimmed = "";
+          for (const word of words.slice(i)) {
+            const candidate = trimmed ? trimmed + " " + word : word;
+            if (ctx.measureText(candidate + "…").width <= maxWidth) trimmed = candidate;
+            else break;
+          }
+          last = trimmed + "…";
+        }
+        lines.push(last);
+        return lines;
+      }
+      current = words[i];
+    } else {
+      current = test;
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
+}
+
 // Resize an uploaded photo to max 1024px on the longest side, JPEG at 0.85 quality.
-// Keeps file sizes manageable for base64 DB storage.
 export function resizePhotoForStorage(dataUrl: string): Promise<string> {
   return new Promise((resolve) => {
     const img = new Image();
@@ -63,8 +102,8 @@ export function applyRawTreatment(imageBase64: string): string {
   return imageBase64;
 }
 
-// Treatment 2: Photo + text overlay.
-// Adds a semi-transparent dark bar at the bottom with the first line of the caption.
+// Treatment 2: Photo + editorial text overlay (no branding).
+// Deep gradient scrim + large bold uppercase headline, two-line max.
 export async function applyPhotoWithText(
   imageBase64: string,
   caption: string
@@ -79,38 +118,50 @@ export async function applyPhotoWithText(
 
     const w = canvas.width;
     const h = canvas.height;
-    const gradH = Math.round(h * 0.30);  // gradient zone covers bottom 30%
-    const fontSize = Math.round(h * 0.042);
-    const pad = Math.round(w * 0.04);
+    const pad = Math.round(w * 0.055);
+    const fontSize = Math.round(h * 0.068);
+    const bottomPad = Math.round(h * 0.06);
 
-    // Dark gradient scrim — smooth fade from transparent to semi-opaque
-    const grad = ctx.createLinearGradient(0, h - gradH, 0, h);
+    // Deep gradient scrim — transparent from ~38% down, near-black at bottom
+    const scrimY = Math.round(h * 0.36);
+    const grad = ctx.createLinearGradient(0, scrimY, 0, h);
     grad.addColorStop(0, "rgba(0,0,0,0)");
-    grad.addColorStop(1, "rgba(0,0,0,0.72)");
+    grad.addColorStop(0.42, "rgba(0,0,0,0.52)");
+    grad.addColorStop(1, "rgba(0,0,0,0.91)");
     ctx.fillStyle = grad;
-    ctx.fillRect(0, h - gradH, w, gradH);
+    ctx.fillRect(0, scrimY, w, h - scrimY);
 
-    // Caption text (first sentence, truncated), sitting above the very bottom edge
-    const firstLine = caption.split(/[.!?\n]/)[0]?.trim() ?? caption;
-    const maxChars = Math.floor(w / (fontSize * 0.58));
-    const displayText = firstLine.length > maxChars
-      ? firstLine.slice(0, maxChars - 1) + "…"
-      : firstLine;
+    // Headline: uppercase, bold, left-aligned, 2 lines max
+    const rawText = (caption.split(/[.!?\n]/)[0]?.trim() ?? caption).toUpperCase();
+    ctx.font = `900 ${fontSize}px 'Impact', 'Arial Black', 'Arial', sans-serif`;
+    const lines = wrapTextToLines(ctx, rawText, w - pad * 2, 2);
 
-    ctx.font = `bold ${fontSize}px Arial, Helvetica, sans-serif`;
-    ctx.fillStyle = "#ffffff";
+    const lineH = Math.round(fontSize * 1.1);
+    const totalH = lines.length * lineH;
+    const textStartY = h - bottomPad - totalH;
+
+    // Short accent rule above headline
+    const ruleH = Math.max(3, Math.round(h * 0.004));
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    ctx.fillRect(pad, textStartY - Math.round(h * 0.024), Math.round(w * 0.10), ruleH);
+
+    // Text: line 1 bright white, line 2 softer off-white
     ctx.textAlign = "left";
-    ctx.textBaseline = "bottom";
-    ctx.fillText(displayText, pad, h - Math.round(h * 0.05));
+    ctx.textBaseline = "top";
+    lines.forEach((line, i) => {
+      ctx.fillStyle = i === 0 ? "#ffffff" : "rgba(255,255,255,0.78)";
+      ctx.fillText(line, pad, textStartY + i * lineH);
+    });
 
-    return canvas.toDataURL("image/jpeg", 0.92);
+    return canvas.toDataURL("image/jpeg", 0.93);
   } catch {
     return imageBase64;
   }
 }
 
-// Treatment 3: Branding + photo + text.
-// Layout: brand-colored bar at bottom with caption centered, logo badge in top-right corner.
+// Treatment 3: Branding + photo + editorial overlay.
+// Layout: deep gradient scrim, large two-tone headline (white + brand accent),
+// accent rule, circular logo badge top-left, website pill top-right.
 export async function applyBrandingWithPhotoAndText(
   imageBase64: string,
   caption: string,
@@ -132,92 +183,139 @@ export async function applyBrandingWithPhotoAndText(
 
     const w = canvas.width;
     const h = canvas.height;
-    const barH = Math.round(h * 0.18);
-    const barY = h - barH;
-    const pad = Math.round(w * 0.04);
+    const pad = Math.round(w * 0.055);
+    const fontSize = Math.round(h * 0.07);
+    const bottomPad = Math.round(h * 0.065);
 
-    // Solid brand-colored bottom bar
+    // ── Deep gradient scrim ───────────────────────────────────────────────────
+    const scrimY = Math.round(h * 0.34);
+    const grad = ctx.createLinearGradient(0, scrimY, 0, h);
+    grad.addColorStop(0, "rgba(0,0,0,0)");
+    grad.addColorStop(0.38, "rgba(0,0,0,0.48)");
+    grad.addColorStop(1, "rgba(0,0,0,0.93)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, scrimY, w, h - scrimY);
+
+    // ── Headline text ─────────────────────────────────────────────────────────
+    const rawText = (caption.split(/[.!?\n]/)[0]?.trim() ?? caption).toUpperCase();
+    ctx.font = `900 ${fontSize}px 'Impact', 'Arial Black', 'Arial', sans-serif`;
+    const lines = wrapTextToLines(ctx, rawText, w - pad * 2, 2);
+
+    const lineH = Math.round(fontSize * 1.12);
+    const totalTextH = lines.length * lineH;
+    const textStartY = h - bottomPad - totalTextH;
+
+    // Thin accent rule — brand primary color, sits just above headline
+    const ruleH = Math.max(3, Math.round(h * 0.004));
+    const ruleW = Math.round(w * 0.13);
+    const ruleY = textStartY - Math.round(h * 0.026);
     ctx.fillStyle = brandOptions.primaryColor;
-    ctx.fillRect(0, barY, w, barH);
+    ctx.fillRect(pad, ruleY, ruleW, ruleH);
 
-    // Centered text in the bottom bar
-    const hasWebsite = !!(brandOptions.website || brandOptions.phone);
-    const firstLine = caption.split(/[.!?\n]/)[0]?.trim() ?? caption;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
 
-    if (hasWebsite) {
-      // Two lines: caption (bold, larger) then website/phone (smaller, 75% opacity)
-      const captionFontSize = Math.round(barH * 0.30);
-      const subFontSize = Math.round(barH * 0.20);
+    if (lines.length === 1) {
+      // Single line: split words ~60/40 — first chunk white, rest brand accent
+      const words = lines[0].split(" ");
+      const splitAt = Math.max(1, Math.ceil(words.length * 0.6));
+      const part1 = words.slice(0, splitAt).join(" ");
+      const part2 = words.slice(splitAt).join(" ");
 
-      const maxChars = Math.floor(w / (captionFontSize * 0.55));
-      const displayCaption = firstLine.length > maxChars
-        ? firstLine.slice(0, maxChars - 1) + "…"
-        : firstLine;
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(part1, pad, textStartY);
 
-      ctx.font = `bold ${captionFontSize}px Arial, Helvetica, sans-serif`;
-      ctx.fillStyle = brandOptions.secondaryColor;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "alphabetic";
-      ctx.fillText(displayCaption, w / 2, barY + barH * 0.50);
-
-      const contactText = [brandOptions.website, brandOptions.phone].filter(Boolean).join("  ·  ");
-      ctx.font = `${subFontSize}px Arial, Helvetica, sans-serif`;
-      ctx.globalAlpha = 0.75;
-      ctx.fillText(contactText, w / 2, barY + barH * 0.80);
-      ctx.globalAlpha = 1;
+      if (part2) {
+        const part1Width = ctx.measureText(part1 + " ").width;
+        ctx.fillStyle = brandOptions.primaryColor;
+        ctx.fillText(part2, pad + part1Width, textStartY);
+      }
     } else {
-      // Single centered caption line, vertically centered in bar
-      const captionFontSize = Math.round(barH * 0.33);
-      const maxChars = Math.floor(w / (captionFontSize * 0.55));
-      const displayCaption = firstLine.length > maxChars
-        ? firstLine.slice(0, maxChars - 1) + "…"
-        : firstLine;
-
-      ctx.font = `bold ${captionFontSize}px Arial, Helvetica, sans-serif`;
-      ctx.fillStyle = brandOptions.secondaryColor;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(displayCaption, w / 2, barY + barH / 2);
+      // Two lines: line 1 white, line 2 brand accent
+      lines.forEach((line, i) => {
+        ctx.fillStyle = i === 0 ? "#ffffff" : brandOptions.primaryColor;
+        ctx.fillText(line, pad, textStartY + i * lineH);
+      });
     }
 
-    // Logo badge — top-right corner
+    // ── Circular logo badge — top-left ────────────────────────────────────────
     if (brandOptions.logoBase64) {
       try {
         const logoImg = await loadImage(brandOptions.logoBase64);
-        const badgeSize = Math.round(w * 0.14);
-        const margin = Math.round(w * 0.028);
-        const bx = w - badgeSize - margin;
-        const by = margin;
-        const radius = Math.round(badgeSize * 0.12);
+        const badgeR = Math.round(w * 0.056);
+        const margin = Math.round(w * 0.038);
+        const cx = margin + badgeR;
+        const cy = margin + badgeR;
 
-        // Badge background
-        ctx.fillStyle = hexToRgba(brandOptions.primaryColor, 0.92);
-        drawRoundRect(ctx, bx, by, badgeSize, badgeSize, radius);
+        ctx.save();
+
+        // Circle fill
+        ctx.beginPath();
+        ctx.arc(cx, cy, badgeR, 0, Math.PI * 2);
+        ctx.fillStyle = hexToRgba(brandOptions.primaryColor, 0.94);
         ctx.fill();
 
-        // Badge border
-        ctx.strokeStyle = brandOptions.secondaryColor;
-        ctx.lineWidth = Math.round(w * 0.003);
-        drawRoundRect(ctx, bx, by, badgeSize, badgeSize, radius);
+        // Subtle ring — brand secondary at 50% opacity
+        ctx.beginPath();
+        ctx.arc(cx, cy, badgeR, 0, Math.PI * 2);
+        ctx.strokeStyle = hexToRgba(brandOptions.secondaryColor, 0.5);
+        ctx.lineWidth = Math.max(2, Math.round(w * 0.003));
         ctx.stroke();
 
-        // Logo inside badge, maintaining aspect ratio
-        const innerPad = badgeSize * 0.14;
-        const maxLogoSize = badgeSize - innerPad * 2;
+        // Clip logo to circle
+        ctx.beginPath();
+        ctx.arc(cx, cy, badgeR * 0.78, 0, Math.PI * 2);
+        ctx.clip();
+
         const ar = logoImg.width / logoImg.height;
-        let lw = maxLogoSize;
-        let lh = maxLogoSize;
-        if (ar > 1) lh = maxLogoSize / ar;
-        else lw = maxLogoSize * ar;
-        const lx = bx + (badgeSize - lw) / 2;
-        const ly = by + (badgeSize - lh) / 2;
-        ctx.drawImage(logoImg, lx, ly, lw, lh);
+        const logoSize = badgeR * 1.24;
+        let lw = logoSize, lh = logoSize;
+        if (ar > 1) lh = logoSize / ar;
+        else lw = logoSize * ar;
+        ctx.drawImage(logoImg, cx - lw / 2, cy - lh / 2, lw, lh);
+
+        ctx.restore();
       } catch {
-        // Logo failed to load — skip it, image is still usable
+        // Logo load failed — skip gracefully
       }
     }
 
-    return canvas.toDataURL("image/jpeg", 0.92);
+    // ── Website / phone pill — top-right ──────────────────────────────────────
+    const rawContact = brandOptions.website || brandOptions.phone || "";
+    const contactText = rawContact.replace(/^https?:\/\//i, "").replace(/^www\./i, "");
+    if (contactText) {
+      const pillFontSize = Math.round(h * 0.022);
+      ctx.font = `600 ${pillFontSize}px 'Arial', 'Helvetica', sans-serif`;
+      const tw = ctx.measureText(contactText).width;
+      const pillPadX = Math.round(w * 0.026);
+      const pillPadY = Math.round(h * 0.011);
+      const pillW = tw + pillPadX * 2;
+      const pillH = pillFontSize + pillPadY * 2;
+      const pillMargin = Math.round(w * 0.038);
+      const px = w - pillW - pillMargin;
+      const py = pillMargin;
+      const pillR = pillH / 2;
+
+      // Semi-transparent dark pill background
+      ctx.fillStyle = "rgba(0,0,0,0.52)";
+      drawRoundRect(ctx, px, py, pillW, pillH, pillR);
+      ctx.fill();
+
+      // Pill border — brand secondary subtle
+      ctx.strokeStyle = hexToRgba(brandOptions.secondaryColor, 0.4);
+      ctx.lineWidth = Math.max(1, Math.round(w * 0.0015));
+      drawRoundRect(ctx, px, py, pillW, pillH, pillR);
+      ctx.stroke();
+
+      // Pill text — brand secondary color
+      ctx.fillStyle = brandOptions.secondaryColor;
+      ctx.font = `600 ${pillFontSize}px 'Arial', 'Helvetica', sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(contactText, px + pillW / 2, py + pillH / 2);
+    }
+
+    return canvas.toDataURL("image/jpeg", 0.93);
   } catch {
     return imageBase64;
   }
