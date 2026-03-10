@@ -54,29 +54,29 @@ export async function applyPhotoWithText(
 
     const w = canvas.width;
     const h = canvas.height;
-    const barH = Math.round(h * 0.18);
-    const fontSize = Math.round(h * 0.038);
+    const gradH = Math.round(h * 0.30);  // gradient zone covers bottom 30%
+    const fontSize = Math.round(h * 0.042);
     const pad = Math.round(w * 0.04);
 
-    // Dark gradient bar
-    const grad = ctx.createLinearGradient(0, h - barH * 1.4, 0, h);
+    // Dark gradient scrim — smooth fade from transparent to semi-opaque
+    const grad = ctx.createLinearGradient(0, h - gradH, 0, h);
     grad.addColorStop(0, "rgba(0,0,0,0)");
-    grad.addColorStop(1, "rgba(0,0,0,0.75)");
+    grad.addColorStop(1, "rgba(0,0,0,0.72)");
     ctx.fillStyle = grad;
-    ctx.fillRect(0, h - barH * 1.4, w, barH * 1.4);
+    ctx.fillRect(0, h - gradH, w, gradH);
 
-    // Caption text (first sentence only, truncated)
+    // Caption text (first sentence, truncated), sitting above the very bottom edge
     const firstLine = caption.split(/[.!?\n]/)[0]?.trim() ?? caption;
-    const maxChars = Math.floor(w / (fontSize * 0.55));
+    const maxChars = Math.floor(w / (fontSize * 0.58));
     const displayText = firstLine.length > maxChars
       ? firstLine.slice(0, maxChars - 1) + "…"
       : firstLine;
 
-    ctx.font = `${fontSize}px Arial, Helvetica, sans-serif`;
+    ctx.font = `bold ${fontSize}px Arial, Helvetica, sans-serif`;
     ctx.fillStyle = "#ffffff";
     ctx.textAlign = "left";
     ctx.textBaseline = "bottom";
-    ctx.fillText(displayText, pad, h - Math.round(h * 0.04));
+    ctx.fillText(displayText, pad, h - Math.round(h * 0.05));
 
     return canvas.toDataURL("image/jpeg", 0.92);
   } catch {
@@ -85,8 +85,8 @@ export async function applyPhotoWithText(
 }
 
 // Treatment 3: Branding + photo + text.
-// Adds a brand-colored bottom bar with logo + contact info on top of the photo.
-// Delegates to applyBrandOverlay from imageOverlay.ts after adding the text bar.
+// Single-pass layout: brand-colored bar at the bottom with logo on the left,
+// caption + website stacked in the remaining space. No separate overlay step.
 export async function applyBrandingWithPhotoAndText(
   imageBase64: string,
   caption: string,
@@ -108,39 +108,80 @@ export async function applyBrandingWithPhotoAndText(
 
     const w = canvas.width;
     const h = canvas.height;
-    const barH = Math.round(h * 0.12);
-    const pad = Math.round(w * 0.04);
-    const fontSize = Math.round(barH * 0.38);
+    const barH = Math.round(h * 0.18);   // tall enough for logo + two text lines
+    const pad = Math.round(w * 0.035);
+    const barY = h - barH;
 
-    // Brand-colored bottom bar
-    ctx.fillStyle = brandOptions.primaryColor + "e6"; // ~90% opacity
-    ctx.fillRect(0, h - barH, w, barH);
+    // Solid brand-colored bottom bar
+    ctx.fillStyle = brandOptions.primaryColor;
+    ctx.fillRect(0, barY, w, barH);
 
-    // Caption first line in secondary color
-    const firstLine = caption.split(/[.!?\n]/)[0]?.trim() ?? caption;
-    const maxChars = Math.floor(w / (fontSize * 0.55));
-    const displayText = firstLine.length > maxChars
-      ? firstLine.slice(0, maxChars - 1) + "…"
-      : firstLine;
+    // Load logo
+    let logoImg: HTMLImageElement | null = null;
+    if (brandOptions.logoBase64) {
+      try { logoImg = await loadImage(brandOptions.logoBase64); } catch {}
+    }
 
-    ctx.font = `bold ${fontSize}px Arial, Helvetica, sans-serif`;
-    ctx.fillStyle = brandOptions.secondaryColor;
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    ctx.fillText(displayText, pad, h - barH / 2);
+    // Logo: square on the left side of the bar, vertically centred, with inner padding
+    let textStartX = pad;
+    if (logoImg) {
+      const logoSize = Math.round(barH * 0.72);
+      const lx = pad;
+      const ly = barY + (barH - logoSize) / 2;
+      const logoAR = logoImg.width / logoImg.height;
+      let lw = logoSize;
+      let lh = logoSize;
+      if (logoAR > 1) lh = Math.round(logoSize / logoAR);
+      else lw = Math.round(logoSize * logoAR);
+      ctx.drawImage(logoImg, lx + (logoSize - lw) / 2, ly + (logoSize - lh) / 2, lw, lh);
+      textStartX = pad + logoSize + pad;
+    }
 
-    const withBar = canvas.toDataURL("image/jpeg", 0.92);
+    // Text area: from textStartX to right edge minus pad
+    const textAreaW = w - textStartX - pad;
+    const hasWebsite = !!(brandOptions.website || brandOptions.phone);
 
-    // Apply brand overlay (logo + contact) on top
-    const { applyBrandOverlay } = await import("./imageOverlay");
-    return applyBrandOverlay(withBar, {
-      logoBase64: brandOptions.logoBase64,
-      primaryColor: brandOptions.primaryColor,
-      secondaryColor: brandOptions.secondaryColor,
-      website: brandOptions.website,
-      phone: brandOptions.phone,
-      includeContact: !!(brandOptions.website || brandOptions.phone),
-    });
+    if (hasWebsite) {
+      // Two lines: caption (bold, larger) then website (smaller, 70% opacity)
+      const captionFontSize = Math.round(barH * 0.30);
+      const subFontSize = Math.round(barH * 0.20);
+
+      // Caption line — first sentence, truncated to fit
+      const firstLine = caption.split(/[.!?\n]/)[0]?.trim() ?? caption;
+      const maxChars = Math.floor(textAreaW / (captionFontSize * 0.55));
+      const displayCaption = firstLine.length > maxChars
+        ? firstLine.slice(0, maxChars - 1) + "…"
+        : firstLine;
+
+      ctx.font = `bold ${captionFontSize}px Arial, Helvetica, sans-serif`;
+      ctx.fillStyle = brandOptions.secondaryColor;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "alphabetic";
+      ctx.fillText(displayCaption, textStartX, barY + barH * 0.50);
+
+      // Website / phone line
+      const contactText = [brandOptions.website, brandOptions.phone].filter(Boolean).join("  ·  ");
+      ctx.font = `${subFontSize}px Arial, Helvetica, sans-serif`;
+      ctx.globalAlpha = 0.75;
+      ctx.fillText(contactText, textStartX, barY + barH * 0.80);
+      ctx.globalAlpha = 1;
+    } else {
+      // Single centred caption line
+      const captionFontSize = Math.round(barH * 0.33);
+      const firstLine = caption.split(/[.!?\n]/)[0]?.trim() ?? caption;
+      const maxChars = Math.floor(textAreaW / (captionFontSize * 0.55));
+      const displayCaption = firstLine.length > maxChars
+        ? firstLine.slice(0, maxChars - 1) + "…"
+        : firstLine;
+
+      ctx.font = `bold ${captionFontSize}px Arial, Helvetica, sans-serif`;
+      ctx.fillStyle = brandOptions.secondaryColor;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(displayCaption, textStartX, barY + barH / 2);
+    }
+
+    return canvas.toDataURL("image/jpeg", 0.92);
   } catch {
     return imageBase64;
   }
