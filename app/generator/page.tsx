@@ -1313,6 +1313,20 @@ export default function Page() {
                 {activePillars ? "Choose a content pillar for today's post" : "What kind of post do you want to create?"}
               </p>
               <div style={styles.postTypeGrid} className="ath-postTypeGrid">
+                {/* Generic Post always shown first */}
+                <Tooltip text="A flexible, general-purpose post for any business or niche. AI decides the format.">
+                  <div
+                    style={{ ...styles.postTypeCard, ...(form.postType === "Generic Post" ? styles.postTypeCardSelected : {}) }}
+                    onClick={() => handlePostTypeSelect("Generic Post")}
+                    className="hover-card-item"
+                  >
+                    <svg style={styles.postTypeIcon} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                    </svg>
+                    <div style={styles.postTypeName}>Generic Post</div>
+                  </div>
+                </Tooltip>
+                {/* Niche-specific pillars or standard post types */}
                 {activePillars && activeWeeklyStructure ? (
                   activeWeeklyStructure.map((pillarId) => {
                     const pillar = activePillars[pillarId];
@@ -1334,7 +1348,7 @@ export default function Page() {
                     );
                   })
                 ) : (
-                  postTypes.map((pt) => (
+                  postTypes.filter((pt) => pt.value !== "Generic Post").map((pt) => (
                     <Tooltip key={pt.value} text={pt.tooltip}>
                       <div
                         style={{ ...styles.postTypeCard, ...(form.postType === pt.value ? styles.postTypeCardSelected : {}) }}
