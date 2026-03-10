@@ -2699,6 +2699,7 @@ export default function DashboardPage() {
         }
         @media (max-width: 768px) {
           .ath-actionGrid { grid-template-columns: 1fr !important; }
+          .dash-side-by-side { grid-template-columns: 1fr !important; }
           .ath-recentPostsGrid { grid-template-columns: repeat(2, 1fr) !important; }
           .post-modal-two-col { flex-direction: column !important; }
           .post-modal-left-col { flex: 1 !important; }
@@ -2709,8 +2710,6 @@ export default function DashboardPage() {
           .profile-bar-left { flex-wrap: wrap !important; gap: 10px !important; }
           .profile-bar-right { width: 100% !important; justify-content: flex-end !important; }
           .user-identity-pill { right: 16px !important; top: 16px !important; }
-          .dash-side-by-side { flex-direction: column !important; }
-          .dash-social-col { flex: 1 0 auto !important; width: 100% !important; }
         }
         @media (max-width: 700px) {
           .profile-form-grid { grid-template-columns: 1fr !important; }
