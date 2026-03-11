@@ -1616,10 +1616,13 @@ export default function DashboardPage() {
                   flexDirection: "column" as const,
                 }}
               >
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 14, flex: 1, marginBottom: 20 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>One topic. One post. Ready in seconds.</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>Caption and hashtags in your brand voice.</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>Pick a style — AI does the rest.</div>
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, flex: 1, marginBottom: 20, textAlign: "left" as const }}>
+                  {["One topic. One post. Ready in seconds.", "Caption and hashtags in your brand voice.", "Pick a style — AI does the rest."].map((line) => (
+                    <div key={line} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#4f8ef7", flexShrink: 0, marginTop: 5 }} />
+                      <span style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5 }}>{line}</span>
+                    </div>
+                  ))}
                 </div>
                 <div
                   style={{
@@ -1682,10 +1685,13 @@ export default function DashboardPage() {
                   flexDirection: "column" as const,
                 }}
               >
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 14, flex: 1, marginBottom: 20 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>Your whole month, planned automatically.</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>Every weekday has its own post type.</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>Click any day. Generate that post.</div>
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, flex: 1, marginBottom: 20, textAlign: "left" as const }}>
+                  {["Your whole month, planned automatically.", "Every weekday has its own post type.", "Click any day. Generate that post."].map((line) => (
+                    <div key={line} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#9d6af5", flexShrink: 0, marginTop: 5 }} />
+                      <span style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5 }}>{line}</span>
+                    </div>
+                  ))}
                 </div>
                 <div
                   style={{
@@ -1745,10 +1751,13 @@ export default function DashboardPage() {
                   flexDirection: "column" as const,
                 }}
               >
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 14, flex: 1, marginBottom: 20 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>Your photos, your brand.</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>Add your logo, number, or branded overlay.</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>Schedule straight to your calendar.</div>
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, flex: 1, marginBottom: 20, textAlign: "left" as const }}>
+                  {["Your photos, your brand.", "Add your logo, number, or branded overlay.", "Schedule straight to your calendar."].map((line) => (
+                    <div key={line} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#34d399", flexShrink: 0, marginTop: 5 }} />
+                      <span style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5 }}>{line}</span>
+                    </div>
+                  ))}
                 </div>
                 <div
                   style={{
