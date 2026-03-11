@@ -1863,12 +1863,12 @@ export default function DashboardPage() {
                   textAlign: "center" as const,
                 }}
               >
-                <div style={{ fontSize: 48, marginBottom: 8 }}>🖼️</div>
+                <div style={{ fontSize: 48, marginBottom: 8 }}>📸</div>
                 <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
-                  Media Library
+                  Use Your Own Photos
                 </div>
                 <div style={{ fontSize: 13, opacity: 0.85 }}>
-                  Post with your own photos
+                  Upload, brand, and schedule your shots
                 </div>
               </div>
 
@@ -1887,7 +1887,7 @@ export default function DashboardPage() {
                 <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, marginBottom: 20 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <span style={{ fontSize: 16 }}>📸</span>
-                    <span style={{ fontSize: 13, opacity: 0.9 }}>Upload your own photos to a media bank</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>Upload your listing or business photos</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <span style={{ fontSize: 16 }}>✍️</span>
@@ -1895,7 +1895,7 @@ export default function DashboardPage() {
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <span style={{ fontSize: 16 }}>🎨</span>
-                    <span style={{ fontSize: 13, opacity: 0.9 }}>Raw, text overlay, or branded treatment</span>
+                    <span style={{ fontSize: 13, opacity: 0.9 }}>Add your logo, phone number, or a branded overlay</span>
                   </div>
                 </div>
 
@@ -1903,7 +1903,7 @@ export default function DashboardPage() {
                   Best for
                 </div>
                 <div style={{ fontSize: 12, opacity: 0.7, lineHeight: 1.5, marginBottom: 20 }}>
-                  You already have great photos and just need the caption, hashtags, and a calendar slot.
+                  You have great photos and want to turn them into branded, calendar-ready social posts.
                 </div>
 
                 <div

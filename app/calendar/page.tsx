@@ -440,6 +440,19 @@ function buildMonthPlan(year: number, month: number, nicheKey?: string): DayPlan
 
 /* ---------------- Helpers ---------------- */
 
+function getPostTypeAccent(postType: string, isHoliday?: boolean): { color: string; icon: string } {
+  if (isHoliday) return { color: "#f97316", icon: "🎉" };
+  const t = postType.toLowerCase();
+  if (t.includes("educat")) return { color: "#3b82f6", icon: "📚" };
+  if (t.includes("authority") || t.includes("expert")) return { color: "#8b5cf6", icon: "⭐" };
+  if (t.includes("problem") || t.includes("solution")) return { color: "#f59e0b", icon: "💡" };
+  if (t.includes("before") || t.includes("after") || t.includes("transform")) return { color: "#14b8a6", icon: "🔄" };
+  if (t.includes("engag") || t.includes("connect") || t.includes("community")) return { color: "#ec4899", icon: "💬" };
+  if (t.includes("market") || t.includes("listing") || t.includes("feature")) return { color: "#10b981", icon: "📈" };
+  if (t.includes("seasonal") || t.includes("holiday")) return { color: "#f97316", icon: "🎉" };
+  return { color: "#6b7280", icon: "✏️" };
+}
+
 const HASHTAG_COUNT_MAP: Record<string, number> = { light: 5, standard: 12, heavy: 20 };
 
 function capitalize(s: string): string {
@@ -1229,12 +1242,16 @@ function CalendarPageInner() {
               const savedPostCell = dayPostsMap.get(p.day);
               const hasPost = !!savedPostCell;
               const isPlannedPost = savedPostCell?.postType === "Media: Planned";
+              const accent = getPostTypeAccent(p.postType, p.isHoliday);
               return (
                 <div
                   key={p.day}
                   style={{
                     ...styles.dayCell,
-                    ...(p.isHoliday ? styles.dayCellHoliday : {}),
+                    borderTop: `3px solid ${accent.color}`,
+                    ...(p.isHoliday
+                      ? styles.dayCellHoliday
+                      : { background: `linear-gradient(180deg, ${accent.color}12 0%, rgba(255,255,255,0.04) 60%)` }),
                   }}
                   className="ath-day-cell"
                   onClick={() => openDrawer(p)}
@@ -1279,7 +1296,8 @@ function CalendarPageInner() {
                       {p.holidayName}
                     </div>
                   )}
-                  <div style={styles.postType} className="post-type-label">
+                  <div style={{ ...styles.postType, display: "flex", alignItems: "center", gap: 3 }} className="post-type-label">
+                    <span style={{ fontSize: 10, lineHeight: 1, flexShrink: 0 }}>{accent.icon}</span>
                     {p.postType}
                   </div>
                   <div
@@ -1320,6 +1338,7 @@ function CalendarPageInner() {
               const savedPostMobile = dayPostsMap.get(dayPlan.day);
               const hasPost = !!savedPostMobile;
               const isPlannedMobile = savedPostMobile?.postType === "Media: Planned";
+              const mobileAccent = getPostTypeAccent(dayPlan.postType, dayPlan.isHoliday);
 
               return (
                 <div
@@ -1327,6 +1346,7 @@ function CalendarPageInner() {
                   style={{
                     ...styles.mobileListItem,
                     ...(dayPlan.isHoliday ? styles.mobileListItemHoliday : {}),
+                    borderLeft: `3px solid ${mobileAccent.color}`,
                   }}
                   className="mobile-list-item"
                   onClick={() => openDrawer(dayPlan)}
@@ -1341,7 +1361,8 @@ function CalendarPageInner() {
                     >
                       {dayOfWeek}, {monthName} {dayNum}
                     </div>
-                    <div style={styles.mobileListPostType}>
+                    <div style={{ ...styles.mobileListPostType, display: "flex", alignItems: "center", gap: 4 }}>
+                      <span style={{ fontSize: 12, lineHeight: 1, flexShrink: 0 }}>{mobileAccent.icon}</span>
                       {dayPlan.postType}
                     </div>
                     <div style={styles.mobileListDetail}>{dayPlan.detail}</div>
