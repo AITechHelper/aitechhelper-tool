@@ -1,5 +1,6 @@
 export type ImageStyleValue =
   | "lifestyle_photo"
+  | "lifestyle_photo_text"
   | "branding_photo"
   | "branding_text_photo"
   | "branding_text_only"
@@ -25,6 +26,14 @@ export const imageStyles: ImageStyleOption[] = [
       "Best for authentic, relatable content. Shows real scenes without heavy branding.",
   },
   {
+    value: "lifestyle_photo_text",
+    name: "Natural Lifestyle + Text",
+    description: "Lifestyle photo with a bold text headline.",
+    icon: "M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z",
+    tooltip:
+      "Natural lifestyle photo with a bold white headline in the lower third. Great for storytelling.",
+  },
+  {
     value: "branding_photo",
     name: "Branded Photo",
     description: "Photo with brand color frames/accents.",
@@ -48,6 +57,7 @@ export const imageStyles: ImageStyleOption[] = [
     tooltip:
       "Pure typography and graphics. Great for quotes, announcements, or bold statements.",
   },
+  // Media-library-only styles (user-uploaded photos)
   {
     value: "raw",
     name: "Raw Photo",
@@ -69,6 +79,15 @@ export const imageStyles: ImageStyleOption[] = [
     icon: "M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01",
     tooltip: "Your uploaded photo with brand colors, logo, and a text overlay applied.",
   },
+];
+
+// The 5 styles shown in the AI generator (AI-generated images only)
+export const GENERATOR_STYLE_VALUES: ImageStyleValue[] = [
+  "lifestyle_photo",
+  "lifestyle_photo_text",
+  "branding_photo",
+  "branding_text_photo",
+  "branding_text_only",
 ];
 
 export function getImageStyleOption(

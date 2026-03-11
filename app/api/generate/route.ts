@@ -222,6 +222,30 @@ Keep branding minimal: tiny accent colors only (if any).
     };
   }
 
+  // 1b) Natural Lifestyle + Text — lifestyle photo with bold headline overlay
+  if (style === "lifestyle_photo_text") {
+    return {
+      allowText: true,
+      photoRequired: true,
+      brandingStrength: "light",
+      banProducts: true,
+      basePrompt: `
+REALISTIC lifestyle photography as the base.
+Authentic candid moment or environment scene.
+Fits the niche through context (setting / activity), NOT products.
+Natural lighting, shallow depth of field, high-end commercial photo.
+Looks organic and unposed (not stock-photo cheesy).
+Include a BOLD HEADLINE TEXT overlay in white or high-contrast color in the lower portion of the image.
+NO logos. NO packaging. NO brand names. NO product labels.
+`,
+      layoutHint: `
+Lifestyle framing with bold text treatment in lower third.
+Text should be clean, uppercase, and high-contrast against the photo.
+Keep the photo natural; the text headline is the accent.
+`,
+    };
+  }
+
   // 2) Branded Photo — Clean photo with graphic design frame/accents AROUND it
   if (
     style === "branded_photo" ||

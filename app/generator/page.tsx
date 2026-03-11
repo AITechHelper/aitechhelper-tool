@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useEffect, useRef } from "react";
-import { imageStyles } from "../lib/imageStyleOptions";
+import { imageStyles, GENERATOR_STYLE_VALUES } from "../lib/imageStyleOptions";
 import { getTemplate } from "../lib/nicheTemplates";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
@@ -1413,7 +1413,7 @@ export default function Page() {
               <h2 style={styles.cardTitle}>Image Style</h2>
               <p style={styles.cardHint}>Choose how your image will look</p>
               <div style={styles.styleCardGrid} className="ath-styleCardGrid">
-                {imageStyles.map((s) => (
+                {imageStyles.filter((s) => GENERATOR_STYLE_VALUES.includes(s.value)).map((s) => (
                   <Tooltip key={s.value} text={s.tooltip}>
                     <div
                       style={{ ...styles.styleCard, ...(form.imageStyle === s.value ? styles.styleCardSelected : {}) }}
