@@ -159,6 +159,105 @@ export async function applyPhotoWithText(
   }
 }
 
+// Treatment 3b: Branding + photo only (no text overlay).
+// Logo badge top-left, website/phone pill top-right — no scrim or headline.
+export async function applyBrandingPhotoOnly(
+  imageBase64: string,
+  brandOptions: {
+    primaryColor: string;
+    secondaryColor: string;
+    logoBase64?: string;
+    website?: string;
+    phone?: string;
+  }
+): Promise<string> {
+  try {
+    const img = await loadImage(imageBase64);
+    const canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext("2d")!;
+    ctx.drawImage(img, 0, 0);
+
+    const w = canvas.width;
+    const h = canvas.height;
+
+    // Circular logo badge — top-left
+    if (brandOptions.logoBase64) {
+      try {
+        const logoImg = await loadImage(brandOptions.logoBase64);
+        const badgeR = Math.round(w * 0.056);
+        const margin = Math.round(w * 0.038);
+        const cx = margin + badgeR;
+        const cy = margin + badgeR;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, badgeR, 0, Math.PI * 2);
+        ctx.fillStyle = hexToRgba(brandOptions.primaryColor, 0.94);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, badgeR, 0, Math.PI * 2);
+        ctx.strokeStyle = hexToRgba(brandOptions.secondaryColor, 0.5);
+        ctx.lineWidth = Math.max(2, Math.round(w * 0.003));
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, badgeR * 0.78, 0, Math.PI * 2);
+        ctx.clip();
+
+        const ar = logoImg.width / logoImg.height;
+        const logoSize = badgeR * 1.24;
+        let lw = logoSize, lh = logoSize;
+        if (ar > 1) lh = logoSize / ar;
+        else lw = logoSize * ar;
+        ctx.drawImage(logoImg, cx - lw / 2, cy - lh / 2, lw, lh);
+
+        ctx.restore();
+      } catch {
+        // Logo load failed — skip gracefully
+      }
+    }
+
+    // Website / phone pill — top-right
+    const rawContact = brandOptions.website || brandOptions.phone || "";
+    const contactText = rawContact.replace(/^https?:\/\//i, "").replace(/^www\./i, "");
+    if (contactText) {
+      const pillFontSize = Math.round(h * 0.022);
+      ctx.font = `600 ${pillFontSize}px 'Arial', 'Helvetica', sans-serif`;
+      const tw = ctx.measureText(contactText).width;
+      const pillPadX = Math.round(w * 0.026);
+      const pillPadY = Math.round(h * 0.011);
+      const pillW = tw + pillPadX * 2;
+      const pillH = pillFontSize + pillPadY * 2;
+      const pillMargin = Math.round(w * 0.038);
+      const px = w - pillW - pillMargin;
+      const py = pillMargin;
+      const pillR = pillH / 2;
+
+      ctx.fillStyle = "rgba(0,0,0,0.52)";
+      drawRoundRect(ctx, px, py, pillW, pillH, pillR);
+      ctx.fill();
+
+      ctx.strokeStyle = hexToRgba(brandOptions.secondaryColor, 0.4);
+      ctx.lineWidth = Math.max(1, Math.round(w * 0.0015));
+      drawRoundRect(ctx, px, py, pillW, pillH, pillR);
+      ctx.stroke();
+
+      ctx.fillStyle = brandOptions.secondaryColor;
+      ctx.font = `600 ${pillFontSize}px 'Arial', 'Helvetica', sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(contactText, px + pillW / 2, py + pillH / 2);
+    }
+
+    return canvas.toDataURL("image/jpeg", 0.93);
+  } catch {
+    return imageBase64;
+  }
+}
+
 // Treatment 3: Branding + photo + editorial overlay.
 // Layout: deep gradient scrim, large two-tone headline (white + brand accent),
 // accent rule, circular logo badge top-left, website pill top-right.

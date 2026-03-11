@@ -7,7 +7,7 @@ import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
 import { getImage, saveImage } from "../lib/imageStorage";
-import { applyRawTreatment, applyPhotoWithText, applyBrandingWithPhotoAndText } from "../lib/photoTreatments";
+import { applyRawTreatment, applyPhotoWithText, applyBrandingPhotoOnly, applyBrandingWithPhotoAndText } from "../lib/photoTreatments";
 import {
   getTemplate,
   getPillarForWorkdayIndex,
@@ -647,6 +647,14 @@ function CalendarPageInner() {
       let finalImage = drawerImage;
       if (savedPostForDay.imageStyle === "photo_text") {
         finalImage = await applyPhotoWithText(drawerImage, generatedCaption);
+      } else if (savedPostForDay.imageStyle === "branding_photo" && activeBrandProfile) {
+        finalImage = await applyBrandingPhotoOnly(drawerImage, {
+          primaryColor: activeBrandProfile.primaryColor,
+          secondaryColor: activeBrandProfile.secondaryColor,
+          logoBase64: activeBrandProfile.logoBase64,
+          website: activeBrandProfile.website,
+          phone: activeBrandProfile.phone,
+        });
       } else if (savedPostForDay.imageStyle === "brand_photo_text" && activeBrandProfile) {
         finalImage = await applyBrandingWithPhotoAndText(drawerImage, generatedCaption, {
           primaryColor: activeBrandProfile.primaryColor,
@@ -1132,23 +1140,20 @@ function CalendarPageInner() {
               Click any day to see your content plan and generate posts.
             </p>
           </div>
-          <a href="/dashboard" style={styles.backBtn} className="hover-btn">
-            <svg
-              width="16"
-              height="16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Dashboard
-          </a>
+          <div style={{ display: "flex", gap: 10 }}>
+            <a href="/dashboard" style={styles.backBtn} className="hover-btn">
+              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              Dashboard
+            </a>
+            <a href="/media" style={styles.backBtn} className="hover-btn">
+              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              My Media
+            </a>
+          </div>
         </div>
 
         {/* Brand profile gate */}

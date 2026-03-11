@@ -52,6 +52,12 @@ const TREATMENT_OPTIONS = [
     icon: "M4 6h16M4 12h16M4 18h7",
   },
   {
+    id: "branding_photo",
+    label: "Lifestyle + Branding",
+    desc: "Your photo with your logo and contact info. No text overlay.",
+    icon: "M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z",
+  },
+  {
     id: "brand_photo_text",
     label: "Branding + Photo + Text",
     desc: "Your photo with brand colors, logo, and text.",
@@ -526,7 +532,7 @@ export default function MediaPage() {
                       )}
                     </div>
                   ))}
-                  {planTreatment === "brand_photo_text" && !activeBrandProfile && (
+                  {(planTreatment === "brand_photo_text" || planTreatment === "branding_photo") && !activeBrandProfile && (
                     <div style={{ fontSize: 12, color: "#fbbf24", background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.3)", borderRadius: 8, padding: "8px 12px" }}>
                       No active brand profile found. Activate one on the Dashboard to use branding overlays.
                     </div>
