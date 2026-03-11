@@ -1503,6 +1503,7 @@ export default function DashboardPage() {
                   <rect x="14" y="14" width="7" height="7" rx="1" />
                 </svg>
                 <span style={{ fontWeight: 700, fontSize: 16, color: "#e6edf7" }}>Recent Posts</span>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 400 }}>last 3 saved</span>
               </div>
             </div>
 
