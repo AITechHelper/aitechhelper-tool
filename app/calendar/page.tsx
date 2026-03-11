@@ -8,6 +8,8 @@ import { useToast } from "../_components/ToastProvider";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
 import { getImage, saveImage } from "../lib/imageStorage";
 import { applyRawTreatment, applyPhotoWithText, applyBrandingPhotoOnly, applyBrandingWithPhotoAndText } from "../lib/photoTreatments";
+import { useInstagram } from "../lib/useInstagram";
+import { useFacebook } from "../lib/useFacebook";
 import {
   getTemplate,
   getPillarForWorkdayIndex,
@@ -482,6 +484,12 @@ function CalendarPageInner() {
   }, [searchParams, activeBrandProfile]);
   const [showOutOfTokens, setShowOutOfTokens] = useState(false);
 
+  // Social publishing
+  const instagram = useInstagram();
+  const facebook = useFacebook();
+  const [igPostStatus, setIgPostStatus] = useState<"idle" | "posting" | "success" | "error">("idle");
+  const [fbPostStatus, setFbPostStatus] = useState<"idle" | "posting" | "success" | "error">("idle");
+
   // Drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [extraDetails, setExtraDetails] = useState("");
@@ -580,6 +588,8 @@ function CalendarPageInner() {
     setUserThought("");
     setDrawerImage(null);
     setCopiedField(null);
+    setIgPostStatus("idle");
+    setFbPostStatus("idle");
 
     const savedPost = dayPostsMap.get(dayPlan.day);
     if (savedPost) {
@@ -1882,6 +1892,95 @@ function CalendarPageInner() {
                         {savedPostForDay.hashtags}
                       </div>
                     </div>
+
+                    {/* Publish buttons */}
+                    {(instagram.connected || facebook.connected) && drawerImage && (
+                      <div style={{ display: "flex", flexDirection: "column" as const, gap: 8, marginTop: 4 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 2 }}>
+                          Publish
+                        </div>
+                        {instagram.connected && (
+                          <button
+                            onClick={async () => {
+                              if (igPostStatus === "posting" || igPostStatus === "success") return;
+                              setIgPostStatus("posting");
+                              try {
+                                await instagram.publish(drawerImage, savedPostForDay.caption, savedPostForDay.hashtags);
+                                setIgPostStatus("success");
+                                addToast(`Posted to @${instagram.username}!`, "success");
+                              } catch (err: any) {
+                                setIgPostStatus("error");
+                                addToast(err?.message || "Instagram post failed.", "error");
+                              }
+                            }}
+                            style={{
+                              width: "100%",
+                              padding: "11px 16px",
+                              borderRadius: 10,
+                              border: igPostStatus === "success" ? "1px solid rgba(34,197,94,0.4)" : "1px solid rgba(225,48,108,0.35)",
+                              background: igPostStatus === "success"
+                                ? "rgba(34,197,94,0.12)"
+                                : "linear-gradient(135deg, rgba(225,48,108,0.15) 0%, rgba(193,53,132,0.1) 100%)",
+                              color: igPostStatus === "success" ? "#22c55e" : "#f472b6",
+                              fontSize: 13,
+                              fontWeight: 700,
+                              cursor: igPostStatus === "posting" || igPostStatus === "success" ? "default" : "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: 8,
+                              fontFamily: "Verdana, Geneva, sans-serif",
+                              opacity: igPostStatus === "posting" ? 0.7 : 1,
+                            }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                            </svg>
+                            {igPostStatus === "posting" ? "Posting…" : igPostStatus === "success" ? "Posted to Instagram!" : `Post to Instagram (@${instagram.username})`}
+                          </button>
+                        )}
+                        {facebook.connected && (
+                          <button
+                            onClick={async () => {
+                              if (fbPostStatus === "posting" || fbPostStatus === "success") return;
+                              setFbPostStatus("posting");
+                              try {
+                                await facebook.publish(drawerImage, savedPostForDay.caption, savedPostForDay.hashtags);
+                                setFbPostStatus("success");
+                                addToast(`Posted to ${facebook.pageName}!`, "success");
+                              } catch (err: any) {
+                                setFbPostStatus("error");
+                                addToast(err?.message || "Facebook post failed.", "error");
+                              }
+                            }}
+                            style={{
+                              width: "100%",
+                              padding: "11px 16px",
+                              borderRadius: 10,
+                              border: fbPostStatus === "success" ? "1px solid rgba(34,197,94,0.4)" : "1px solid rgba(24,119,242,0.35)",
+                              background: fbPostStatus === "success"
+                                ? "rgba(34,197,94,0.12)"
+                                : "linear-gradient(135deg, rgba(24,119,242,0.15) 0%, rgba(24,119,242,0.08) 100%)",
+                              color: fbPostStatus === "success" ? "#22c55e" : "#60a5fa",
+                              fontSize: 13,
+                              fontWeight: 700,
+                              cursor: fbPostStatus === "posting" || fbPostStatus === "success" ? "default" : "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: 8,
+                              fontFamily: "Verdana, Geneva, sans-serif",
+                              opacity: fbPostStatus === "posting" ? 0.7 : 1,
+                            }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                            {fbPostStatus === "posting" ? "Posting…" : fbPostStatus === "success" ? "Posted to Facebook!" : `Post to ${facebook.pageName}`}
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
                 )  /* end inner ternary (regular generated view) */
