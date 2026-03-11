@@ -1649,7 +1649,7 @@ function CalendarPageInner() {
                             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
-                            Generate Caption Now
+                            Generate Post & Apply Treatment
                           </>
                         )}
                       </button>
@@ -1709,7 +1709,7 @@ function CalendarPageInner() {
                         );
                       })()}
                       <div style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.2)", borderRadius: 10, padding: "10px 12px", fontSize: 12, lineHeight: 1.5, color: "rgba(167,139,250,0.85)" }}>
-                        Click <strong>Generate Caption Now</strong> to write the caption and apply the image treatment. Your photo stays in place — no token used.
+                        This generates the caption, hashtags, and applies your chosen image treatment. Your uploaded photo stays in place — no token used.
                       </div>
                     </div>
                   </div>
