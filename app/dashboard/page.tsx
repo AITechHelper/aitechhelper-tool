@@ -2698,6 +2698,10 @@ export default function DashboardPage() {
         @media (max-width: 768px) {
           .ath-page { padding: 10px !important; }
         }
+        @media (max-width: 960px) {
+          .ath-actionGrid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+          .dash-side-by-side { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+        }
         @media (max-width: 900px) {
           .profile-benefits-pill-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
         }
