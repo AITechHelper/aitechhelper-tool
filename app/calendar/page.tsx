@@ -1242,7 +1242,14 @@ function CalendarPageInner() {
               const savedPostCell = dayPostsMap.get(p.day);
               const hasPost = !!savedPostCell;
               const isPlannedPost = savedPostCell?.postType === "Media: Planned";
-              const accent = getPostTypeAccent(p.postType, p.isHoliday);
+              const accent = hasPost
+                ? isPlannedPost
+                  ? { color: "#7c3aed", icon: "📷" }
+                  : { color: "#22c55e", icon: "✅" }
+                : getPostTypeAccent(p.postType, p.isHoliday);
+              const displayLabel = hasPost
+                ? isPlannedPost ? "Photo Scheduled" : "Post Saved"
+                : p.postType;
               return (
                 <div
                   key={p.day}
@@ -1298,7 +1305,7 @@ function CalendarPageInner() {
                   )}
                   <div style={{ ...styles.postType, display: "flex", alignItems: "center", gap: 3 }} className="post-type-label">
                     <span style={{ fontSize: 10, lineHeight: 1, flexShrink: 0 }}>{accent.icon}</span>
-                    {p.postType}
+                    {displayLabel}
                   </div>
                   <div
                     style={{
@@ -1338,7 +1345,14 @@ function CalendarPageInner() {
               const savedPostMobile = dayPostsMap.get(dayPlan.day);
               const hasPost = !!savedPostMobile;
               const isPlannedMobile = savedPostMobile?.postType === "Media: Planned";
-              const mobileAccent = getPostTypeAccent(dayPlan.postType, dayPlan.isHoliday);
+              const mobileAccent = hasPost
+                ? isPlannedMobile
+                  ? { color: "#7c3aed", icon: "📷" }
+                  : { color: "#22c55e", icon: "✅" }
+                : getPostTypeAccent(dayPlan.postType, dayPlan.isHoliday);
+              const mobileDisplayLabel = hasPost
+                ? isPlannedMobile ? "Photo Scheduled" : "Post Saved"
+                : dayPlan.postType;
 
               return (
                 <div
@@ -1363,7 +1377,7 @@ function CalendarPageInner() {
                     </div>
                     <div style={{ ...styles.mobileListPostType, display: "flex", alignItems: "center", gap: 4 }}>
                       <span style={{ fontSize: 12, lineHeight: 1, flexShrink: 0 }}>{mobileAccent.icon}</span>
-                      {dayPlan.postType}
+                      {mobileDisplayLabel}
                     </div>
                     <div style={styles.mobileListDetail}>{dayPlan.detail}</div>
                     {hasPost && (
