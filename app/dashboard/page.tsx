@@ -1616,79 +1616,11 @@ export default function DashboardPage() {
                   flexDirection: "column" as const,
                 }}
               >
-                {/* What you get */}
-                <div
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    opacity: 0.5,
-                    marginBottom: 12,
-                    textTransform: "uppercase" as const,
-                    letterSpacing: 1,
-                  }}
-                >
-                  What you get
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 14, flex: 1, marginBottom: 20 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>One topic. One post. Ready in seconds.</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>Caption and hashtags in your brand voice.</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>Pick a style — AI does the rest.</div>
                 </div>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column" as const,
-                    gap: 10,
-                    marginBottom: 20,
-                  }}
-                >
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 10 }}
-                  >
-                    <span style={{ fontSize: 16 }}>✨</span>
-                    <span style={{ fontSize: 13, opacity: 0.9 }}>
-                      Promotional post, update, or client story
-                    </span>
-                  </div>
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 10 }}
-                  >
-                    <span style={{ fontSize: 16 }}>✍️</span>
-                    <span style={{ fontSize: 13, opacity: 0.9 }}>
-                      Caption written in your brand voice
-                    </span>
-                  </div>
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 10 }}
-                  >
-                    <span style={{ fontSize: 16 }}>#️⃣</span>
-                    <span style={{ fontSize: 13, opacity: 0.9 }}>
-                      Niche-specific hashtags, ready to copy
-                    </span>
-                  </div>
-                </div>
-
-                {/* Best for */}
-                <div
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    opacity: 0.5,
-                    marginBottom: 8,
-                    textTransform: "uppercase" as const,
-                    letterSpacing: 1,
-                  }}
-                >
-                  Best for
-                </div>
-                <div
-                  style={{
-                    fontSize: 12,
-                    opacity: 0.7,
-                    lineHeight: 1.5,
-                    marginBottom: 20,
-                  }}
-                >
-                  You have something to share, need a quick post, or a client
-                  just gave you a great review.
-                </div>
-
-                {/* CTA Button */}
                 <div
                   style={{
                     marginTop: "auto",
@@ -1750,79 +1682,11 @@ export default function DashboardPage() {
                   flexDirection: "column" as const,
                 }}
               >
-                {/* What you get */}
-                <div
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    opacity: 0.5,
-                    marginBottom: 12,
-                    textTransform: "uppercase" as const,
-                    letterSpacing: 1,
-                  }}
-                >
-                  What you get
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 14, flex: 1, marginBottom: 20 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>Your whole month, planned automatically.</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>Every weekday has its own post type.</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>Click any day. Generate that post.</div>
                 </div>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column" as const,
-                    gap: 10,
-                    marginBottom: 20,
-                  }}
-                >
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 10 }}
-                  >
-                    <span style={{ fontSize: 16 }}>🗓️</span>
-                    <span style={{ fontSize: 13, opacity: 0.9 }}>
-                      Structured weekly content plan for your niche
-                    </span>
-                  </div>
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 10 }}
-                  >
-                    <span style={{ fontSize: 16 }}>📊</span>
-                    <span style={{ fontSize: 13, opacity: 0.9 }}>
-                      Mon: Authority · Tue: Showcase · Wed: Tip...
-                    </span>
-                  </div>
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 10 }}
-                  >
-                    <span style={{ fontSize: 16 }}>🎯</span>
-                    <span style={{ fontSize: 13, opacity: 0.9 }}>
-                      Click any day to generate that post instantly
-                    </span>
-                  </div>
-                </div>
-
-                {/* Best for */}
-                <div
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    opacity: 0.5,
-                    marginBottom: 8,
-                    textTransform: "uppercase" as const,
-                    letterSpacing: 1,
-                  }}
-                >
-                  Best for
-                </div>
-                <div
-                  style={{
-                    fontSize: 12,
-                    opacity: 0.7,
-                    lineHeight: 1.5,
-                    marginBottom: 20,
-                  }}
-                >
-                  Anyone who wants to show up daily without thinking about what
-                  to post — or when.
-                </div>
-
-                {/* CTA Button */}
                 <div
                   style={{
                     marginTop: "auto",
@@ -1881,31 +1745,11 @@ export default function DashboardPage() {
                   flexDirection: "column" as const,
                 }}
               >
-                <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.5, marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: 1 }}>
-                  What you get
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 14, flex: 1, marginBottom: 20 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>Your photos, your brand.</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>Add your logo, number, or branded overlay.</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>Schedule straight to your calendar.</div>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, marginBottom: 20 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 16 }}>📸</span>
-                    <span style={{ fontSize: 13, opacity: 0.9 }}>Upload your listing or business photos</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 16 }}>✍️</span>
-                    <span style={{ fontSize: 13, opacity: 0.9 }}>AI writes the caption and hashtags for you</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 16 }}>🎨</span>
-                    <span style={{ fontSize: 13, opacity: 0.9 }}>Add your logo, phone number, or a branded overlay</span>
-                  </div>
-                </div>
-
-                <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.5, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: 1 }}>
-                  Best for
-                </div>
-                <div style={{ fontSize: 12, opacity: 0.7, lineHeight: 1.5, marginBottom: 20 }}>
-                  You have great photos and want to turn them into branded, calendar-ready social posts.
-                </div>
-
                 <div
                   style={{
                     marginTop: "auto",
