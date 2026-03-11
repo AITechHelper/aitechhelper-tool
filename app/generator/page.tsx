@@ -785,7 +785,7 @@ export default function Page() {
     // Image style cards
     styleCardGrid: {
       display: "grid",
-      gridTemplateColumns: "repeat(4, 1fr)",
+      gridTemplateColumns: "repeat(6, 1fr)",
       gap: 10,
     },
     styleCard: {
@@ -1814,10 +1814,19 @@ export default function Page() {
           }
         }
 
+        /* 5-item style grid: centered 3+2 layout */
+        .ath-styleCardGrid > span { display: block !important; width: 100% !important; position: relative; }
+        .ath-styleCardGrid > span:nth-child(1) { grid-column: 1 / 3; }
+        .ath-styleCardGrid > span:nth-child(2) { grid-column: 3 / 5; }
+        .ath-styleCardGrid > span:nth-child(3) { grid-column: 5 / 7; }
+        .ath-styleCardGrid > span:nth-child(4) { grid-column: 2 / 4; }
+        .ath-styleCardGrid > span:nth-child(5) { grid-column: 4 / 6; }
+
         @media (max-width: 768px) {
           .ath-page { padding: 10px !important; }
           .ath-row2 { grid-template-columns: 1fr !important; }
           .ath-styleCardGrid { grid-template-columns: repeat(2, 1fr) !important; }
+          .ath-styleCardGrid > span:nth-child(n) { grid-column: auto !important; }
           .ath-postTypeGrid { grid-template-columns: repeat(3, 1fr) !important; }
           .ath-nicheCardGrid { grid-template-columns: repeat(2, 1fr) !important; }
           .ath-page input, .ath-page select, .ath-page textarea { font-size: 16px !important; }

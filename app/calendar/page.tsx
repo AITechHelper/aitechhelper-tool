@@ -17,6 +17,7 @@ import {
 
 type ImageStyle =
   | "lifestyle_photo"
+  | "lifestyle_photo_text"
   | "branding_photo"
   | "branding_text_photo"
   | "branding_text_only";
@@ -308,17 +309,17 @@ function pickImageStyleForDay(
   }
   if (t.includes("seasonal") || t.includes("holiday")) {
     return seededPick(
-      ["branding_text_photo", "lifestyle_photo"] as const,
+      ["branding_text_photo", "lifestyle_photo_text", "lifestyle_photo"] as const,
       seed
     );
   }
   if (t.includes("engagement")) {
-    return seededPick(["lifestyle_photo", "branding_photo"] as const, seed);
+    return seededPick(["lifestyle_photo", "lifestyle_photo_text", "branding_photo"] as const, seed);
   }
   if (t.includes("before") || t.includes("after")) {
-    return "lifestyle_photo";
+    return seededPick(["lifestyle_photo", "lifestyle_photo_text"] as const, seed);
   }
-  return seededPick(["lifestyle_photo", "branding_photo"] as const, seed);
+  return seededPick(["lifestyle_photo", "lifestyle_photo_text", "branding_photo"] as const, seed);
 }
 
 /* ---------------- Post types ---------------- */
