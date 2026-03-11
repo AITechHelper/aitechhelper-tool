@@ -15,7 +15,7 @@ export default function SignInPage() {
   return (
     <div style={styles.container}>
       <SignIn
-        afterSignInUrl="/dashboard"
+        fallbackRedirectUrl="/dashboard"
         appearance={{
           elements: {
             rootBox: { width: "100%", maxWidth: "400px" },
