@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getImageStyleOption } from "../lib/imageStyleOptions";
+import { getImageStyleOption, type ImageStyleValue } from "../lib/imageStyleOptions";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
@@ -1238,8 +1238,11 @@ function CalendarPageInner() {
                 return <div key={`empty-${idx}`} style={styles.emptyCell} />;
 
               const p = cell.plan;
-              const imageStyleOption = getImageStyleOption(p.imageStyle);
               const savedPostCell = dayPostsMap.get(p.day);
+              const badgeStyleOption = savedPostCell?.imageStyle
+                ? (getImageStyleOption(savedPostCell.imageStyle as ImageStyleValue) ?? getImageStyleOption(p.imageStyle))
+                : getImageStyleOption(p.imageStyle);
+              const imageStyleOption = badgeStyleOption;
               const hasPost = !!savedPostCell;
               const isPlannedPost = savedPostCell?.postType === "Media: Planned";
               const accent = hasPost
@@ -1338,12 +1341,15 @@ function CalendarPageInner() {
           {/* Mobile List View */}
           <div style={styles.mobileListContainer} className="mobile-calendar">
             {plan.map((dayPlan) => {
-              const imageStyleOption = getImageStyleOption(dayPlan.imageStyle);
               const dayOfWeek = WEEKDAYS[dayPlan.date.getDay()];
               const monthName = MONTHS[dayPlan.date.getMonth()];
               const dayNum = dayPlan.day;
               const savedPostMobile = dayPostsMap.get(dayPlan.day);
               const hasPost = !!savedPostMobile;
+              const mobileBadgeOption = savedPostMobile?.imageStyle
+                ? (getImageStyleOption(savedPostMobile.imageStyle as ImageStyleValue) ?? getImageStyleOption(dayPlan.imageStyle))
+                : getImageStyleOption(dayPlan.imageStyle);
+              const imageStyleOption = mobileBadgeOption;
               const isPlannedMobile = savedPostMobile?.postType === "Media: Planned";
               const mobileAccent = hasPost
                 ? isPlannedMobile
