@@ -103,13 +103,9 @@ function generateGenId(): string {
 
 function getStoredPostResult(genId: string): PostResult | null {
   try {
-    const stored = localStorage.getItem(`postResult:${genId}`);
-    console.log(
-      "🔍 Checking postResult storage for genId:",
-      genId,
-      "Found:",
-      !!stored
-    );
+    // Check sessionStorage first (persists across refreshes within the same tab)
+    const stored = sessionStorage.getItem(`postResult:${genId}`)
+      ?? localStorage.getItem(`postResult:${genId}`); // legacy fallback
     return stored ? JSON.parse(stored) : null;
   } catch {
     return null;
@@ -118,15 +114,25 @@ function getStoredPostResult(genId: string): PostResult | null {
 
 function storePostResult(genId: string, result: PostResult): void {
   try {
-    localStorage.setItem(
+    // Use sessionStorage — handles large base64 images without hitting
+    // localStorage's 5MB quota, and persists across refreshes in the same tab
+    sessionStorage.setItem(
       `postResult:${genId}`,
       JSON.stringify({
         ...result,
         savedAt: Date.now(),
       })
     );
-    console.log("💾 Stored post result for genId:", genId);
-  } catch {}
+  } catch {
+    // sessionStorage full — store without the image so at least text is preserved
+    try {
+      const { imageBase64: _, ...textOnly } = result;
+      sessionStorage.setItem(
+        `postResult:${genId}`,
+        JSON.stringify({ ...textOnly, savedAt: Date.now() })
+      );
+    } catch {}
+  }
 }
 
 type FormState = {
