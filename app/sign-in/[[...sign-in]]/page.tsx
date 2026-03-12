@@ -48,7 +48,7 @@ export default function SignInPage() {
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
         window.location.href = "/dashboard";
-      } else if (result.status === "needs_client_trust") {
+      } else if ((result.status as string) === "needs_client_trust") {
         // Device not recognized — send email verification code
         const emailFactor = result.supportedFirstFactors?.find(
           (f: any) => f.strategy === "email_code"
