@@ -81,7 +81,8 @@ async function uploadImageTemporarily(base64DataUrl: string): Promise<string> {
     }
 
     const data = await res.json();
-    return data.data.url;
+    // display_url is the direct image URL (i.ibb.co/...) — not data.url which is the page URL
+    return data.data.display_url || data.data.image?.url || data.data.url;
   }
 
   throw new Error(
