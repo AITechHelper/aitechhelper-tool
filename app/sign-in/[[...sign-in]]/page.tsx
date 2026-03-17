@@ -1,11 +1,13 @@
 "use client";
 import { useSignIn } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type Step = "sign_in" | "verify_code";
 
 export default function SignInPage() {
   const { isLoaded, signIn, setActive } = useSignIn();
+  const router = useRouter();
   const [step, setStep] = useState<Step>("sign_in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -47,7 +49,7 @@ export default function SignInPage() {
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
-        window.location.href = "/dashboard";
+        router.push("/dashboard");
       } else if ((result.status as string) === "needs_client_trust") {
         // Device not recognized — send email verification code
         const emailFactor = result.supportedFirstFactors?.find(
@@ -82,7 +84,7 @@ export default function SignInPage() {
       });
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
-        window.location.href = "/dashboard";
+        router.push("/dashboard");
       } else {
         setError(`Verification incomplete (${result.status}). Please try again.`);
       }
