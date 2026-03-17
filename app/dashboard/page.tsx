@@ -2570,7 +2570,7 @@ export default function DashboardPage() {
           .ath-actionGrid { grid-template-columns: repeat(3, 1fr) !important; gap: 8px !important; }
           .ath-card-body { display: none !important; }
           .ath-card-header { padding: 16px 8px 14px !important; }
-          .ath-card-icon { font-size: 30px !important; margin-bottom: 6px !important; width: 40px !important; height: 40px !important; }
+          .ath-card-icon { font-size: 30px !important; margin: 0 auto 6px !important; width: 40px !important; height: 40px !important; display: block !important; }
           .ath-card-title { font-size: 12px !important; margin-bottom: 0 !important; }
           .ath-card-subtitle { display: none !important; }
           .dash-side-by-side { grid-template-columns: 1fr !important; }
