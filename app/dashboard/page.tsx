@@ -830,6 +830,7 @@ export default function DashboardPage() {
               {/* User Email Pill */}
               <div
                 ref={menuRef}
+                className="ath-email-pill"
                 style={{ position: "fixed", top: 16, right: 16, zIndex: 1000 }}
               >
                 <div
@@ -1591,6 +1592,7 @@ export default function DashboardPage() {
             >
               {/* Card Header with gradient */}
               <div
+                className="ath-card-header"
                 style={{
                   background:
                     "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
@@ -1598,17 +1600,18 @@ export default function DashboardPage() {
                   textAlign: "center" as const,
                 }}
               >
-                <img src="/logo-icon.png" alt="AI Social Helper" style={{ width: 64, height: 64, marginBottom: 8, objectFit: "contain", display: "block", margin: "0 auto 8px" }} />
-                <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
+                <img className="ath-card-icon" src="/logo-icon.png" alt="AI Social Helper" style={{ width: 64, height: 64, marginBottom: 8, objectFit: "contain", display: "block", margin: "0 auto 8px" }} />
+                <div className="ath-card-title" style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
                   Generate a Post
                 </div>
-                <div style={{ fontSize: 13, opacity: 0.85 }}>
+                <div className="ath-card-subtitle" style={{ fontSize: 13, opacity: 0.85 }}>
                   One post, done in seconds
                 </div>
               </div>
 
               {/* Card Body */}
               <div
+                className="ath-card-body"
                 style={{
                   padding: "20px 24px 24px",
                   flex: 1,
@@ -1660,6 +1663,7 @@ export default function DashboardPage() {
             >
               {/* Card Header with gradient */}
               <div
+                className="ath-card-header"
                 style={{
                   background:
                     "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
@@ -1667,17 +1671,18 @@ export default function DashboardPage() {
                   textAlign: "center" as const,
                 }}
               >
-                <div style={{ fontSize: 48, marginBottom: 8 }}>📅</div>
-                <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
+                <div className="ath-card-icon" style={{ fontSize: 48, marginBottom: 8 }}>📅</div>
+                <div className="ath-card-title" style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
                   Plan Your Month
                 </div>
-                <div style={{ fontSize: 13, opacity: 0.85 }}>
+                <div className="ath-card-subtitle" style={{ fontSize: 13, opacity: 0.85 }}>
                   Your full month, planned for you
                 </div>
               </div>
 
               {/* Card Body */}
               <div
+                className="ath-card-body"
                 style={{
                   padding: "20px 24px 24px",
                   flex: 1,
@@ -1727,23 +1732,25 @@ export default function DashboardPage() {
             >
               {/* Card Header */}
               <div
+                className="ath-card-header"
                 style={{
                   background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
                   padding: "24px 24px 20px",
                   textAlign: "center" as const,
                 }}
               >
-                <div style={{ fontSize: 48, marginBottom: 8 }}>📸</div>
-                <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
+                <div className="ath-card-icon" style={{ fontSize: 48, marginBottom: 8 }}>📸</div>
+                <div className="ath-card-title" style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
                   Use Your Own Photos
                 </div>
-                <div style={{ fontSize: 13, opacity: 0.85 }}>
+                <div className="ath-card-subtitle" style={{ fontSize: 13, opacity: 0.85 }}>
                   Upload, brand, and schedule your shots
                 </div>
               </div>
 
               {/* Card Body */}
               <div
+                className="ath-card-body"
                 style={{
                   padding: "20px 24px 24px",
                   flex: 1,
@@ -2559,7 +2566,13 @@ export default function DashboardPage() {
           .profile-benefits-pill-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
         }
         @media (max-width: 768px) {
-          .ath-actionGrid { grid-template-columns: 1fr !important; }
+          /* Keep 3-col action grid but compact the cards so all 3 fit on screen */
+          .ath-actionGrid { grid-template-columns: repeat(3, 1fr) !important; gap: 8px !important; }
+          .ath-card-body { display: none !important; }
+          .ath-card-header { padding: 16px 8px 14px !important; }
+          .ath-card-icon { font-size: 30px !important; margin-bottom: 6px !important; width: 40px !important; height: 40px !important; }
+          .ath-card-title { font-size: 12px !important; margin-bottom: 0 !important; }
+          .ath-card-subtitle { display: none !important; }
           .dash-side-by-side { grid-template-columns: 1fr !important; }
           .ath-recentPostsGrid { grid-template-columns: repeat(2, 1fr) !important; }
           .post-modal-two-col { flex-direction: column !important; }
@@ -2592,6 +2605,9 @@ export default function DashboardPage() {
         /* Token pill stays top-left on narrow screens (no longer needs to stack) */
         @media (max-width: 540px) {
           .ath-token-pill { top: 16px !important; left: 16px !important; right: auto !important; }
+          /* Cap email pill so it can't overlap token pill on left */
+          .ath-email-pill { max-width: calc(100vw - 145px) !important; }
+          .ath-email-pill > div { max-width: 100% !important; }
           /* Push page header below email pill on right + token pill on left */
           .dash-page-header { padding-top: 80px !important; }
         }
