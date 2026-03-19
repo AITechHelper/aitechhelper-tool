@@ -1671,7 +1671,7 @@ export default function DashboardPage() {
               >
                 <div className="ath-card-icon" style={{ fontSize: 48, marginBottom: 8 }}>📅</div>
                 <div className="ath-card-title" style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
-                  Plan Your Month
+                  Calendar
                 </div>
                 <div className="ath-card-subtitle" style={{ fontSize: 13, opacity: 0.85 }}>
                   Your full month, planned for you
