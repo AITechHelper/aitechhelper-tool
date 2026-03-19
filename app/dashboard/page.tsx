@@ -1600,7 +1600,7 @@ export default function DashboardPage() {
                   textAlign: "center" as const,
                 }}
               >
-                <div className="ath-card-icon" style={{ fontSize: 48, marginBottom: 8 }}>✨</div>
+                <img className="ath-card-icon" src="/logo-icon.png" alt="AI Social Helper" style={{ width: 64, height: 64, marginBottom: 8, objectFit: "contain", display: "block", margin: "0 auto 8px" }} />
                 <div className="ath-card-title" style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
                   Generate a Post
                 </div>
