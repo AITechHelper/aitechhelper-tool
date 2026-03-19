@@ -49,6 +49,7 @@ export default function SignInPage() {
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
+        router.refresh();
         router.push("/dashboard");
       } else if ((result.status as string) === "needs_client_trust") {
         // Device not recognized — send email verification code
@@ -84,6 +85,7 @@ export default function SignInPage() {
       });
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
+        router.refresh();
         router.push("/dashboard");
       } else {
         setError(`Verification incomplete (${result.status}). Please try again.`);
