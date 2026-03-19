@@ -1579,6 +1579,7 @@ export default function DashboardPage() {
             <div
               style={{
                 ...styles.actionCard,
+                background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
                 padding: 0,
                 overflow: "hidden",
                 display: "flex",
@@ -1590,12 +1591,10 @@ export default function DashboardPage() {
                 setNavLoading("generator"); router.push("/generator");
               }}
             >
-              {/* Card Header with gradient */}
+              {/* Card Header */}
               <div
                 className="ath-card-header"
                 style={{
-                  background:
-                    "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
                   padding: "24px 24px 20px",
                   textAlign: "center" as const,
                 }}
@@ -1648,6 +1647,7 @@ export default function DashboardPage() {
             <div
               style={{
                 ...styles.actionCard,
+                background: "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
                 padding: 0,
                 overflow: "hidden",
                 display: "flex",
@@ -1661,12 +1661,10 @@ export default function DashboardPage() {
                 router.push(getNicheCalendarPath(activeProfile?.niche ?? ""));
               }}
             >
-              {/* Card Header with gradient */}
+              {/* Card Header */}
               <div
                 className="ath-card-header"
                 style={{
-                  background:
-                    "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
                   padding: "24px 24px 20px",
                   textAlign: "center" as const,
                 }}
@@ -1719,6 +1717,7 @@ export default function DashboardPage() {
             <div
               style={{
                 ...styles.actionCard,
+                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
                 padding: 0,
                 overflow: "hidden",
                 display: "flex",
@@ -1734,7 +1733,6 @@ export default function DashboardPage() {
               <div
                 className="ath-card-header"
                 style={{
-                  background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
                   padding: "24px 24px 20px",
                   textAlign: "center" as const,
                 }}
