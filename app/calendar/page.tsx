@@ -470,6 +470,7 @@ function CalendarPageInner() {
   const tokenBalance = useTokenBalance();
   const { addToast } = useToast();
   const today = new Date();
+  const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [selectedDay, setSelectedDay] = useState<DayPlan | null>(null);
@@ -1313,15 +1314,20 @@ function CalendarPageInner() {
               const displayLabel = hasPost
                 ? isPlannedPost ? "Photo Scheduled" : "Post Saved"
                 : p.postType;
+              const cellDate = new Date(currentYear, currentMonth, p.day);
+              const isPast = cellDate < todayMidnight;
               return (
                 <div
                   key={p.day}
                   style={{
                     ...styles.dayCell,
-                    borderTop: `3px solid ${accent.color}`,
-                    ...(p.isHoliday
+                    borderTop: `3px solid ${isPast ? "rgba(255,255,255,0.1)" : accent.color}`,
+                    ...(p.isHoliday && !isPast
                       ? styles.dayCellHoliday
-                      : { background: `linear-gradient(180deg, ${accent.color}12 0%, rgba(255,255,255,0.04) 60%)` }),
+                      : isPast
+                        ? { background: "rgba(255,255,255,0.02)" }
+                        : { background: `linear-gradient(180deg, ${accent.color}12 0%, rgba(255,255,255,0.04) 60%)` }),
+                    opacity: isPast ? 0.45 : 1,
                   }}
                   className="ath-day-cell"
                   onClick={() => openDrawer(p)}
@@ -1429,14 +1435,17 @@ function CalendarPageInner() {
               const mobileDisplayLabel = hasPost
                 ? isPlannedMobile ? "Photo Scheduled" : "Post Saved"
                 : dayPlan.postType;
+              const mobileCellDate = new Date(currentYear, currentMonth, dayPlan.day);
+              const isMobilePast = mobileCellDate < todayMidnight;
 
               return (
                 <div
                   key={dayPlan.day}
                   style={{
                     ...styles.mobileListItem,
-                    ...(dayPlan.isHoliday ? styles.mobileListItemHoliday : {}),
-                    borderLeft: `3px solid ${mobileAccent.color}`,
+                    ...(!isMobilePast && dayPlan.isHoliday ? styles.mobileListItemHoliday : {}),
+                    borderLeft: `3px solid ${isMobilePast ? "rgba(255,255,255,0.1)" : mobileAccent.color}`,
+                    opacity: isMobilePast ? 0.45 : 1,
                   }}
                   className="mobile-list-item"
                   onClick={() => openDrawer(dayPlan)}
