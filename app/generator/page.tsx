@@ -1735,13 +1735,6 @@ export default function Page() {
                   Optional — leave blank and AI will pick a scene that fits your post type.
                 </div>
               </div>
-              {dayContext && (
-                <div style={{ ...styles.card, background: "rgba(44, 107, 237, 0.1)", marginTop: 16 }}>
-                  <strong>Calendar: Day {dayContext.day}</strong>
-                  <br />
-                  {dayContext.title} — {dayContext.detail}
-                </div>
-              )}
               {/* Nav */}
               <div style={styles.stepNavigation}>
                 <button style={styles.backBtn} onClick={goToPrevStep}>
