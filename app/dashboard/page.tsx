@@ -1504,35 +1504,40 @@ export default function DashboardPage() {
 
         </div>{/* end dash-social-col */}
 
-        {/* Recent Posts column */}
-        <div>
+        {/* Recent Posts + My Photo Library — 50/50 vertical split */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, height: "100%" }} className="dash-posts-library-split">
+
+          {/* Top: Recent Posts */}
           <div
             style={{
               background: "linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%)",
               border: "1px solid rgba(124, 58, 237, 0.2)",
               borderRadius: 16,
               boxShadow: "0 0 30px rgba(44, 107, 237, 0.15)",
-              padding: 24,
+              padding: 20,
+              display: "flex",
+              flexDirection: "column" as const,
+              flex: 1,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-              <svg width="20" height="20" fill="none" stroke="#a78bfa" strokeWidth="2" viewBox="0 0 24 24">
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+              <svg width="16" height="16" fill="none" stroke="#a78bfa" strokeWidth="2" viewBox="0 0 24 24">
                 <rect x="3" y="3" width="7" height="7" rx="1" />
                 <rect x="14" y="3" width="7" height="7" rx="1" />
                 <rect x="3" y="14" width="7" height="7" rx="1" />
                 <rect x="14" y="14" width="7" height="7" rx="1" />
               </svg>
-              <span style={{ fontWeight: 700, fontSize: 16, color: "#e6edf7" }}>Recent Posts</span>
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 400 }}>last 3 saved</span>
+              <span style={{ fontWeight: 700, fontSize: 14, color: "#e6edf7" }}>Recent Posts</span>
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 400 }}>last 3</span>
             </div>
 
             {recentPosts.length > 0 ? (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 16 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10, flex: 1 }}>
                 {recentPosts.map((post) => (
                   <div
                     key={post.id}
                     onClick={() => setSelectedPost(post)}
-                    style={{ background: "#0b1220", borderRadius: 12, overflow: "hidden", cursor: "pointer", border: "1px solid rgba(255,255,255,0.08)", transition: "all 0.2s ease" }}
+                    style={{ background: "#0b1220", borderRadius: 10, overflow: "hidden", cursor: "pointer", border: "1px solid rgba(255,255,255,0.08)", transition: "all 0.2s ease" }}
                     className="hover-card"
                   >
                     <div
@@ -1544,93 +1549,116 @@ export default function DashboardPage() {
                       }}
                     >
                       {!postImages[post.id] && (
-                        <svg width="32" height="32" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" viewBox="0 0 24 24">
+                        <svg width="20" height="20" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" viewBox="0 0 24 24">
                           <rect x="3" y="3" width="18" height="18" rx="2" />
                           <circle cx="8.5" cy="8.5" r="1.5" />
                           <path d="M21 15l-5-5L5 21" />
                         </svg>
                       )}
                     </div>
-                    <div style={{ padding: 10 }}>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: "#a78bfa", marginBottom: 4 }}>{post.postType}</div>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 8 }}>
-                        {post.caption.slice(0, 40)}...
+                    <div style={{ padding: 8 }}>
+                      <div style={{ fontSize: 10, fontWeight: 600, color: "#a78bfa", marginBottom: 2 }}>{post.postType}</div>
+                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 6 }}>
+                        {post.caption.slice(0, 35)}…
                       </div>
                       <button
                         onClick={(e) => { e.stopPropagation(); setSelectedPost(post); }}
-                        style={{ width: "100%", background: "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(124, 58, 237, 0.2) 100%)", border: "1px solid rgba(44, 107, 237, 0.3)", borderRadius: 6, color: "#7eb3ff", padding: "7px 8px", fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "all 0.15s ease" }}
+                        style={{ width: "100%", background: "linear-gradient(135deg, rgba(44,107,237,0.2) 0%, rgba(124,58,237,0.2) 100%)", border: "1px solid rgba(44,107,237,0.3)", borderRadius: 5, color: "#7eb3ff", padding: "5px 6px", fontSize: 10, fontWeight: 700, cursor: "pointer" }}
                         className="hover-btn"
                       >
-                        Manage Post
+                        Manage
                       </button>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div style={{ textAlign: "center", padding: "40px 20px", color: "rgba(255,255,255,0.5)" }}>
-                <svg width="48" height="48" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" viewBox="0 0 24 24" style={{ margin: "0 auto 12px" }}>
+              <div style={{ textAlign: "center", padding: "24px 12px", color: "rgba(255,255,255,0.5)", flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center" }}>
+                <svg width="32" height="32" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" viewBox="0 0 24 24" style={{ marginBottom: 10 }}>
                   <rect x="3" y="3" width="18" height="18" rx="2" />
                   <circle cx="8.5" cy="8.5" r="1.5" />
                   <path d="M21 15l-5-5L5 21" />
                 </svg>
-                <div style={{ fontSize: 14, marginBottom: 8 }}>No posts yet</div>
-                <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 16 }}>Generate your first post to see it here</div>
+                <div style={{ fontSize: 12, marginBottom: 6 }}>No posts yet</div>
                 <button
-                  style={{ background: "#2c6bed", border: "none", borderRadius: 10, padding: "12px 24px", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", transition: "all 0.15s ease" }}
+                  style={{ background: "#2c6bed", border: "none", borderRadius: 8, padding: "8px 16px", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer" }}
                   onClick={() => router.push("/generator")}
                   className="hover-btn-primary"
                 >
-                  Generate Your First Post
+                  Generate First Post
                 </button>
               </div>
             )}
           </div>
-          {/* My Photo Library — separate card below recent posts */}
+
+          {/* Bottom: My Photo Library */}
           <div
             onClick={() => router.push("/media")}
             style={{
-              marginTop: 12,
               background: "rgba(255,255,255,0.03)",
               border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 12,
-              padding: "14px 18px",
+              borderRadius: 16,
+              padding: 20,
               cursor: "pointer",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
+              flexDirection: "column" as const,
               transition: "all 0.15s ease",
+              flex: 1,
             }}
             className="my-library-link hover-card"
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+              <svg width="16" height="16" fill="none" stroke="#a78bfa" strokeWidth="2" viewBox="0 0 24 24">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <path d="M21 15l-5-5L5 21" />
+              </svg>
+              <span style={{ fontWeight: 700, fontSize: 14, color: "#e6edf7" }}>My Photos</span>
+            </div>
+
+            {/* Upload area */}
+            <div style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column" as const,
+              alignItems: "center",
+              justifyContent: "center",
+              background: "rgba(124, 58, 237, 0.06)",
+              border: "1px dashed rgba(124, 58, 237, 0.25)",
+              borderRadius: 12,
+              padding: "24px 16px",
+              textAlign: "center" as const,
+              gap: 10,
+            }}>
               <div style={{
-                width: 36,
-                height: 36,
-                borderRadius: 8,
-                background: "rgba(124, 58, 237, 0.12)",
-                border: "1px solid rgba(124, 58, 237, 0.2)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
+                width: 44, height: 44, borderRadius: 10,
+                background: "rgba(124, 58, 237, 0.15)",
+                display: "flex", alignItems: "center", justifyContent: "center",
               }}>
-                <svg width="16" height="16" fill="none" stroke="#a78bfa" strokeWidth="2" viewBox="0 0 24 24">
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <circle cx="8.5" cy="8.5" r="1.5" />
-                  <path d="M21 15l-5-5L5 21" />
+                <svg width="20" height="20" fill="none" stroke="#a78bfa" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
               </div>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#e6edf7", marginBottom: 2 }}>My Photo Library</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Upload and manage your photos</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#e6edf7", marginBottom: 4 }}>Upload Photos</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>Add your own photos to use in posts</div>
+              </div>
+              <div style={{
+                marginTop: 4,
+                background: "rgba(124, 58, 237, 0.2)",
+                border: "1px solid rgba(124, 58, 237, 0.3)",
+                borderRadius: 8,
+                padding: "7px 14px",
+                fontSize: 11,
+                fontWeight: 700,
+                color: "#a78bfa",
+              }}>
+                Open Library →
               </div>
             </div>
-            <svg width="14" height="14" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
           </div>
-        </div>{/* end Recent Posts column */}
+
+        </div>{/* end Recent Posts + Library split */}
 
         </div>{/* end dash-side-by-side */}
 
