@@ -328,8 +328,10 @@ export default function PostPage() {
 
       const day = params.get("day"),
         title = params.get("title"),
-        detail = params.get("detail");
-      if (day && title && detail) setDayContext({ day, title, detail });
+        detail = params.get("detail"),
+        month = params.get("month"),
+        year = params.get("year");
+      if (day && title && detail) setDayContext({ day, title, detail, ...(month ? { month } : {}), ...(year ? { year } : {}) });
 
       const pillar = params.get("pillarType");
       if (pillar) setPillarType(pillar);
@@ -627,7 +629,11 @@ export default function PostPage() {
           niche: form.niche,
           audience: form.audience,
           calendarDay: dayContext?.day ? parseInt(dayContext.day) : undefined,
-          month: dayContext?.day ? new Date().toISOString().slice(0, 7) : undefined,
+          month: dayContext?.day
+            ? (dayContext.year && dayContext.month
+                ? `${dayContext.year}-${String(dayContext.month).padStart(2, "0")}`
+                : new Date().toISOString().slice(0, 7))
+            : undefined,
           createdAt: new Date().toISOString(),
         };
 
@@ -641,6 +647,14 @@ export default function PostPage() {
         // Also cache image locally for fast access on this device
         if (result.imageBase64) {
           await saveImage(postId, result.imageBase64);
+        }
+
+        // If scheduled from calendar, redirect back so they can see it on the calendar
+        const returnTo = new URLSearchParams(window.location.search).get("returnTo");
+        if (returnTo === "calendar") {
+          addToast("Post scheduled and saved to your calendar!", "success");
+          window.location.href = "/calendar";
+          return;
         }
       } catch {}
     } catch (err: any) {
@@ -1529,24 +1543,6 @@ export default function PostPage() {
                 </div>
               </div>
 
-              {dayContext && (
-                <div
-                  style={{
-                    ...styles.inputItem,
-                    marginTop: 12,
-                    background: "rgba(44, 107, 237, 0.1)",
-                    border: "1px solid rgba(44, 107, 237, 0.2)",
-                  }}
-                >
-                  <div style={styles.inputLabel}>Calendar Context</div>
-                  <div style={styles.inputValue}>
-                    Day {dayContext.day} — {dayContext.title}
-                  </div>
-                  <div style={{ fontSize: 12, opacity: 0.7, marginTop: 4 }}>
-                    {dayContext.detail}
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>

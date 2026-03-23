@@ -517,10 +517,10 @@ export default function Page() {
     }
   }
 
-  async function generatePost({ skipDay = false }: { skipDay?: boolean } = {}) {
+  async function generatePost({ skipDay = false, scheduleToCalendar = false }: { skipDay?: boolean; scheduleToCalendar?: boolean } = {}) {
     setIsLoading(true);
     setErrorMsg("");
-    setStatusMsg("Redirecting…");
+    setStatusMsg(scheduleToCalendar ? "Scheduling…" : "Redirecting…");
     try {
       const sp = new URLSearchParams();
       sp.set("niche", form.niche);
@@ -542,6 +542,9 @@ export default function Page() {
       if (!skipDay && dayContext?.day) sp.set("day", dayContext.day);
       if (!skipDay && dayContext?.title) sp.set("title", dayContext.title);
       if (!skipDay && dayContext?.detail) sp.set("detail", dayContext.detail);
+      if (!skipDay && dayContext?.month) sp.set("month", dayContext.month);
+      if (!skipDay && dayContext?.year) sp.set("year", dayContext.year);
+      if (scheduleToCalendar) sp.set("returnTo", "calendar");
       sp.set("autogen", "1");
       const genId =
         Math.random().toString(36).substring(2, 15) +
@@ -1835,7 +1838,7 @@ export default function Page() {
                       {isLoading ? "Generating…" : "Generate Now"}
                     </button>
 
-                    {/* Schedule for [Day] — saves to calendar day */}
+                    {/* Schedule for [Day] — saves to calendar day then returns to calendar */}
                     <button
                       style={{
                         ...styles.nextBtn,
@@ -1851,7 +1854,7 @@ export default function Page() {
                           setShowOutOfTokens(true);
                           return;
                         }
-                        generatePost();
+                        generatePost({ scheduleToCalendar: true });
                       }}
                       disabled={!canGenerate || isLoading}
                       className="hover-btn"
