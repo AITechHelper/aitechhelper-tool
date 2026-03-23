@@ -1586,32 +1586,50 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
-          {/* My Library — separate from recent posts */}
-          <button
+          {/* My Photo Library — separate card below recent posts */}
+          <div
             onClick={() => router.push("/media")}
             style={{
+              marginTop: 12,
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 12,
+              padding: "14px 18px",
+              cursor: "pointer",
               display: "flex",
               alignItems: "center",
-              gap: 8,
-              marginTop: 12,
-              background: "transparent",
-              border: "none",
-              padding: "4px 2px",
-              color: "rgba(255,255,255,0.4)",
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: "pointer",
-              transition: "color 0.15s ease",
+              justifyContent: "space-between",
+              transition: "all 0.15s ease",
             }}
-            className="my-library-link"
+            className="my-library-link hover-card"
           >
-            <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <path d="M21 15l-5-5L5 21" />
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{
+                width: 36,
+                height: 36,
+                borderRadius: 8,
+                background: "rgba(124, 58, 237, 0.12)",
+                border: "1px solid rgba(124, 58, 237, 0.2)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}>
+                <svg width="16" height="16" fill="none" stroke="#a78bfa" strokeWidth="2" viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <path d="M21 15l-5-5L5 21" />
+                </svg>
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#e6edf7", marginBottom: 2 }}>My Photo Library</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Upload and manage your photos</div>
+              </div>
+            </div>
+            <svg width="14" height="14" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
-            My Photo Library
-          </button>
+          </div>
         </div>{/* end Recent Posts column */}
 
         </div>{/* end dash-side-by-side */}
@@ -2520,7 +2538,7 @@ export default function DashboardPage() {
           transform: translateY(-3px) !important;
         }
         .hover-btn:hover { background: rgba(255,255,255,0.12) !important; }
-        .my-library-link:hover { color: rgba(255,255,255,0.7) !important; }
+        .my-library-link:hover { background: rgba(255,255,255,0.06) !important; border-color: rgba(124,58,237,0.3) !important; }
         .hover-btn-primary:hover { background: #357ae8 !important; transform: translateY(-1px); }
         .enhanced-cta:hover {
           background: #357ae8 !important;
