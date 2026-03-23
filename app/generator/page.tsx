@@ -319,6 +319,8 @@ export default function Page() {
   const [showInstructions, setShowInstructions] = useState(false);
   const [dayContext, setDayContext] = useState<{
     day: string;
+    month: string;
+    year: string;
     title: string;
     detail: string;
   } | null>(null);
@@ -422,9 +424,11 @@ export default function Page() {
 
     // Set day context for calendar generation
     const day = params.get("day"),
+      month = params.get("month"),
+      year = params.get("year"),
       title = params.get("title"),
       detail = params.get("detail");
-    if (day && title && detail) setDayContext({ day, title, detail });
+    if (day && title && detail) setDayContext({ day, month: month ?? "", year: year ?? "", title, detail });
   }, []);
 
   // Fire autogen
@@ -552,6 +556,27 @@ export default function Page() {
       setIsLoading(false);
     }
   }
+
+  // Generate without calendar day association (Post Now path)
+  async function generatePostNow() {
+    const savedContext = dayContext;
+    setDayContext(null);
+    await generatePost();
+    setDayContext(savedContext);
+  }
+
+  // Build a friendly label for the calendar day e.g. "Tuesday, March 18"
+  const MONTHS_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const scheduledDayLabel = (() => {
+    if (!dayContext?.day) return null;
+    const d = parseInt(dayContext.day);
+    const m = dayContext.month ? parseInt(dayContext.month) - 1 : null;
+    const y = dayContext.year ? parseInt(dayContext.year) : null;
+    if (m === null || y === null || isNaN(d)) return `Day ${dayContext.day}`;
+    const date = new Date(y, m, d);
+    const weekday = date.toLocaleDateString("en-US", { weekday: "long" });
+    return `${weekday}, ${MONTHS_FULL[m]} ${d}`;
+  })();
 
   const specificUI = getSpecificRequestUI(form.postType);
   const getHashtagLabel = (count: number) => {
@@ -1786,37 +1811,100 @@ export default function Page() {
               {statusMsg && <div style={styles.status}>{statusMsg}</div>}
               {errorMsg && <div style={styles.danger}>{errorMsg}</div>}
               {/* Nav */}
-              <div style={styles.stepNavigation}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" as const, gap: 10, marginTop: 8 }}>
                 <button style={styles.backBtn} onClick={goToPrevStep}>
                   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                   </svg>
                   Back
                 </button>
-                <button
-                  style={{ ...styles.nextBtn, padding: "14px 28px", fontSize: 15, ...(canGenerate ? {} : styles.nextBtnDisabled) }}
-                  onClick={() => {
-                    if (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) {
-                      setShowOutOfTokens(true);
-                      addToast("You've used all your tokens this month.", "warning");
-                      return;
-                    }
-                    generatePost();
-                  }}
-                  disabled={!canGenerate || isLoading}
-                  className="hover-btn"
-                >
-                  {isLoading
-                    ? "Generating…"
-                    : !tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0
-                      ? "Token limit reached"
-                      : canGenerate
-                        ? "Generate"
-                        : "Fill in Niche & Audience"}
-                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </button>
+
+                {/* When coming from calendar: two action buttons */}
+                {dayContext ? (
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" as const }}>
+                    {/* Generate Now — no calendar association */}
+                    <button
+                      style={{
+                        ...styles.backBtn,
+                        background: "rgba(255,255,255,0.06)",
+                        border: "1px solid rgba(255,255,255,0.15)",
+                        color: "#e6edf7",
+                        padding: "12px 20px",
+                        fontSize: 13,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                      }}
+                      onClick={() => {
+                        if (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) {
+                          setShowOutOfTokens(true);
+                          return;
+                        }
+                        generatePostNow();
+                      }}
+                      disabled={!canGenerate || isLoading}
+                      className="hover-btn"
+                    >
+                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      {isLoading ? "Generating…" : "Generate Now"}
+                    </button>
+
+                    {/* Schedule for [Day] — saves to calendar day */}
+                    <button
+                      style={{
+                        ...styles.nextBtn,
+                        padding: "12px 20px",
+                        fontSize: 13,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        ...(canGenerate ? {} : styles.nextBtnDisabled),
+                      }}
+                      onClick={() => {
+                        if (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) {
+                          setShowOutOfTokens(true);
+                          return;
+                        }
+                        generatePost();
+                      }}
+                      disabled={!canGenerate || isLoading}
+                      className="hover-btn"
+                    >
+                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                      </svg>
+                      {isLoading ? "Generating…" : `Schedule for ${scheduledDayLabel}`}
+                    </button>
+                  </div>
+                ) : (
+                  /* Default single Generate button */
+                  <button
+                    style={{ ...styles.nextBtn, padding: "14px 28px", fontSize: 15, ...(canGenerate ? {} : styles.nextBtnDisabled) }}
+                    onClick={() => {
+                      if (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) {
+                        setShowOutOfTokens(true);
+                        addToast("You've used all your tokens this month.", "warning");
+                        return;
+                      }
+                      generatePost();
+                    }}
+                    disabled={!canGenerate || isLoading}
+                    className="hover-btn"
+                  >
+                    {isLoading
+                      ? "Generating…"
+                      : !tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0
+                        ? "Token limit reached"
+                        : canGenerate
+                          ? "Generate"
+                          : "Fill in Niche & Audience"}
+                    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </button>
+                )}
               </div>
             </div>
           </div>
