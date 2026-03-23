@@ -188,6 +188,8 @@ export default function PostPage() {
     day: string;
     title: string;
     detail: string;
+    month?: string;
+    year?: string;
   } | null>(null);
   const [post, setPost] = useState<PostResult | null>(null);
   const [currentRequestId, setCurrentRequestId] = useState<string | null>(null);
