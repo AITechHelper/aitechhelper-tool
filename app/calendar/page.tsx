@@ -500,6 +500,7 @@ function CalendarPageInner() {
   const [drawerView, setDrawerView] = useState<"plan" | "saved">("plan");
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [planningGeneration, setPlanningGeneration] = useState(false);
+  const [customConfigsMap, setCustomConfigsMap] = useState<Map<number, any>>(new Map());
 
   // Load gallery data for current month
   const loadGalleryData = useCallback(() => {
@@ -540,6 +541,20 @@ function CalendarPageInner() {
   useEffect(() => {
     loadGalleryData();
   }, [loadGalleryData]);
+
+  // Load pending custom configs for this month from localStorage
+  useEffect(() => {
+    const monthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}`;
+    const map = new Map<number, any>();
+    for (let d = 1; d <= 31; d++) {
+      const key = `ath_custom_day_${d}_${monthKey}`;
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        try { map.set(d, JSON.parse(raw)); } catch {}
+      }
+    }
+    setCustomConfigsMap(map);
+  }, [currentYear, currentMonth]);
 
   // Re-read gallery when returning from /post page
   useEffect(() => {
@@ -734,44 +749,72 @@ function CalendarPageInner() {
     const p = selectedDay;
     const sp = new URLSearchParams();
 
-    // Brand profile data
-    sp.set("niche", activeBrandProfile.niche || "");
-    sp.set("audience", activeBrandProfile.audience || "");
-    sp.set("tone", activeBrandProfile.tone || "Confident");
-    sp.set("primaryColor", activeBrandProfile.primaryColor || "#000000");
-    sp.set("secondaryColor", activeBrandProfile.secondaryColor || "#ffffff");
+    // Check for a pending custom config saved from the generator
+    const monthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}`;
+    const storageKey = `ath_custom_day_${p.day}_${monthKey}`;
+    const rawCustom = typeof window !== "undefined" ? localStorage.getItem(storageKey) : null;
+    const customConfig = rawCustom ? (() => { try { return JSON.parse(rawCustom); } catch { return null; } })() : null;
 
-    // Day plan data
-    sp.set("postType", p.postType);
-    sp.set("goal", p.postType);
-    sp.set("imageStyle", p.imageStyle);
-    sp.set("captionLength", capitalize(p.captionLength));
-    sp.set("hashtagCount", String(HASHTAG_COUNT_MAP[p.hashtagPack] || 12));
-    sp.set("day", String(p.day));
-    sp.set("title", p.holidayName || p.postType);
-    sp.set("detail", p.detail);
-
-    // Pillar type (for template-driven prompt enrichment)
-    if (p.pillarType) {
-      sp.set("pillarType", p.pillarType);
-    }
-
-    // Extra details (topic/detail hint → specificRequest)
-    // If blank, silently inject a topic from the pillar's postIdeas bank so the AI
-    // always has a specific, curated angle to work from (invisible to the user).
-    if (extraDetails.trim()) {
-      sp.set("specificRequest", extraDetails.trim());
-    } else if (p.pillarType) {
-      const template = getTemplate(nicheKey);
-      const pillar = template?.pillars[p.pillarType];
-      if (pillar?.postIdeas?.length) {
-        const topic = pillar.postIdeas[p.day % pillar.postIdeas.length];
-        sp.set("specificRequest", topic);
+    if (customConfig) {
+      // Use the saved custom config from the generator
+      sp.set("niche", customConfig.niche || activeBrandProfile.niche || "");
+      sp.set("audience", customConfig.audience || activeBrandProfile.audience || "");
+      sp.set("tone", customConfig.tone || activeBrandProfile.tone || "Confident");
+      sp.set("primaryColor", customConfig.primaryColor || activeBrandProfile.primaryColor || "#000000");
+      sp.set("secondaryColor", customConfig.secondaryColor || activeBrandProfile.secondaryColor || "#ffffff");
+      sp.set("postType", customConfig.postType || p.postType);
+      sp.set("goal", customConfig.postType || p.postType);
+      sp.set("imageStyle", customConfig.imageStyle || p.imageStyle);
+      sp.set("captionLength", customConfig.captionLength || capitalize(p.captionLength));
+      sp.set("hashtagCount", String(customConfig.hashtagCount || HASHTAG_COUNT_MAP[p.hashtagPack] || 12));
+      if (customConfig.specificRequest) sp.set("specificRequest", customConfig.specificRequest);
+      if (customConfig.photoSource === "library" && customConfig.selectedAssetId) {
+        sp.set("selectedAssetId", customConfig.selectedAssetId);
+        sp.set("photoSource", "library");
       }
-    }
-    // Personal thought → woven into caption body
-    if (userThought.trim()) {
-      sp.set("userThought", userThought.trim());
+      sp.set("day", String(p.day));
+      sp.set("month", String(currentMonth + 1));
+      sp.set("year", String(currentYear));
+      sp.set("title", customConfig.postType || p.postType);
+      sp.set("detail", customConfig.specificRequest || p.detail);
+      // Clear the pending custom config now that we're generating it
+      localStorage.removeItem(storageKey);
+      setCustomConfigsMap(prev => {
+        const next = new Map(prev);
+        next.delete(p.day);
+        return next;
+      });
+    } else {
+      // Default pillar-based generation
+      sp.set("niche", activeBrandProfile.niche || "");
+      sp.set("audience", activeBrandProfile.audience || "");
+      sp.set("tone", activeBrandProfile.tone || "Confident");
+      sp.set("primaryColor", activeBrandProfile.primaryColor || "#000000");
+      sp.set("secondaryColor", activeBrandProfile.secondaryColor || "#ffffff");
+      sp.set("postType", p.postType);
+      sp.set("goal", p.postType);
+      sp.set("imageStyle", p.imageStyle);
+      sp.set("captionLength", capitalize(p.captionLength));
+      sp.set("hashtagCount", String(HASHTAG_COUNT_MAP[p.hashtagPack] || 12));
+      sp.set("day", String(p.day));
+      sp.set("title", p.holidayName || p.postType);
+      sp.set("detail", p.detail);
+      if (p.pillarType) {
+        sp.set("pillarType", p.pillarType);
+      }
+      if (extraDetails.trim()) {
+        sp.set("specificRequest", extraDetails.trim());
+      } else if (p.pillarType) {
+        const template = getTemplate(nicheKey);
+        const pillar = template?.pillars[p.pillarType];
+        if (pillar?.postIdeas?.length) {
+          const topic = pillar.postIdeas[p.day % pillar.postIdeas.length];
+          sp.set("specificRequest", topic);
+        }
+      }
+      if (userThought.trim()) {
+        sp.set("userThought", userThought.trim());
+      }
     }
 
     sp.set("autogen", "1");
@@ -1255,6 +1298,7 @@ function CalendarPageInner() {
 
               const p = cell.plan;
               const savedPostCell = dayPostsMap.get(p.day);
+              const pendingCustom = customConfigsMap.get(p.day);
               const badgeStyleOption = savedPostCell?.imageStyle
                 ? (getImageStyleOption(savedPostCell.imageStyle as ImageStyleValue) ?? getImageStyleOption(p.imageStyle))
                 : getImageStyleOption(p.imageStyle);
@@ -1282,6 +1326,16 @@ function CalendarPageInner() {
                   className="ath-day-cell"
                   onClick={() => openDrawer(p)}
                 >
+                  {!hasPost && pendingCustom && (
+                    <div style={{
+                      position: "absolute", top: 6, right: 6,
+                      background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+                      borderRadius: "50%", width: 18, height: 18,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      boxShadow: "0 2px 6px rgba(245,158,11,0.5)",
+                      fontSize: 9,
+                    }}>✏️</div>
+                  )}
                   {hasPost && (
                     <div style={{
                       position: "absolute",
