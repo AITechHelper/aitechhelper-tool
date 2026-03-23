@@ -2289,76 +2289,118 @@ function CalendarPageInner() {
             </div>
 
             {/* Drawer Footer — only show on plan view */}
-            {drawerView === "plan" && (
-              <div style={{
-                padding: "16px 24px",
-                borderTop: "1px solid rgba(255,255,255,0.08)",
-                display: "flex",
-                flexDirection: "column" as const,
-                gap: 10,
-              }}>
-                <button
-                  onClick={handleGenerate}
-                  disabled={!activeBrandProfile || (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0)}
-                  style={{
-                    width: "100%",
-                    padding: "16px 20px",
-                    borderRadius: 12,
-                    border: "none",
-                    fontSize: 15,
-                    fontWeight: 700,
-                    cursor: (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) ? "not-allowed" : "pointer",
-                    background: (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0)
-                      ? "rgba(255,255,255,0.08)"
-                      : selectedDay.isHoliday
-                        ? "linear-gradient(135deg, #ff6384 0%, #ff9f64 100%)"
-                        : "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
-                    color: (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0)
-                      ? "rgba(255,255,255,0.4)"
-                      : "#fff",
-                    fontFamily: "Verdana, Geneva, sans-serif",
-                    textTransform: "uppercase" as const,
-                    letterSpacing: 0.5,
-                    transition: "all 0.15s ease",
-                    opacity: (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) ? 0.5 : 1,
-                  }}
-                  className="hover-btn-primary"
-                >
-                  {!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0
-                    ? "Token limit reached"
-                    : "✨ Generate (uses 1 token)"}
-                </button>
+            {drawerView === "plan" && (() => {
+              const hasPendingCustom = !!customConfigsMap.get(selectedDay.day);
+              const monthKeyForFooter = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}`;
+              const storageKeyForFooter = `ath_custom_day_${selectedDay.day}_${monthKeyForFooter}`;
+              return (
+                <div style={{
+                  padding: "16px 24px",
+                  borderTop: "1px solid rgba(255,255,255,0.08)",
+                  display: "flex",
+                  flexDirection: "column" as const,
+                  gap: 10,
+                }}>
+                  {/* Scheduled banner — shown when a custom config is saved */}
+                  {hasPendingCustom && (
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "10px 14px",
+                      borderRadius: 10,
+                      background: "rgba(245,158,11,0.12)",
+                      border: "1px solid rgba(245,158,11,0.3)",
+                    }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#f59e0b", display: "flex", alignItems: "center", gap: 6 }}>
+                        ✅ Custom post scheduled for this day
+                      </span>
+                      <button
+                        onClick={() => {
+                          localStorage.removeItem(storageKeyForFooter);
+                          setCustomConfigsMap(prev => {
+                            const next = new Map(prev);
+                            next.delete(selectedDay.day);
+                            return next;
+                          });
+                          addToast("Custom post removed.", "success");
+                        }}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 600, padding: "2px 6px" }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
 
-                {/* Custom post option */}
-                <button
-                  onClick={() => {
-                    const sp = new URLSearchParams();
-                    sp.set("day", String(selectedDay.day));
-                    sp.set("month", String(currentMonth + 1));
-                    sp.set("year", String(currentYear));
-                    if (selectedDay.postType) sp.set("title", selectedDay.postType);
-                    if (selectedDay.detail) sp.set("detail", selectedDay.detail);
-                    router.push(`/generator?${sp.toString()}`);
-                  }}
-                  style={{
-                    width: "100%",
-                    padding: "12px 20px",
-                    borderRadius: 12,
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    background: "rgba(255,255,255,0.04)",
-                    color: "rgba(255,255,255,0.6)",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    fontFamily: "Verdana, Geneva, sans-serif",
-                    transition: "all 0.15s ease",
-                  }}
-                  className="hover-btn"
-                >
-                  ✏️ Create a Custom Post for This Day Instead
-                </button>
-              </div>
-            )}
+                  <button
+                    onClick={handleGenerate}
+                    disabled={!activeBrandProfile || (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0)}
+                    style={{
+                      width: "100%",
+                      padding: "16px 20px",
+                      borderRadius: 12,
+                      border: "none",
+                      fontSize: 15,
+                      fontWeight: 700,
+                      cursor: (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) ? "not-allowed" : "pointer",
+                      background: (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0)
+                        ? "rgba(255,255,255,0.08)"
+                        : hasPendingCustom
+                          ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
+                          : selectedDay.isHoliday
+                            ? "linear-gradient(135deg, #ff6384 0%, #ff9f64 100%)"
+                            : "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
+                      color: (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0)
+                        ? "rgba(255,255,255,0.4)"
+                        : "#fff",
+                      fontFamily: "Verdana, Geneva, sans-serif",
+                      textTransform: "uppercase" as const,
+                      letterSpacing: 0.5,
+                      transition: "all 0.15s ease",
+                      opacity: (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) ? 0.5 : 1,
+                    }}
+                    className="hover-btn-primary"
+                  >
+                    {!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0
+                      ? "Token limit reached"
+                      : hasPendingCustom
+                        ? "✨ Generate Custom Post (uses 1 token)"
+                        : "✨ Generate (uses 1 token)"}
+                  </button>
+
+                  {/* Custom post option — only show if no pending config */}
+                  {!hasPendingCustom && (
+                    <button
+                      onClick={() => {
+                        const sp = new URLSearchParams();
+                        sp.set("day", String(selectedDay.day));
+                        sp.set("month", String(currentMonth + 1));
+                        sp.set("year", String(currentYear));
+                        if (selectedDay.postType) sp.set("title", selectedDay.postType);
+                        if (selectedDay.detail) sp.set("detail", selectedDay.detail);
+                        router.push(`/generator?${sp.toString()}`);
+                      }}
+                      style={{
+                        width: "100%",
+                        padding: "12px 20px",
+                        borderRadius: 12,
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        background: "rgba(255,255,255,0.04)",
+                        color: "rgba(255,255,255,0.6)",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        fontFamily: "Verdana, Geneva, sans-serif",
+                        transition: "all 0.15s ease",
+                      }}
+                      className="hover-btn"
+                    >
+                      ✏️ Create a Custom Post for This Day Instead
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
           </>
         )}
       </div>

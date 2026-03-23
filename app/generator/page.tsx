@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { imageStyles, GENERATOR_STYLE_VALUES } from "../lib/imageStyleOptions";
 import { getTemplate } from "../lib/nicheTemplates";
 import { useTokenBalance } from "../lib/useTokenBalance";
@@ -291,6 +292,7 @@ function Tooltip({
 }
 
 export default function Page() {
+  const router = useRouter();
   const tokenBalance = useTokenBalance();
   const { addToast } = useToast();
   const [showOutOfTokens, setShowOutOfTokens] = useState(false);
@@ -1838,7 +1840,7 @@ export default function Page() {
                       {isLoading ? "Generating…" : "Generate Now"}
                     </button>
 
-                    {/* Schedule for [Day] — saves to calendar day then returns to calendar */}
+                    {/* Schedule for [Day] — saves config to localStorage, redirects to calendar */}
                     <button
                       style={{
                         ...styles.nextBtn,
@@ -1847,22 +1849,35 @@ export default function Page() {
                         display: "flex",
                         alignItems: "center",
                         gap: 8,
-                        ...(canGenerate ? {} : styles.nextBtnDisabled),
                       }}
                       onClick={() => {
-                        if (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) {
-                          setShowOutOfTokens(true);
-                          return;
-                        }
-                        generatePost({ scheduleToCalendar: true });
+                        if (!dayContext?.day || !dayContext?.month || !dayContext?.year) return;
+                        const monthKey = `${dayContext.year}-${String(dayContext.month).padStart(2, "0")}`;
+                        const storageKey = `ath_custom_day_${dayContext.day}_${monthKey}`;
+                        localStorage.setItem(storageKey, JSON.stringify({
+                          niche: form.niche,
+                          audience: form.audience,
+                          postType: form.postType,
+                          specificRequest: form.specificRequest,
+                          tone: form.tone,
+                          captionLength: form.captionLength,
+                          hashtagCount: form.hashtagCount,
+                          imageStyle: form.imageStyle,
+                          primaryColor: form.primaryColor,
+                          secondaryColor: form.secondaryColor,
+                          photoSource,
+                          selectedAssetId,
+                          savedAt: new Date().toISOString(),
+                        }));
+                        addToast(`Scheduled for ${scheduledDayLabel}! ✅ Open that day on the calendar to generate.`, "success");
+                        router.push(`/calendar`);
                       }}
-                      disabled={!canGenerate || isLoading}
-                      className="hover-btn"
+                      className="hover-btn-primary"
                     >
                       <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                         <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                       </svg>
-                      {isLoading ? "Generating…" : `Schedule for ${scheduledDayLabel}`}
+                      {`Schedule for ${scheduledDayLabel}`}
                     </button>
                   </div>
                 ) : (
