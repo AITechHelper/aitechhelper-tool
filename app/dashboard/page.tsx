@@ -416,7 +416,7 @@ export default function DashboardPage() {
     },
     actionGrid: {
       display: "grid",
-      gridTemplateColumns: "repeat(3, 1fr)",
+      gridTemplateColumns: "repeat(2, 1fr)",
       gap: 16,
     },
     actionCard: {
@@ -893,6 +893,26 @@ export default function DashboardPage() {
                       padding: 8,
                     }}
                   >
+                    <button
+                      onClick={() => { setMenuOpen(false); router.push("/media"); }}
+                      style={{
+                        width: "100%",
+                        background: "transparent",
+                        border: "none",
+                        color: "#ffffff",
+                        padding: "10px 12px",
+                        borderRadius: 8,
+                        fontSize: 14,
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        textAlign: "left" as const,
+                        transition: "background 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                    >
+                      📁 My Library
+                    </button>
                     <button
                       onClick={handleBilling}
                       disabled={billingLoading}
@@ -1506,6 +1526,31 @@ export default function DashboardPage() {
                 <span style={{ fontWeight: 700, fontSize: 16, color: "#e6edf7" }}>Recent Posts</span>
                 <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 400 }}>last 3 saved</span>
               </div>
+              <button
+                onClick={() => router.push("/media")}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  borderRadius: 8,
+                  padding: "6px 12px",
+                  color: "rgba(255,255,255,0.6)",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+                className="hover-btn"
+              >
+                <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <path d="M21 15l-5-5L5 21" />
+                </svg>
+                My Library
+              </button>
             </div>
 
             {recentPosts.length > 0 ? (
@@ -1619,7 +1664,7 @@ export default function DashboardPage() {
                 }}
               >
                 <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, flex: 1, marginBottom: 20, textAlign: "left" as const }}>
-                  {["One topic. One post. Ready in seconds.", "Caption and hashtags in your brand voice.", "Pick a style — AI does the rest."].map((line) => (
+                  {["One topic. One post. Ready in seconds.", "Use your own photo or generate a fresh one.", "Caption and hashtags in your brand voice."].map((line) => (
                     <div key={line} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                       <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#4f8ef7", flexShrink: 0, marginTop: 5 }} />
                       <span style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5 }}>{line}</span>
@@ -1713,73 +1758,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Media Library Card */}
-            <div
-              style={{
-                ...styles.actionCard,
-                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                padding: 0,
-                overflow: "hidden",
-                display: "flex",
-                flexDirection: "column" as const,
-              }}
-              className="primary-action-card hover-card"
-              onClick={() => {
-                if (!tokenBalance.isLoading && tokenBalance.tokensRemaining === 0) { router.push("/subscribe"); return; }
-                router.push("/media");
-              }}
-            >
-              {/* Card Header */}
-              <div
-                className="ath-card-header"
-                style={{
-                  padding: "24px 24px 20px",
-                  textAlign: "center" as const,
-                }}
-              >
-                <div className="ath-card-icon" style={{ fontSize: 48, marginBottom: 8 }}>📸</div>
-                <div className="ath-card-title" style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
-                  Use Your Own Photos
-                </div>
-                <div className="ath-card-subtitle" style={{ fontSize: 13, opacity: 0.85 }}>
-                  Upload, brand, and schedule your shots
-                </div>
-              </div>
-
-              {/* Card Body */}
-              <div
-                className="ath-card-body"
-                style={{
-                  padding: "20px 24px 24px",
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column" as const,
-                }}
-              >
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, flex: 1, marginBottom: 20, textAlign: "left" as const }}>
-                  {["Your photos, your brand.", "Add your logo, number, or branded overlay.", "Schedule straight to your calendar."].map((line) => (
-                    <div key={line} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#34d399", flexShrink: 0, marginTop: 5 }} />
-                      <span style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5 }}>{line}</span>
-                    </div>
-                  ))}
-                </div>
-                <div
-                  style={{
-                    marginTop: "auto",
-                    background: "#10b981",
-                    borderRadius: 10,
-                    padding: "14px 20px",
-                    textAlign: "center" as const,
-                    fontWeight: 700,
-                    fontSize: 14,
-                    transition: "all 0.15s ease",
-                  }}
-                >
-                  Open Library →
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -2559,13 +2537,14 @@ export default function DashboardPage() {
         @media (max-width: 960px) {
           .ath-actionGrid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
           .dash-side-by-side { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+
         }
         @media (max-width: 900px) {
           .profile-benefits-pill-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
         }
         @media (max-width: 768px) {
-          /* Keep 3-col action grid but compact the cards so all 3 fit on screen */
-          .ath-actionGrid { grid-template-columns: repeat(3, 1fr) !important; gap: 8px !important; }
+          /* 2-col action grid compacted on mobile */
+          .ath-actionGrid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
           .ath-card-body { display: none !important; }
           .ath-card-header { padding: 16px 8px 14px !important; }
           .ath-card-icon { font-size: 30px !important; margin: 0 auto 6px !important; width: 40px !important; height: 40px !important; display: block !important; }

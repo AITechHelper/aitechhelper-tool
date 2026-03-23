@@ -324,6 +324,12 @@ export default function Page() {
   } | null>(null);
   const [autogenRequested, setAutogenRequested] = useState(false);
 
+  // Photo source state
+  const [photoSource, setPhotoSource] = useState<"ai" | "library">("ai");
+  const [mediaAssets, setMediaAssets] = useState<{ id: string; name: string; imageBase64: string }[]>([]);
+  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [mediaLoading, setMediaLoading] = useState(false);
+
   // Specific request input ref + pulse animation
   const specificRequestRef = useRef<HTMLInputElement>(null);
   const specificRequestWrapRef = useRef<HTMLDivElement>(null);
@@ -526,6 +532,9 @@ export default function Page() {
       sp.set("imageStyle", form.imageStyle);
       sp.set("primaryColor", form.primaryColor);
       sp.set("secondaryColor", form.secondaryColor);
+      if (photoSource === "library" && selectedAssetId) {
+        sp.set("mediaAssetId", selectedAssetId);
+      }
       if (dayContext?.day) sp.set("day", dayContext.day);
       if (dayContext?.title) sp.set("title", dayContext.title);
       if (dayContext?.detail) sp.set("detail", dayContext.detail);
@@ -1406,36 +1415,160 @@ export default function Page() {
           </div>
         )}
 
-        {/* Step 2: Image Style */}
+        {/* Step 2: Photo */}
         {currentStep === 2 && (
           <div className={`slide-card ${slideDirection === "right" ? "slide-from-right" : "slide-from-left"}`}>
             <div style={styles.card} className="hover-card">
-              <h2 style={styles.cardTitle}>Image Style</h2>
-              <p style={styles.cardHint}>Choose how your image will look</p>
-              <div style={styles.styleCardGrid} className="ath-styleCardGrid">
-                {imageStyles.filter((s) => GENERATOR_STYLE_VALUES.includes(s.value)).map((s) => (
-                  <Tooltip key={s.value} text={s.tooltip}>
-                    <div
-                      style={{ ...styles.styleCard, ...(form.imageStyle === s.value ? styles.styleCardSelected : {}) }}
-                      onClick={() => updateForm("imageStyle", s.value)}
-                      className="hover-card-item"
-                    >
-                      {form.imageStyle === s.value && (
-                        <div style={styles.checkmark}>
-                          <svg width="12" height="12" fill="none" stroke="#fff" strokeWidth="3" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                      )}
-                      <svg style={styles.styleCardIcon} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d={s.icon} />
+              <h2 style={styles.cardTitle}>Photo</h2>
+              <p style={styles.cardHint}>Use one of your own photos or let AI generate a fresh one</p>
+
+              {/* Two-button source choice */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 24 }}>
+                <div
+                  onClick={async () => {
+                    setPhotoSource("library");
+                    if (mediaAssets.length === 0) {
+                      setMediaLoading(true);
+                      try {
+                        const res = await fetch("/api/media-assets");
+                        if (res.ok) {
+                          const data = await res.json();
+                          setMediaAssets(data.assets ?? []);
+                        }
+                      } catch {}
+                      setMediaLoading(false);
+                    }
+                  }}
+                  style={{
+                    background: photoSource === "library" ? "linear-gradient(135deg, rgba(44,107,237,0.2) 0%, rgba(124,58,237,0.2) 100%)" : "rgba(255,255,255,0.04)",
+                    border: photoSource === "library" ? "2px solid #2c6bed" : "2px solid rgba(255,255,255,0.1)",
+                    borderRadius: 14,
+                    padding: "24px 16px",
+                    textAlign: "center" as const,
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
+                  className="hover-card-item"
+                >
+                  <div style={{ fontSize: 36, marginBottom: 10 }}>🖼️</div>
+                  <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6, color: "#e6edf7" }}>Use My Photo</div>
+                  <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>Pick from your personal library</div>
+                  {photoSource === "library" && (
+                    <div style={{ marginTop: 8, display: "flex", justifyContent: "center" }}>
+                      <svg width="16" height="16" fill="none" stroke="#2c6bed" strokeWidth="3" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
-                      <div style={styles.styleCardName}>{s.name}</div>
-                      <div style={styles.styleCardDesc}>{s.description}</div>
                     </div>
-                  </Tooltip>
-                ))}
+                  )}
+                </div>
+
+                <div
+                  onClick={() => { setPhotoSource("ai"); setSelectedAssetId(null); }}
+                  style={{
+                    background: photoSource === "ai" ? "linear-gradient(135deg, rgba(44,107,237,0.2) 0%, rgba(124,58,237,0.2) 100%)" : "rgba(255,255,255,0.04)",
+                    border: photoSource === "ai" ? "2px solid #2c6bed" : "2px solid rgba(255,255,255,0.1)",
+                    borderRadius: 14,
+                    padding: "24px 16px",
+                    textAlign: "center" as const,
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
+                  className="hover-card-item"
+                >
+                  <div style={{ fontSize: 36, marginBottom: 10 }}>✨</div>
+                  <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6, color: "#e6edf7" }}>Generate Fresh Photo</div>
+                  <div style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.5 }}>AI creates a photo for your post</div>
+                  {photoSource === "ai" && (
+                    <div style={{ marginTop: 8, display: "flex", justifyContent: "center" }}>
+                      <svg width="16" height="16" fill="none" stroke="#2c6bed" strokeWidth="3" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* Library picker — shown when "Use My Photo" is selected */}
+              {photoSource === "library" && (
+                <div style={{ marginBottom: 24 }}>
+                  {mediaLoading ? (
+                    <div style={{ textAlign: "center", padding: "24px", opacity: 0.5, fontSize: 14 }}>Loading your photos…</div>
+                  ) : mediaAssets.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "24px", background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)" }}>
+                      <div style={{ fontSize: 13, opacity: 0.6, marginBottom: 12 }}>No photos in your library yet.</div>
+                      <a
+                        href="/media"
+                        style={{ color: "#7eb3ff", fontSize: 13, fontWeight: 600, textDecoration: "none" }}
+                      >
+                        Upload photos to My Library →
+                      </a>
+                    </div>
+                  ) : (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(90px, 1fr))", gap: 10 }}>
+                      {mediaAssets.map((asset) => (
+                        <div
+                          key={asset.id}
+                          onClick={() => setSelectedAssetId(asset.id)}
+                          style={{
+                            aspectRatio: "1",
+                            borderRadius: 10,
+                            overflow: "hidden",
+                            cursor: "pointer",
+                            border: selectedAssetId === asset.id ? "3px solid #2c6bed" : "3px solid transparent",
+                            transition: "all 0.15s ease",
+                            position: "relative" as const,
+                          }}
+                        >
+                          <img
+                            src={asset.imageBase64}
+                            alt={asset.name}
+                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                          />
+                          {selectedAssetId === asset.id && (
+                            <div style={{ position: "absolute", top: 4, right: 4, background: "#2c6bed", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <svg width="11" height="11" fill="none" stroke="#fff" strokeWidth="3" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* AI style picker — shown when "Generate Fresh" is selected */}
+              {photoSource === "ai" && (
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, opacity: 0.6, marginBottom: 12 }}>Choose image style</div>
+                  <div style={styles.styleCardGrid} className="ath-styleCardGrid">
+                    {imageStyles.filter((s) => GENERATOR_STYLE_VALUES.includes(s.value)).map((s) => (
+                      <Tooltip key={s.value} text={s.tooltip}>
+                        <div
+                          style={{ ...styles.styleCard, ...(form.imageStyle === s.value ? styles.styleCardSelected : {}) }}
+                          onClick={() => updateForm("imageStyle", s.value)}
+                          className="hover-card-item"
+                        >
+                          {form.imageStyle === s.value && (
+                            <div style={styles.checkmark}>
+                              <svg width="12" height="12" fill="none" stroke="#fff" strokeWidth="3" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
+                          <svg style={styles.styleCardIcon} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d={s.icon} />
+                          </svg>
+                          <div style={styles.styleCardName}>{s.name}</div>
+                          <div style={styles.styleCardDesc}>{s.description}</div>
+                        </div>
+                      </Tooltip>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Nav */}
               <div style={styles.stepNavigation}>
                 <button style={styles.backBtn} onClick={goToPrevStep}>
@@ -1449,7 +1582,10 @@ export default function Page() {
                     <div key={i} style={{ ...styles.stepDot, ...(i === currentStep ? styles.stepDotActive : {}), ...(i < currentStep ? styles.stepDotCompleted : {}) }} />
                   ))}
                 </div>
-                <button style={styles.nextBtn} onClick={goToNextStep}>
+                <button
+                  style={{ ...styles.nextBtn, ...(photoSource === "library" && !selectedAssetId ? { opacity: 0.4, cursor: "not-allowed" } : {}) }}
+                  onClick={() => { if (photoSource === "library" && !selectedAssetId) return; goToNextStep(); }}
+                >
                   Next
                   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

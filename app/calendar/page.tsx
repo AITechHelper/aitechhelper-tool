@@ -2239,6 +2239,9 @@ function CalendarPageInner() {
               <div style={{
                 padding: "16px 24px",
                 borderTop: "1px solid rgba(255,255,255,0.08)",
+                display: "flex",
+                flexDirection: "column" as const,
+                gap: 10,
               }}>
                 <button
                   onClick={handleGenerate}
@@ -2270,6 +2273,35 @@ function CalendarPageInner() {
                   {!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0
                     ? "Token limit reached"
                     : "✨ Generate (uses 1 token)"}
+                </button>
+
+                {/* Custom post option */}
+                <button
+                  onClick={() => {
+                    const sp = new URLSearchParams();
+                    sp.set("day", String(selectedDay.day));
+                    sp.set("month", String(currentMonth + 1));
+                    sp.set("year", String(currentYear));
+                    if (selectedDay.postType) sp.set("title", selectedDay.postType);
+                    if (selectedDay.detail) sp.set("detail", selectedDay.detail);
+                    router.push(`/generator?${sp.toString()}`);
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "12px 20px",
+                    borderRadius: 12,
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    background: "rgba(255,255,255,0.04)",
+                    color: "rgba(255,255,255,0.6)",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    fontFamily: "Verdana, Geneva, sans-serif",
+                    transition: "all 0.15s ease",
+                  }}
+                  className="hover-btn"
+                >
+                  ✏️ Create a Custom Post for This Day Instead
                 </button>
               </div>
             )}
