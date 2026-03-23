@@ -1515,42 +1515,15 @@ export default function DashboardPage() {
               padding: 24,
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <svg width="20" height="20" fill="none" stroke="#a78bfa" strokeWidth="2" viewBox="0 0 24 24">
-                  <rect x="3" y="3" width="7" height="7" rx="1" />
-                  <rect x="14" y="3" width="7" height="7" rx="1" />
-                  <rect x="3" y="14" width="7" height="7" rx="1" />
-                  <rect x="14" y="14" width="7" height="7" rx="1" />
-                </svg>
-                <span style={{ fontWeight: 700, fontSize: 16, color: "#e6edf7" }}>Recent Posts</span>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 400 }}>last 3 saved</span>
-              </div>
-              <button
-                onClick={() => router.push("/media")}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  borderRadius: 8,
-                  padding: "6px 12px",
-                  color: "rgba(255,255,255,0.6)",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                }}
-                className="hover-btn"
-              >
-                <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <circle cx="8.5" cy="8.5" r="1.5" />
-                  <path d="M21 15l-5-5L5 21" />
-                </svg>
-                My Library
-              </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+              <svg width="20" height="20" fill="none" stroke="#a78bfa" strokeWidth="2" viewBox="0 0 24 24">
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+              </svg>
+              <span style={{ fontWeight: 700, fontSize: 16, color: "#e6edf7" }}>Recent Posts</span>
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 400 }}>last 3 saved</span>
             </div>
 
             {recentPosts.length > 0 ? (
@@ -1613,6 +1586,32 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
+          {/* My Library — separate from recent posts */}
+          <button
+            onClick={() => router.push("/media")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              marginTop: 12,
+              background: "transparent",
+              border: "none",
+              padding: "4px 2px",
+              color: "rgba(255,255,255,0.4)",
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "color 0.15s ease",
+            }}
+            className="my-library-link"
+          >
+            <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <path d="M21 15l-5-5L5 21" />
+            </svg>
+            My Photo Library
+          </button>
         </div>{/* end Recent Posts column */}
 
         </div>{/* end dash-side-by-side */}
@@ -2521,6 +2520,7 @@ export default function DashboardPage() {
           transform: translateY(-3px) !important;
         }
         .hover-btn:hover { background: rgba(255,255,255,0.12) !important; }
+        .my-library-link:hover { color: rgba(255,255,255,0.7) !important; }
         .hover-btn-primary:hover { background: #357ae8 !important; transform: translateY(-1px); }
         .enhanced-cta:hover {
           background: #357ae8 !important;
