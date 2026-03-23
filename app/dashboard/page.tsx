@@ -40,6 +40,7 @@ export default function DashboardPage() {
   const brandProfiles = useBrandProfiles();
   const { profiles, activeProfileId } = brandProfiles;
   const [recentPosts, setRecentPosts] = useState<SavedPost[]>([]);
+  const [recentMedia, setRecentMedia] = useState<{ id: string; name: string; imageBase64: string }[]>([]);
   const [showNewProfile, setShowNewProfile] = useState(false);
   const [editingProfile, setEditingProfile] = useState<BrandProfile | null>(
     null
@@ -75,6 +76,17 @@ export default function DashboardPage() {
   // Load posts from DB
   useEffect(() => {
     window.scrollTo(0, 0);
+
+    async function loadMedia() {
+      try {
+        const res = await fetch("/api/media-assets");
+        if (res.ok) {
+          const data = await res.json();
+          setRecentMedia((data.assets ?? []).slice(0, 4));
+        }
+      } catch {}
+    }
+    loadMedia();
 
     async function loadPosts() {
       try {
@@ -1525,31 +1537,58 @@ export default function DashboardPage() {
               </svg>
               <span style={{ fontWeight: 700, fontSize: 14, color: "#e6edf7" }}>My Photos</span>
             </div>
-            <div style={{
-              display: "flex",
-              flexDirection: "column" as const,
-              alignItems: "center",
-              justifyContent: "center",
-              background: "rgba(124, 58, 237, 0.06)",
-              border: "1px dashed rgba(124, 58, 237, 0.25)",
-              borderRadius: 12,
-              padding: "20px 16px",
-              textAlign: "center" as const,
-              gap: 10,
-            }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(124, 58, 237, 0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="18" height="18" fill="none" stroke="#a78bfa" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-              </div>
+            {recentMedia.length > 0 ? (
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#e6edf7", marginBottom: 3 }}>Upload Your Photos</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>Add your own photos to use in posts</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 12 }}>
+                  {recentMedia.map((asset) => (
+                    <div
+                      key={asset.id}
+                      style={{
+                        aspectRatio: "1",
+                        borderRadius: 8,
+                        overflow: "hidden",
+                        border: "1px solid rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      <img
+                        src={asset.imageBase64}
+                        alt={asset.name}
+                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div style={{ background: "rgba(124,58,237,0.2)", border: "1px solid rgba(124,58,237,0.3)", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 700, color: "#a78bfa", textAlign: "center" as const }}>
+                  Open Library →
+                </div>
               </div>
-              <div style={{ background: "rgba(124,58,237,0.2)", border: "1px solid rgba(124,58,237,0.3)", borderRadius: 8, padding: "7px 14px", fontSize: 11, fontWeight: 700, color: "#a78bfa" }}>
-                Open Library →
+            ) : (
+              <div style={{
+                display: "flex",
+                flexDirection: "column" as const,
+                alignItems: "center",
+                justifyContent: "center",
+                background: "rgba(124, 58, 237, 0.06)",
+                border: "1px dashed rgba(124, 58, 237, 0.25)",
+                borderRadius: 12,
+                padding: "20px 16px",
+                textAlign: "center" as const,
+                gap: 10,
+              }}>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(124, 58, 237, 0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="18" height="18" fill="none" stroke="#a78bfa" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#e6edf7", marginBottom: 3 }}>Upload Your Photos</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>Add your own photos to use in posts</div>
+                </div>
+                <div style={{ background: "rgba(124,58,237,0.2)", border: "1px solid rgba(124,58,237,0.3)", borderRadius: 8, padding: "7px 14px", fontSize: 11, fontWeight: 700, color: "#a78bfa" }}>
+                  Open Library →
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
         </div>{/* end dash-social-col */}
