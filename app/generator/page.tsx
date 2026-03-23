@@ -517,7 +517,7 @@ export default function Page() {
     }
   }
 
-  async function generatePost() {
+  async function generatePost({ skipDay = false }: { skipDay?: boolean } = {}) {
     setIsLoading(true);
     setErrorMsg("");
     setStatusMsg("Redirecting…");
@@ -539,11 +539,10 @@ export default function Page() {
       if (photoSource === "library" && selectedAssetId) {
         sp.set("mediaAssetId", selectedAssetId);
       }
-      if (dayContext?.day) sp.set("day", dayContext.day);
-      if (dayContext?.title) sp.set("title", dayContext.title);
-      if (dayContext?.detail) sp.set("detail", dayContext.detail);
+      if (!skipDay && dayContext?.day) sp.set("day", dayContext.day);
+      if (!skipDay && dayContext?.title) sp.set("title", dayContext.title);
+      if (!skipDay && dayContext?.detail) sp.set("detail", dayContext.detail);
       sp.set("autogen", "1");
-      // Generate unique genId for this post generation
       const genId =
         Math.random().toString(36).substring(2, 15) +
         Math.random().toString(36).substring(2, 15);
@@ -555,14 +554,6 @@ export default function Page() {
       addToast("Failed to start generation. Please try again.", "error");
       setIsLoading(false);
     }
-  }
-
-  // Generate without calendar day association (Post Now path)
-  async function generatePostNow() {
-    const savedContext = dayContext;
-    setDayContext(null);
-    await generatePost();
-    setDayContext(savedContext);
   }
 
   // Build a friendly label for the calendar day e.g. "Tuesday, March 18"
@@ -1833,7 +1824,7 @@ export default function Page() {
                           setShowOutOfTokens(true);
                           return;
                         }
-                        generatePostNow();
+                        generatePost({ skipDay: true });
                       }}
                       disabled={!canGenerate || isLoading}
                       className="hover-btn"
