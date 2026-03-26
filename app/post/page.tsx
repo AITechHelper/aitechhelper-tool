@@ -164,6 +164,7 @@ type PostResult = {
   caption: string;
   hashtags: string;
   why?: string;
+  imageHeadline?: string;
   imageBase64: string;
   imagePrompt?: string;
 };
@@ -603,11 +604,12 @@ export default function PostPage() {
 
           if (isBrandingText) {
             // Canvas renders text + scrim + border + logo — no separate brand overlay needed
+            const headlineText = result.imageHeadline || result.caption;
             result = {
               ...result,
               imageBase64: await applyBrandingWithPhotoAndText(
                 result.imageBase64,
-                result.caption,
+                headlineText,
                 {
                   primaryColor,
                   secondaryColor,
@@ -619,9 +621,10 @@ export default function PostPage() {
             };
           } else if (isLifestyleText) {
             // Canvas adds text scrim — then brand overlay adds logo on top
+            const headlineText = result.imageHeadline || result.caption;
             result = {
               ...result,
-              imageBase64: await applyPhotoWithText(result.imageBase64, result.caption),
+              imageBase64: await applyPhotoWithText(result.imageBase64, headlineText),
             };
             if (brand?.logoBase64 || brand?.website || brand?.phone) {
               result = {

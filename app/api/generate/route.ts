@@ -924,8 +924,16 @@ Return JSON:
 {
   "caption": string,
   "hashtags": string,
-  "scene_plan": string
+  "scene_plan": string,
+  "image_headline": string
 }
+
+image_headline rules:
+- 3 to 7 words. Bold, punchy, statement-style.
+- Written to display as large text overlaid on a photo — NOT the same as the caption hook.
+- No hashtags, no emojis, no punctuation except one optional exclamation mark.
+- Must be specific to the SpecificRequest if provided, otherwise to the niche/post type.
+- Think billboard copy, not social media copy.
 
 Context:
 Niche="${niche}"
@@ -970,6 +978,7 @@ ${imageDescription ? `\nIMAGE SCENE DIRECTION — when generating scene_plan, ba
     let caption = String(parsed.caption || "").trim();
     let hashtags = String(parsed.hashtags || "").trim();
     let scenePlan = String(parsed.scene_plan || "").trim();
+    const imageHeadline = String(parsed.image_headline || "").trim();
 
     if (caption.length > maxCaptionChars)
       caption = caption.slice(0, maxCaptionChars).trim();
@@ -1177,6 +1186,7 @@ ${imageDescription ? `\nIMAGE SCENE DIRECTION — when generating scene_plan, ba
       caption,
       hashtags,
       why: "",
+      imageHeadline,
       imageBase64: `data:image/png;base64,${b64}`,
       imagePrompt: imageInstruction,
       createdAt: Date.now(),
