@@ -14,6 +14,7 @@ import {
   type InstagramFormat,
   applyBrandingWithPhotoAndText,
   applyPhotoWithText,
+  applyPerimeterBorder,
 } from "../lib/photoTreatments";
 
 // Idempotency utilities
@@ -475,11 +476,11 @@ export default function PostPage() {
   }, [isLoading]);
 
   // Convert image to selected format whenever image or format changes.
-  // For branding_text_photo: format the raw clean photo first, then apply Canvas text on top.
-  // This ensures the blur fill bars never contain baked-in text.
+  // Build the final display image for the selected format.
+  // Border is always the very last step so it wraps the entire canvas
+  // (including blurred bars for non-square formats), not just the photo.
   useEffect(() => {
     if (!post?.imageBase64) { setFormattedImage(null); return; }
-    if (selectedFormat === "square") { setFormattedImage(post.imageBase64); return; }
 
     let cancelled = false;
     const sourceImage = post.rawImageBase64 ?? post.imageBase64;
@@ -487,30 +488,41 @@ export default function PostPage() {
       form.imageStyle === "branding_text_photo" ||
       form.imageStyle === "branded_text_photo";
 
-    // Resolve brand options the same way the generation function does
     const activeBrandRaw = typeof window !== "undefined" ? localStorage.getItem("ath_active_brand_profile") : null;
     const activeBrand = activeBrandRaw ? JSON.parse(activeBrandRaw) : null;
     const resolvedPrimary = activeBrand?.primaryColor || form.primaryColor || "#000000";
     const resolvedSecondary = activeBrand?.secondaryColor || form.secondaryColor || "#ffffff";
     const resolvedIncludeContact = CONTACT_POST_TYPES.has(form.postType);
 
-    convertToInstagramFormat(sourceImage, selectedFormat, post.rawImageBase64).then(async (formatted) => {
+    async function buildFormattedImage() {
+      // Step 1: format conversion (square = no-op)
+      let result = selectedFormat === "square"
+        ? post!.imageBase64
+        : await convertToInstagramFormat(sourceImage, selectedFormat, post!.rawImageBase64);
+
       if (cancelled) return;
-      if (isBrandingText && post.rawImageBase64) {
-        // Re-apply Canvas text overlay on the freshly formatted clean image
-        const headlineText = post.imageHeadline || post.caption;
-        const withText = await applyBrandingWithPhotoAndText(formatted, headlineText, {
+
+      // Step 2: re-apply Canvas text for branding_text_photo on non-square formats
+      if (selectedFormat !== "square" && isBrandingText && post!.rawImageBase64) {
+        const headlineText = post!.imageHeadline || post!.caption;
+        result = await applyBrandingWithPhotoAndText(result, headlineText, {
           primaryColor: resolvedPrimary,
           secondaryColor: resolvedSecondary,
           logoBase64: activeBrand?.logoBase64 || undefined,
           website: resolvedIncludeContact ? activeBrand?.website || undefined : undefined,
           phone: resolvedIncludeContact ? activeBrand?.phone || undefined : undefined,
         });
-        if (!cancelled) setFormattedImage(withText);
-      } else {
-        if (!cancelled) setFormattedImage(formatted);
       }
-    });
+
+      if (cancelled) return;
+
+      // Step 3: border always last — wraps the full canvas regardless of format
+      result = await applyPerimeterBorder(result, resolvedPrimary);
+
+      if (!cancelled) setFormattedImage(result);
+    }
+
+    buildFormattedImage();
     return () => { cancelled = true; };
   }, [post?.imageBase64, post?.rawImageBase64, selectedFormat]);
 

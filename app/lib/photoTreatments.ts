@@ -402,3 +402,31 @@ export async function convertToInstagramFormat(
 
   return canvas.toDataURL("image/jpeg", 0.92);
 }
+
+// Draws a clean perimeter border on any image — applied as the very last step
+// so it wraps the entire canvas (including blurred format bars), not just the photo.
+export async function applyPerimeterBorder(
+  imageBase64: string,
+  primaryColor: string
+): Promise<string> {
+  try {
+    const img = await loadImage(imageBase64);
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext("2d")!;
+    ctx.drawImage(img, 0, 0);
+
+    const w = canvas.width;
+    const h = canvas.height;
+    const thick = Math.max(8, Math.round(w * 0.016));
+
+    ctx.strokeStyle = hexToRgba(primaryColor, 0.95);
+    ctx.lineWidth = thick;
+    ctx.strokeRect(thick / 2, thick / 2, w - thick, h - thick);
+
+    return canvas.toDataURL("image/jpeg", 0.93);
+  } catch {
+    return imageBase64;
+  }
+}
