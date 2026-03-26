@@ -494,7 +494,7 @@ export default function PostPage() {
     const resolvedSecondary = activeBrand?.secondaryColor || form.secondaryColor || "#ffffff";
     const resolvedIncludeContact = CONTACT_POST_TYPES.has(form.postType);
 
-    convertToInstagramFormat(sourceImage, selectedFormat).then(async (formatted) => {
+    convertToInstagramFormat(sourceImage, selectedFormat, post.rawImageBase64).then(async (formatted) => {
       if (cancelled) return;
       if (isBrandingText && post.rawImageBase64) {
         // Re-apply Canvas text overlay on the freshly formatted clean image

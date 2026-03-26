@@ -431,16 +431,20 @@ export async function applyBrandingWithPhotoAndText(
 export type InstagramFormat = "square" | "portrait" | "landscape" | "stories";
 
 // Converts an existing image to an Instagram-compatible aspect ratio using canvas.
-// No API calls — runs entirely client-side. Free to use on any already-generated image.
+// rawPhotoBase64: the clean photo with no text/design — used ONLY for the blurred fill bars.
+// imageBase64: the fully processed image (text + design) — used for the centered foreground.
 export async function convertToInstagramFormat(
   imageBase64: string,
-  format: InstagramFormat
+  format: InstagramFormat,
+  rawPhotoBase64?: string
 ): Promise<string> {
   if (format === "square") return imageBase64;
 
-  const img = await loadImage(imageBase64);
-  const srcW = img.naturalWidth;
-  const srcH = img.naturalHeight;
+  const fgImg = await loadImage(imageBase64);
+  const bgImg = rawPhotoBase64 ? await loadImage(rawPhotoBase64) : fgImg;
+
+  const srcW = fgImg.naturalWidth;
+  const srcH = fgImg.naturalHeight;
 
   const targets: Record<InstagramFormat, { w: number; h: number }> = {
     square:    { w: 1080, h: 1080 },
@@ -455,24 +459,23 @@ export async function convertToInstagramFormat(
   canvas.height = canvasH;
   const ctx = canvas.getContext("2d")!;
 
-  // Blurred background (cover fill) — source is always the clean raw photo
-  // (format conversion is called before Canvas text overlay in page.tsx)
-  const bgScale = Math.max(canvasW / srcW, canvasH / srcH);
-  const bgW = srcW * bgScale;
-  const bgH = srcH * bgScale;
+  // Blurred fill — always the raw clean photo, no text or graphic elements
+  const bgScale = Math.max(canvasW / bgImg.naturalWidth, canvasH / bgImg.naturalHeight);
+  const bgW = bgImg.naturalWidth * bgScale;
+  const bgH = bgImg.naturalHeight * bgScale;
   const bgX = (canvasW - bgW) / 2;
   const bgY = (canvasH - bgH) / 2;
   ctx.filter = "blur(28px) brightness(0.55)";
-  ctx.drawImage(img, bgX, bgY, bgW, bgH);
+  ctx.drawImage(bgImg, bgX, bgY, bgW, bgH);
   ctx.filter = "none";
 
-  // Original image centered (contain fit)
+  // Foreground — fully processed image centered (contain fit)
   const fgScale = Math.min(canvasW / srcW, canvasH / srcH);
   const fgW = srcW * fgScale;
   const fgH = srcH * fgScale;
   const fgX = (canvasW - fgW) / 2;
   const fgY = (canvasH - fgH) / 2;
-  ctx.drawImage(img, fgX, fgY, fgW, fgH);
+  ctx.drawImage(fgImg, fgX, fgY, fgW, fgH);
 
   return canvas.toDataURL("image/jpeg", 0.92);
 }
