@@ -321,22 +321,70 @@ export async function applyBrandingWithPhotoAndText(
       });
     }
 
-    // ── Graphic elements: thin inset border + top accent bar ──────────────────
-    const borderW = Math.max(3, Math.round(w * 0.005));
-    const borderInset = Math.round(w * 0.016);
-    ctx.strokeStyle = hexToRgba(brandOptions.primaryColor, 0.8);
-    ctx.lineWidth = borderW;
-    ctx.strokeRect(
-      borderInset + borderW / 2,
-      borderInset + borderW / 2,
-      w - (borderInset + borderW / 2) * 2,
-      h - (borderInset + borderW / 2) * 2
-    );
+    // ── Graphic elements — randomised treatment each generation ──────────────
+    const pc = brandOptions.primaryColor;
+    const inset = Math.round(w * 0.018);
+    const thin  = Math.max(3,  Math.round(w * 0.004));
+    const thick = Math.max(8,  Math.round(w * 0.012));
+    const xtra  = Math.max(14, Math.round(w * 0.022));
+    const bLen  = Math.round(w * 0.18); // bracket arm length
 
-    // Bold top accent bar — full width, sits at very top edge
-    const accentBarH = Math.max(5, Math.round(h * 0.008));
-    ctx.fillStyle = hexToRgba(brandOptions.primaryColor, 0.9);
-    ctx.fillRect(0, 0, w, accentBarH);
+    // Helper: draw L-bracket corners
+    const drawCorners = (insetAmt: number, lw: number, opacity = 0.9) => {
+      ctx.fillStyle = hexToRgba(pc, opacity);
+      const i = insetAmt, l = bLen, t = lw;
+      // top-left
+      ctx.fillRect(i, i, l, t); ctx.fillRect(i, i, t, l);
+      // top-right
+      ctx.fillRect(w - i - l, i, l, t); ctx.fillRect(w - i - t, i, t, l);
+      // bottom-left
+      ctx.fillRect(i, h - i - t, l, t); ctx.fillRect(i, h - i - l, t, l);
+      // bottom-right
+      ctx.fillRect(w - i - l, h - i - t, l, t); ctx.fillRect(w - i - t, h - i - l, t, l);
+    };
+
+    const treatment = Math.floor(Math.random() * 8);
+    switch (treatment) {
+      case 0: // thin full inset border + thin top bar
+        ctx.strokeStyle = hexToRgba(pc, 0.8); ctx.lineWidth = thin;
+        ctx.strokeRect(inset, inset, w - inset * 2, h - inset * 2);
+        ctx.fillStyle = hexToRgba(pc, 0.9);
+        ctx.fillRect(0, 0, w, Math.round(h * 0.006));
+        break;
+      case 1: // thick full border
+        ctx.strokeStyle = hexToRgba(pc, 0.85); ctx.lineWidth = thick;
+        ctx.strokeRect(thick / 2, thick / 2, w - thick, h - thick);
+        break;
+      case 2: // extra-thick top bar + thin bottom bar only
+        ctx.fillStyle = hexToRgba(pc, 0.9);
+        ctx.fillRect(0, 0, w, xtra);
+        ctx.fillRect(0, h - thin, w, thin);
+        break;
+      case 3: // corner L-brackets only (medium)
+        drawCorners(inset, thick);
+        break;
+      case 4: // thick left stripe + thin top bar
+        ctx.fillStyle = hexToRgba(pc, 0.88);
+        ctx.fillRect(0, 0, xtra, h);
+        ctx.fillRect(0, 0, w, thin);
+        break;
+      case 5: // thin border + thick left accent stripe inside border
+        ctx.strokeStyle = hexToRgba(pc, 0.75); ctx.lineWidth = thin;
+        ctx.strokeRect(inset, inset, w - inset * 2, h - inset * 2);
+        ctx.fillStyle = hexToRgba(pc, 0.9);
+        ctx.fillRect(inset, inset, thick * 2, h - inset * 2);
+        break;
+      case 6: // top + bottom thick bars only (no sides)
+        ctx.fillStyle = hexToRgba(pc, 0.9);
+        ctx.fillRect(0, 0, w, thick);
+        ctx.fillRect(0, h - thick, w, thick);
+        break;
+      case 7: // corner brackets + thin full border
+        ctx.strokeStyle = hexToRgba(pc, 0.6); ctx.lineWidth = thin;
+        ctx.strokeRect(inset, inset, w - inset * 2, h - inset * 2);
+        drawCorners(inset, thick, 0.95);
+        break;
+    }
 
     // ── Raw logo — top-left, no background or clip ────────────────────────────
     if (brandOptions.logoBase64) {
