@@ -103,7 +103,7 @@ export function applyRawTreatment(imageBase64: string): string {
 }
 
 // Treatment 2: Photo + editorial text overlay (no branding).
-// Deep gradient scrim + large bold uppercase headline, two-line max.
+// Scrim bottom 38% only. Smart font scaling. Consistent with Branded + Text pipeline.
 export async function applyPhotoWithText(
   imageBase64: string,
   caption: string
@@ -119,38 +119,40 @@ export async function applyPhotoWithText(
     const w = canvas.width;
     const h = canvas.height;
     const pad = Math.round(w * 0.055);
-    const fontSize = Math.round(h * 0.068);
-    const bottomPad = Math.round(h * 0.06);
 
-    // Deep gradient scrim — transparent from ~38% down, near-black at bottom
-    const scrimY = Math.round(h * 0.36);
-    const grad = ctx.createLinearGradient(0, scrimY, 0, h);
-    grad.addColorStop(0, "rgba(0,0,0,0)");
-    grad.addColorStop(0.42, "rgba(0,0,0,0.52)");
-    grad.addColorStop(1, "rgba(0,0,0,0.91)");
+    // Scrim — bottom 38% only, matches Branded + Text standard
+    const scrimTop = Math.round(h * 0.62);
+    const grad = ctx.createLinearGradient(0, scrimTop, 0, h);
+    grad.addColorStop(0,   "rgba(0,0,0,0)");
+    grad.addColorStop(0.4, "rgba(0,0,0,0.55)");
+    grad.addColorStop(1,   "rgba(0,0,0,0.92)");
     ctx.fillStyle = grad;
-    ctx.fillRect(0, scrimY, w, h - scrimY);
+    ctx.fillRect(0, scrimTop, w, h - scrimTop);
 
-    // Headline: uppercase, bold, left-aligned, 2 lines max
-    const rawText = (caption.split(/[.!?\n]/)[0]?.trim() ?? caption).toUpperCase();
+    // Smart font scaling based on word count
+    const rawText   = (caption.split(/[.!?\n]/)[0]?.trim() ?? caption).toUpperCase();
+    const wordCount = rawText.split(" ").length;
+    const fontSize  = wordCount <= 5 ? Math.round(h * 0.082)
+                    : wordCount <= 8 ? Math.round(h * 0.068)
+                    :                  Math.round(h * 0.054);
+    const maxLines  = wordCount <= 5 ? 2 : 3;
+
     ctx.font = `900 ${fontSize}px 'Impact', 'Arial Black', 'Arial', sans-serif`;
-    const lines = wrapTextToLines(ctx, rawText, w - pad * 2, 2);
+    const lines      = wrapTextToLines(ctx, rawText, w - pad * 2, maxLines);
+    const lineH      = Math.round(fontSize * 1.12);
+    const totalTextH = lines.length * lineH;
+    const textY      = h - Math.round(h * 0.065) - totalTextH;
 
-    const lineH = Math.round(fontSize * 1.1);
-    const totalH = lines.length * lineH;
-    const textStartY = h - bottomPad - totalH;
+    // Accent rule
+    ctx.fillStyle = "rgba(255,255,255,0.6)";
+    ctx.fillRect(pad, textY - Math.round(h * 0.026), Math.round(w * 0.10), Math.max(3, Math.round(h * 0.004)));
 
-    // Short accent rule above headline
-    const ruleH = Math.max(3, Math.round(h * 0.004));
-    ctx.fillStyle = "rgba(255,255,255,0.55)";
-    ctx.fillRect(pad, textStartY - Math.round(h * 0.024), Math.round(w * 0.10), ruleH);
-
-    // Text: line 1 bright white, line 2 softer off-white
-    ctx.textAlign = "left";
+    // Headline — line 1 white, line 2 off-white
+    ctx.textAlign    = "left";
     ctx.textBaseline = "top";
     lines.forEach((line, i) => {
       ctx.fillStyle = i === 0 ? "#ffffff" : "rgba(255,255,255,0.78)";
-      ctx.fillText(line, pad, textStartY + i * lineH);
+      ctx.fillText(line, pad, textY + i * lineH);
     });
 
     return canvas.toDataURL("image/jpeg", 0.93);
