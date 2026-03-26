@@ -9,6 +9,7 @@ import { useToast } from "../_components/ToastProvider";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
 import { useInstagram } from "../lib/useInstagram";
 import { useFacebook } from "../lib/useFacebook";
+import { convertToInstagramFormat, type InstagramFormat } from "../lib/photoTreatments";
 
 // Idempotency utilities
 function createRequestId(payload: any): string {
@@ -221,6 +222,8 @@ export default function PostPage() {
   const [igPostStatus, setIgPostStatus] = useState<"idle" | "posting" | "success" | "error">("idle");
   const facebook = useFacebook();
   const [fbPostStatus, setFbPostStatus] = useState<"idle" | "posting" | "success" | "error">("idle");
+  const [selectedFormat, setSelectedFormat] = useState<InstagramFormat>("square");
+  const [formattedImage, setFormattedImage] = useState<string | null>(null);
 
   const SHOW_DEBUG_PROMPT = false;
 
@@ -464,6 +467,19 @@ export default function PostPage() {
     return () => clearInterval(interval);
   }, [isLoading]);
 
+  // Convert image to selected format whenever image or format changes
+  useEffect(() => {
+    if (!post?.imageBase64) { setFormattedImage(null); return; }
+    if (selectedFormat === "square") { setFormattedImage(post.imageBase64); return; }
+    let cancelled = false;
+    convertToInstagramFormat(post.imageBase64, selectedFormat).then((result) => {
+      if (!cancelled) setFormattedImage(result);
+    });
+    return () => { cancelled = true; };
+  }, [post?.imageBase64, selectedFormat]);
+
+  const activeImage = formattedImage ?? post?.imageBase64 ?? null;
+
   const canRefine = useMemo(
     () => !!post && !hasRefined && refinementText.trim().length > 0,
     [post, hasRefined, refinementText]
@@ -679,10 +695,10 @@ export default function PostPage() {
   }
 
   function downloadImage() {
-    if (!post?.imageBase64) return;
+    if (!activeImage) return;
     const a = document.createElement("a");
-    a.href = post.imageBase64;
-    a.download = "ai-tech-helper.png";
+    a.href = activeImage;
+    a.download = `ai-social-helper-${selectedFormat}.jpg`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1192,9 +1208,9 @@ export default function PostPage() {
                   </div>
                 </div>
               )}
-              {post?.imageBase64 ? (
+              {activeImage ? (
                 <img
-                  src={post.imageBase64}
+                  src={activeImage}
                   alt="Generated post image"
                   style={styles.img}
                 />
@@ -1207,16 +1223,53 @@ export default function PostPage() {
               )}
             </div>
 
+            {/* Format toggle */}
+            {post?.imageBase64 && (
+              <div style={{ display: "flex", gap: 6, justifyContent: "center", flexWrap: "wrap" as const }}>
+                {([
+                  { key: "square",    label: "1:1",     hint: "Square" },
+                  { key: "portrait",  label: "4:5",     hint: "Portrait" },
+                  { key: "landscape", label: "1.91:1",  hint: "Landscape" },
+                  { key: "stories",   label: "9:16",    hint: "Stories" },
+                ] as const).map(({ key, label, hint }) => (
+                  <button
+                    key={key}
+                    title={hint}
+                    onClick={() => setSelectedFormat(key)}
+                    className="hover-btn"
+                    style={{
+                      padding: "5px 12px",
+                      borderRadius: 20,
+                      border: selectedFormat === key
+                        ? "1px solid rgba(44,107,237,0.6)"
+                        : "1px solid rgba(255,255,255,0.12)",
+                      background: selectedFormat === key
+                        ? "rgba(44,107,237,0.15)"
+                        : "rgba(255,255,255,0.04)",
+                      color: selectedFormat === key ? "#7eb3ff" : "rgba(255,255,255,0.55)",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      letterSpacing: 0.4,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {/* Actions */}
             <div style={styles.buttonRow} className="ath-buttonRow">
               <button
                 style={{
                   ...styles.secondaryBtn,
-                  opacity: post?.imageBase64 ? 1 : 0.5,
-                  cursor: post?.imageBase64 ? "pointer" : "not-allowed",
+                  opacity: activeImage ? 1 : 0.5,
+                  cursor: activeImage ? "pointer" : "not-allowed",
                 }}
                 onClick={downloadImage}
-                disabled={!post?.imageBase64}
+                disabled={!activeImage}
                 className="hover-btn"
               >
                 Download image
@@ -1237,8 +1290,8 @@ export default function PostPage() {
                 <button
                   style={{
                     ...styles.secondaryBtn,
-                    opacity: post?.imageBase64 && igPostStatus !== "posting" && igPostStatus !== "success" ? 1 : 0.7,
-                    cursor: post?.imageBase64 && igPostStatus !== "posting" && igPostStatus !== "success" ? "pointer" : "not-allowed",
+                    opacity: activeImage && igPostStatus !== "posting" && igPostStatus !== "success" ? 1 : 0.7,
+                    cursor: activeImage && igPostStatus !== "posting" && igPostStatus !== "success" ? "pointer" : "not-allowed",
                     background: igPostStatus === "success"
                       ? "rgba(34, 197, 94, 0.15)"
                       : "linear-gradient(135deg, rgba(131,58,180,0.2), rgba(253,29,29,0.2), rgba(252,176,69,0.2))",
@@ -1247,10 +1300,10 @@ export default function PostPage() {
                       : "1px solid rgba(253,29,29,0.3)",
                   }}
                   onClick={async () => {
-                    if (!post?.imageBase64 || igPostStatus === "posting" || igPostStatus === "success") return;
+                    if (!activeImage || igPostStatus === "posting" || igPostStatus === "success") return;
                     setIgPostStatus("posting");
                     try {
-                      await instagram.publish(post.imageBase64, editedCaption, editedHashtags);
+                      await instagram.publish(activeImage, editedCaption, editedHashtags);
                       setIgPostStatus("success");
                       addToast(`Posted to @${instagram.username}!`, "success");
                     } catch (err: any) {
@@ -1259,7 +1312,7 @@ export default function PostPage() {
                       setTimeout(() => setIgPostStatus("idle"), 3000);
                     }
                   }}
-                  disabled={!post?.imageBase64 || igPostStatus === "posting" || igPostStatus === "success"}
+                  disabled={!activeImage || igPostStatus === "posting" || igPostStatus === "success"}
                   className="hover-btn"
                 >
                   {igPostStatus === "posting"
@@ -1273,8 +1326,8 @@ export default function PostPage() {
                 <button
                   style={{
                     ...styles.secondaryBtn,
-                    opacity: post?.imageBase64 && fbPostStatus !== "posting" && fbPostStatus !== "success" ? 1 : 0.7,
-                    cursor: post?.imageBase64 && fbPostStatus !== "posting" && fbPostStatus !== "success" ? "pointer" : "not-allowed",
+                    opacity: activeImage && fbPostStatus !== "posting" && fbPostStatus !== "success" ? 1 : 0.7,
+                    cursor: activeImage && fbPostStatus !== "posting" && fbPostStatus !== "success" ? "pointer" : "not-allowed",
                     background: fbPostStatus === "success"
                       ? "rgba(34, 197, 94, 0.15)"
                       : "rgba(24,119,242,0.15)",
@@ -1283,10 +1336,10 @@ export default function PostPage() {
                       : "1px solid rgba(24,119,242,0.3)",
                   }}
                   onClick={async () => {
-                    if (!post?.imageBase64 || fbPostStatus === "posting" || fbPostStatus === "success") return;
+                    if (!activeImage || fbPostStatus === "posting" || fbPostStatus === "success") return;
                     setFbPostStatus("posting");
                     try {
-                      await facebook.publish(post.imageBase64, editedCaption, editedHashtags);
+                      await facebook.publish(activeImage, editedCaption, editedHashtags);
                       setFbPostStatus("success");
                       addToast(`Posted to ${facebook.pageName}!`, "success");
                     } catch (err: any) {
