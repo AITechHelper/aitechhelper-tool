@@ -1037,7 +1037,7 @@ ${imageDescription ? `\nIMAGE SCENE DIRECTION — when generating scene_plan, ba
             primaryColor ? `Primary color: ${primaryColor}.` : "",
             secondaryColor ? `Secondary color: ${secondaryColor}.` : "",
             styleSpec.naturalPhotoColors
-              ? "CRITICAL: Brand colors must ONLY appear in graphic design overlay elements (borders, accent bars, corner marks, scrim). The photo scene itself — people, clothing, skin, walls, furniture, environment — must use completely natural, realistic colors. Do NOT dress people in brand colors. Do NOT tint walls or backgrounds with brand colors."
+              ? "CRITICAL PHOTO COLOR RULE: The photo/scene must look completely natural and realistic. People must wear normal neutral business clothing — navy, grey, black, white, beige. Walls and environments must be neutral — white, grey, beige, wood tones. Brand colors must NOT appear anywhere in the photo scene — not on clothing, not on walls, not in the background. Brand colors are ONLY used in the graphic design overlay elements added separately."
               : styleSpec.brandingStrength === "heavy"
               ? "Keep other colors neutral."
               : "Do not let colors overpower the realism.",
