@@ -247,7 +247,7 @@ Subjects in upper 55-60% of frame. Lower area darker/quieter for text placement.
     };
   }
 
-  // 2) Branded Photo — Clean photo with graphic design frame/accents AROUND it
+  // 2) Branded Photo — Clean photo; canvas applies branding separately
   if (
     style === "branded_photo" ||
     style === "branding_photo_no_text" ||
@@ -258,27 +258,21 @@ Subjects in upper 55-60% of frame. Lower area darker/quieter for text placement.
       photoRequired: true,
       brandingStrength: "light",
       banProducts: true,
+      naturalPhotoColors: true,
       basePrompt: `
-CLEAN, REALISTIC photo as the main subject — DO NOT alter or stylize the photo itself.
-The photo should look natural and untouched.
-Add graphic design elements AROUND or ON TOP of the photo edges:
-  - Bold colored frames or borders in brand colors
-  - Geometric shapes (circles, lines, corners) as decorative accents
-  - Color blocks or panels beside or behind the photo
-  - Subtle overlays at corners or edges only
-KEEP the photo center clean and unaltered.
+REALISTIC, clean editorial photo only. Full-bleed, professional composition.
+CRITICAL: NO graphic design elements — no frames, no borders, no corner marks, no swooshes, no overlays, no color blocks, no geometric shapes. Just a clean, natural scene.
+Brand design is applied as canvas overlay — keep the photo completely clean and natural.
 NO readable text. NO logos. NO packaging. NO labels.
-Modern Instagram feed aesthetic with designed frame/accents.
 `,
       layoutHint: `
-Think of a photo inside a designed frame or template.
-Graphic elements should frame or accent the photo, not be embedded in it.
-Leave the main photo area clean and realistic.
+Full-bleed clean photo. One clear subject, natural lighting, modern Instagram-quality composition.
+Leave the entire photo clean — no design elements of any kind.
 `,
     };
   }
 
-  // 3) Branded + Text + Photo — AI does graphic design, Canvas adds text
+  // 3) Branded + Text + Photo — Canvas adds scrim, text, logo, contact bar
   if (style === "branded_text_photo" || style === "branding_text_photo") {
     return {
       allowText: false,
@@ -287,25 +281,16 @@ Leave the main photo area clean and realistic.
       banProducts: true,
       naturalPhotoColors: true,
       basePrompt: `
-REALISTIC photo as the full-bleed background with professional graphic design treatment layered on top.
-CRITICAL: NO text, NO words, NO letters anywhere in the image. Text will be added separately.
-TEXT ZONE RULE: The bottom 40% of the image must have a clear readable surface (semi-transparent brand-color overlay, dark gradient, or solid brand-color panel) — this zone is reserved for text that will be added on top. Keep this zone clean and uncluttered.
-
-GRAPHIC DESIGN: Choose ONE of these varied treatments for the TOP 60% and edges:
-A) Thin primary-color inset border around the entire image + bold accent bar along the top edge + small corner bracket marks in top-right
-B) Thin primary-color inset border + thick left-side stripe in primary color (top half only) + subtle diagonal accent mark top-right corner
-C) Thin primary-color inset border + two short horizontal rule lines in top-left corner + bottom-right corner accent mark
-D) Thin primary-color inset border + top-left corner bracket + bottom-right corner bracket, both in primary color
-
-All design elements go in the TOP portion or edges ONLY — never in the bottom text zone.
-Professional, premium, modern. NOT playful or busy. Think agency-quality ad.
-NO logos. Avoid brand names.
+REALISTIC editorial photo, full-bleed, clean and professional.
+CRITICAL: NO graphic design elements baked into the photo — no frames, no borders, no corner marks, no swooshes, no overlays, no inset lines. Just a clean, natural scene.
+The scene's bottom third should naturally have depth or shadow to allow text overlay.
+All design treatment is applied separately via canvas — generate ONLY the photo.
+CRITICAL: NO text, NO words, NO letters anywhere in the image.
+NO logos. NO packaging. NO labels.
 `,
       layoutHint: `
-Full-bleed photo. Bottom 40%: clear overlay/panel for Canvas text placement.
-Top 60% + edges: one of the graphic element variants above.
-Thin primary-color inset border always present.
-Vary the graphic element treatment each generation.
+Full-bleed clean photo. Natural depth or shadow in the bottom third for text readability.
+No design elements of any kind — canvas handles all overlay treatment.
 `,
     };
   }
@@ -1028,7 +1013,7 @@ ${imageDescription ? `\nIMAGE SCENE DIRECTION — when generating scene_plan, ba
         ? "Do not add any branding shapes/frames."
         : styleSpec.brandingStrength === "light"
           ? "Use brand colors ONLY as tiny subtle accents (very minimal)."
-          : "Use brand colors heavily via shapes/frames/blocks/overlays; premium design.";
+          : "Brand design is applied as canvas overlay — keep the photo completely clean and natural.";
 
     // Brand colors are applied by Canvas overlays only — never sent to the image prompt.
     // Sending hex values risks AI using them in the scene/clothing/environment.

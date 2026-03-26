@@ -510,6 +510,8 @@ export default function PostPage() {
           logoBase64: activeBrand?.logoBase64 || undefined,
           website: resolvedIncludeContact ? activeBrand?.website || undefined : undefined,
           phone: resolvedIncludeContact ? activeBrand?.phone || undefined : undefined,
+          mode: "headline-brand",
+          format: selectedFormat,
         });
       }
 
@@ -654,6 +656,8 @@ export default function PostPage() {
                   logoBase64: brand?.logoBase64 || undefined,
                   website: includeContact ? brand?.website || undefined : undefined,
                   phone: includeContact ? brand?.phone || undefined : undefined,
+                  mode: "headline-brand",
+                  format: "square",
                 }
               ),
             };
