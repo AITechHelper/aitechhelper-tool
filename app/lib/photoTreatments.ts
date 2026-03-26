@@ -261,7 +261,6 @@ export async function applyBrandingWithPhotoAndText(
     const w = canvas.width;
     const h = canvas.height;
     const pad = Math.round(w * 0.055);
-    const fontSize = Math.round(h * 0.07);
     const bottomPad = Math.round(h * 0.065);
 
     // ── Deep gradient scrim ───────────────────────────────────────────────────
@@ -276,15 +275,14 @@ export async function applyBrandingWithPhotoAndText(
     // ── Headline text — auto-scale font + lines based on length ──────────────
     const rawText = (caption.split(/[.!?\n]/)[0]?.trim() ?? caption).toUpperCase();
     const wordCount = rawText.split(" ").length;
-    const baseFontSize = wordCount <= 5
+    const fontSize = wordCount <= 5
       ? Math.round(h * 0.082)   // short: big and bold
       : wordCount <= 8
       ? Math.round(h * 0.068)   // medium
       : Math.round(h * 0.054);  // long: smaller to fit 3 lines
     const maxLines = wordCount <= 5 ? 2 : 3;
-    ctx.font = `900 ${baseFontSize}px 'Impact', 'Arial Black', 'Arial', sans-serif`;
+    ctx.font = `900 ${fontSize}px 'Impact', 'Arial Black', 'Arial', sans-serif`;
     const lines = wrapTextToLines(ctx, rawText, w - pad * 2, maxLines);
-    const fontSize = baseFontSize;
 
     const lineH = Math.round(fontSize * 1.12);
     const totalTextH = lines.length * lineH;
@@ -424,14 +422,15 @@ export async function convertToInstagramFormat(
   canvas.height = canvasH;
   const ctx = canvas.getContext("2d")!;
 
-  // Blurred background (cover fill)
+  // Blurred background — draw only the top 60% of the source image as the fill
+  // so any Canvas text baked into the bottom never shows in the blur bars
   const bgScale = Math.max(canvasW / srcW, canvasH / srcH);
   const bgW = srcW * bgScale;
   const bgH = srcH * bgScale;
   const bgX = (canvasW - bgW) / 2;
   const bgY = (canvasH - bgH) / 2;
-  ctx.filter = "blur(24px) brightness(0.6)";
-  ctx.drawImage(img, bgX, bgY, bgW, bgH);
+  ctx.filter = "blur(36px) brightness(0.5)";
+  ctx.drawImage(img, 0, 0, srcW, srcH * 0.6, bgX, bgY, bgW, bgH * 0.6);
   ctx.filter = "none";
 
   // Original image centered (contain fit)
