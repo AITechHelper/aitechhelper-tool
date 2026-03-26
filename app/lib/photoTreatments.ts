@@ -143,10 +143,6 @@ export async function applyPhotoWithText(
     const totalTextH = lines.length * lineH;
     const textY      = h - Math.round(h * 0.065) - totalTextH;
 
-    // Accent rule
-    ctx.fillStyle = "rgba(255,255,255,0.6)";
-    ctx.fillRect(pad, textY - Math.round(h * 0.026), Math.round(w * 0.10), Math.max(3, Math.round(h * 0.004)));
-
     // Headline — line 1 white, line 2 off-white
     ctx.textAlign    = "left";
     ctx.textBaseline = "top";
@@ -162,7 +158,7 @@ export async function applyPhotoWithText(
 }
 
 // Treatment 3b: Branding + photo only (no text overlay).
-// Logo badge top-left, website/phone pill top-right — no scrim or headline.
+// Logo top-left, contact info in a clean bottom bar.
 export async function applyBrandingPhotoOnly(
   imageBase64: string,
   brandOptions: {
@@ -183,8 +179,9 @@ export async function applyBrandingPhotoOnly(
 
     const w = canvas.width;
     const h = canvas.height;
+    const pad = Math.round(w * 0.055);
 
-    // Raw logo — top-left, no background or clip
+    // Logo — top-left, raw
     if (brandOptions.logoBase64) {
       try {
         const logoImg = await loadImage(brandOptions.logoBase64);
@@ -200,36 +197,27 @@ export async function applyBrandingPhotoOnly(
       }
     }
 
-    // Website / phone pill — top-right
-    const rawContact = brandOptions.website || brandOptions.phone || "";
-    const contactText = rawContact.replace(/^https?:\/\//i, "").replace(/^www\./i, "");
-    if (contactText) {
-      const pillFontSize = Math.round(h * 0.022);
-      ctx.font = `600 ${pillFontSize}px 'Arial', 'Helvetica', sans-serif`;
-      const tw = ctx.measureText(contactText).width;
-      const pillPadX = Math.round(w * 0.026);
-      const pillPadY = Math.round(h * 0.011);
-      const pillW = tw + pillPadX * 2;
-      const pillH = pillFontSize + pillPadY * 2;
-      const pillMargin = Math.round(w * 0.038);
-      const px = w - pillW - pillMargin;
-      const py = pillMargin;
-      const pillR = pillH / 2;
+    // Contact bar — full-width strip at bottom
+    const hasContact = !!(brandOptions.website || brandOptions.phone);
+    if (hasContact) {
+      const contactBarH = Math.round(h * 0.075);
+      const barFontSize = Math.round(contactBarH * 0.42);
+      ctx.fillStyle = hexToRgba(brandOptions.primaryColor, 0.95);
+      ctx.fillRect(0, h - contactBarH, w, contactBarH);
 
-      ctx.fillStyle = "rgba(0,0,0,0.52)";
-      drawRoundRect(ctx, px, py, pillW, pillH, pillR);
-      ctx.fill();
-
-      ctx.strokeStyle = hexToRgba(brandOptions.secondaryColor, 0.4);
-      ctx.lineWidth = Math.max(1, Math.round(w * 0.0015));
-      drawRoundRect(ctx, px, py, pillW, pillH, pillR);
-      ctx.stroke();
-
-      ctx.fillStyle = brandOptions.secondaryColor;
-      ctx.font = `600 ${pillFontSize}px 'Arial', 'Helvetica', sans-serif`;
-      ctx.textAlign = "center";
+      ctx.font = `600 ${barFontSize}px 'Arial', 'Helvetica', sans-serif`;
+      ctx.fillStyle = "#ffffff";
       ctx.textBaseline = "middle";
-      ctx.fillText(contactText, px + pillW / 2, py + pillH / 2);
+      const midY = h - contactBarH / 2;
+      if (brandOptions.phone) {
+        ctx.textAlign = "left";
+        ctx.fillText(brandOptions.phone, pad, midY);
+      }
+      if (brandOptions.website) {
+        const site = brandOptions.website.replace(/^https?:\/\//i, "").replace(/^www\./i, "");
+        ctx.textAlign = "right";
+        ctx.fillText(site, w - pad, midY);
+      }
     }
 
     return canvas.toDataURL("image/jpeg", 0.93);
@@ -239,9 +227,7 @@ export async function applyBrandingPhotoOnly(
 }
 
 // Branding + photo + text overlay.
-// Strict pipeline — every step has a defined zone. Nothing can overlap text.
-// 1. Photo  2. Scrim (bottom 38%, gradient)  3. Left accent bar  4. Headline (all white)
-// 5. Logo  6. Contact pill
+// Pipeline: 1. Photo  2. Scrim (bottom 38%)  3. Headline (white)  4. Logo  5. Contact bar
 export async function applyBrandingWithPhotoAndText(
   imageBase64: string,
   caption: string,
@@ -267,23 +253,39 @@ export async function applyBrandingWithPhotoAndText(
     // ── 1. Photo ──────────────────────────────────────────────────────────────
     ctx.drawImage(img, 0, 0);
 
-    // ── 2. Scrim — bottom 38%, always gradient ────────────────────────────────
+    // ── 2. Scrim — bottom 38%, gradient ──────────────────────────────────────
     const scrimTop = Math.round(h * 0.62);
     const g = ctx.createLinearGradient(0, scrimTop, 0, h);
     g.addColorStop(0,   "rgba(0,0,0,0)");
     g.addColorStop(0.4, "rgba(0,0,0,0.55)");
-    g.addColorStop(1,   "rgba(0,0,0,0.92)");
+    g.addColorStop(1,   "rgba(0,0,0,0.88)");
     ctx.fillStyle = g;
     ctx.fillRect(0, scrimTop, w, h - scrimTop);
 
-    // ── 3. Left accent bar — brand color, full height of scrim zone ───────────
-    // Single clean vertical stripe on the left edge. Always the same.
-    // Never on the perimeter so it won't show as a frame in format conversions.
-    const barW = Math.max(6, Math.round(w * 0.018));
-    ctx.fillStyle = hexToRgba(pc, 0.92);
-    ctx.fillRect(0, scrimTop, barW, h - scrimTop);
+    // ── 3. Contact bar — full-width strip at bottom ───────────────────────────
+    const hasContact = !!(brandOptions.website || brandOptions.phone);
+    const contactBarH = hasContact ? Math.round(h * 0.075) : 0;
+    if (hasContact) {
+      const barFontSize = Math.round(contactBarH * 0.42);
+      ctx.fillStyle = hexToRgba(pc, 0.95);
+      ctx.fillRect(0, h - contactBarH, w, contactBarH);
 
-    // ── 4. Headline — always white, always on top ─────────────────────────────
+      ctx.font = `600 ${barFontSize}px 'Arial', 'Helvetica', sans-serif`;
+      ctx.fillStyle = "#ffffff";
+      ctx.textBaseline = "middle";
+      const midY = h - contactBarH / 2;
+      if (brandOptions.phone) {
+        ctx.textAlign = "left";
+        ctx.fillText(brandOptions.phone, pad, midY);
+      }
+      if (brandOptions.website) {
+        const site = brandOptions.website.replace(/^https?:\/\//i, "").replace(/^www\./i, "");
+        ctx.textAlign = "right";
+        ctx.fillText(site, w - pad, midY);
+      }
+    }
+
+    // ── 4. Headline — white, positioned above contact bar ─────────────────────
     const rawText  = (caption.split(/[.!?\n]/)[0]?.trim() ?? caption).toUpperCase();
     const wordCount = rawText.split(" ").length;
     const fontSize  = wordCount <= 5 ? Math.round(h * 0.082)
@@ -295,7 +297,7 @@ export async function applyBrandingWithPhotoAndText(
     const lines      = wrapTextToLines(ctx, rawText, w - pad * 2, maxLines);
     const lineH      = Math.round(fontSize * 1.12);
     const totalTextH = lines.length * lineH;
-    const textY      = h - Math.round(h * 0.065) - totalTextH;
+    const textY      = h - contactBarH - Math.round(h * 0.04) - totalTextH;
 
     ctx.fillStyle    = "#ffffff";
     ctx.textAlign    = "left";
@@ -304,7 +306,7 @@ export async function applyBrandingWithPhotoAndText(
       ctx.fillText(line, pad, textY + i * lineH);
     });
 
-    // ── 6. Logo — top-left, raw ───────────────────────────────────────────────
+    // ── 5. Logo — top-left, raw ───────────────────────────────────────────────
     if (brandOptions.logoBase64) {
       try {
         const logoImg = await loadImage(brandOptions.logoBase64);
@@ -315,34 +317,6 @@ export async function applyBrandingWithPhotoAndText(
         if (ar > 1) lh = logoSize / ar; else lw = logoSize * ar;
         ctx.drawImage(logoImg, margin, margin, lw, lh);
       } catch { /* skip gracefully */ }
-    }
-
-    // ── 7. Contact pill — top-right ───────────────────────────────────────────
-    const rawContact  = brandOptions.website || brandOptions.phone || "";
-    const contactText = rawContact.replace(/^https?:\/\//i, "").replace(/^www\./i, "");
-    if (contactText) {
-      const pfs  = Math.round(h * 0.022);
-      ctx.font   = `600 ${pfs}px 'Arial', 'Helvetica', sans-serif`;
-      const tw   = ctx.measureText(contactText).width;
-      const ppx  = Math.round(w * 0.026);
-      const ppy  = Math.round(h * 0.011);
-      const pw   = tw + ppx * 2;
-      const ph   = pfs + ppy * 2;
-      const pm   = Math.round(w * 0.038);
-      const px   = w - pw - pm;
-      const py   = pm;
-      const pr   = ph / 2;
-
-      ctx.fillStyle = "rgba(0,0,0,0.52)";
-      drawRoundRect(ctx, px, py, pw, ph, pr); ctx.fill();
-      ctx.strokeStyle = hexToRgba(brandOptions.secondaryColor, 0.4);
-      ctx.lineWidth   = Math.max(1, Math.round(w * 0.0015));
-      drawRoundRect(ctx, px, py, pw, ph, pr); ctx.stroke();
-      ctx.fillStyle   = brandOptions.secondaryColor;
-      ctx.font        = `600 ${pfs}px 'Arial', 'Helvetica', sans-serif`;
-      ctx.textAlign   = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(contactText, px + pw / 2, py + ph / 2);
     }
 
     return canvas.toDataURL("image/jpeg", 0.93);

@@ -14,7 +14,6 @@ import {
   type InstagramFormat,
   applyBrandingWithPhotoAndText,
   applyPhotoWithText,
-  applyPerimeterBorder,
 } from "../lib/photoTreatments";
 
 // Idempotency utilities
@@ -513,11 +512,6 @@ export default function PostPage() {
           phone: resolvedIncludeContact ? activeBrand?.phone || undefined : undefined,
         });
       }
-
-      if (cancelled) return;
-
-      // Step 3: border always last — wraps the full canvas regardless of format
-      result = await applyPerimeterBorder(result, resolvedPrimary);
 
       if (!cancelled) setFormattedImage(result);
     }
