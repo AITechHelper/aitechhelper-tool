@@ -277,7 +277,7 @@ Leave the main photo area clean and realistic.
     };
   }
 
-  // 3) Branded + Text + Photo — professional photo background only (text added via Canvas)
+  // 3) Branded + Text + Photo — AI does graphic design, Canvas adds text
   if (style === "branded_text_photo" || style === "branding_text_photo") {
     return {
       allowText: false,
@@ -285,18 +285,25 @@ Leave the main photo area clean and realistic.
       brandingStrength: "heavy",
       banProducts: true,
       basePrompt: `
-REALISTIC professional photo, full-bleed, edge to edge. This is the background layer only.
-CRITICAL: NO text, NO words, NO letters, NO numbers anywhere in the image. Completely text-free.
-The lower 40% of the photo should be naturally darker or more subdued — shadows, darker tones, or a simpler background — so a text overlay will be readable when placed on top.
-Photo composition: subjects and focal point in the upper 55-60% of the frame. Lower portion intentionally quieter.
-Professional, editorial quality — think premium ad agency photography.
-NO logos. NO graphic design overlays. NO decorative frames. Just the photo.
+REALISTIC photo as the full-bleed background with professional graphic design treatment layered on top.
+CRITICAL: NO text, NO words, NO letters anywhere in the image. Text will be added separately.
+TEXT ZONE RULE: The bottom 40% of the image must have a clear readable surface (semi-transparent brand-color overlay, dark gradient, or solid brand-color panel) — this zone is reserved for text that will be added on top. Keep this zone clean and uncluttered.
+
+GRAPHIC DESIGN: Choose ONE of these varied treatments for the TOP 60% and edges:
+A) Thin primary-color inset border around the entire image + bold accent bar along the top edge + small corner bracket marks in top-right
+B) Thin primary-color inset border + thick left-side stripe in primary color (top half only) + subtle diagonal accent mark top-right corner
+C) Thin primary-color inset border + two short horizontal rule lines in top-left corner + bottom-right corner accent mark
+D) Thin primary-color inset border + top-left corner bracket + bottom-right corner bracket, both in primary color
+
+All design elements go in the TOP portion or edges ONLY — never in the bottom text zone.
+Professional, premium, modern. NOT playful or busy. Think agency-quality ad.
+NO logos. Avoid brand names.
 `,
       layoutHint: `
-Clean professional photo only. No text. No overlays. No design elements.
-Upper portion: main subject, well-lit, sharp.
-Lower portion: naturally darker tones or open space for text placement.
-Shot with depth of field, professional lighting. Cinematic quality.
+Full-bleed photo. Bottom 40%: clear overlay/panel for Canvas text placement.
+Top 60% + edges: one of the graphic element variants above.
+Thin primary-color inset border always present.
+Vary the graphic element treatment each generation.
 `,
     };
   }
