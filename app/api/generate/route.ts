@@ -277,7 +277,7 @@ Leave the main photo area clean and realistic.
     };
   }
 
-  // 3) Branded + Text + Photo — HEAVY graphic design elements with text
+  // 3) Branded + Text + Photo — clean professional design with text
   if (style === "branded_text_photo" || style === "branding_text_photo") {
     return {
       allowText: true,
@@ -285,21 +285,23 @@ Leave the main photo area clean and realistic.
       brandingStrength: "heavy",
       banProducts: true,
       basePrompt: `
-REALISTIC photo as the base layer with HEAVY graphic design treatment.
-CRITICAL: This style requires MAXIMUM graphic design elements:
-- Bold frames, shapes, borders, and geometric overlays in brand colors
-- Gradients, color blocks, and design accents throughout
-- The design should look like a professional social media template
-Brand colors MUST dominate the visual design.
-Typography is EXPECTED: clean, modern, high-contrast headline text.
-The photo is a backdrop; the graphic design and text are the stars.
+REALISTIC photo as the base layer with clean, professional graphic design treatment.
+CRITICAL: This style should feel polished and corporate — NOT playful, NOT busy.
+Design language:
+- Clean color blocks or semi-transparent overlays in brand colors (not geometric shapes or decorative frames)
+- Subtle thin rule lines or minimal dividers as accents only
+- No corner triangles, no bold border frames, no starburst or geometric decorations
+- The layout should look like a premium agency or financial brand social post
+Typography is EXPECTED: bold, clean headline text with strong hierarchy.
+Brand colors used purposefully — as a background panel or accent bar, not covering the photo.
+The photo should remain clearly visible and prominent.
 NO logos. Avoid brand names. Avoid packaging and labels.
 `,
       layoutHint: `
-Think premium Instagram template with bold design elements.
-Use geometric shapes, frames, and overlays extensively.
-Headline + subhead style layout with strong visual hierarchy.
-Brand colors should be impossible to miss.
+Think clean corporate LinkedIn/Instagram ad — structured, minimal, confident.
+Use a solid color panel or gradient bar for text placement (bottom third or side panel).
+Headline large and readable. Subhead smaller. Generous white space.
+No decorative shapes. No busy patterns. Restraint is the aesthetic.
 `,
     };
   }

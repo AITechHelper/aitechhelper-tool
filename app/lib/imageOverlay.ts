@@ -104,15 +104,15 @@ export async function applyBrandOverlay(
       }
     }
 
-    // — Logo badge (bottom-right corner) —
+    // — Logo badge (top-left corner, avoids covering text in designed templates) —
     if (hasLogo) {
       try {
         const logoImg = await loadImage(logoBase64!);
 
-        const badgeSize = Math.round(w * 0.16);
+        const badgeSize = Math.round(w * 0.14);
         const margin = Math.round(w * 0.028);
-        const bx = w - badgeSize - margin;
-        const by = h - badgeSize - margin - contactStripH;
+        const bx = margin;
+        const by = margin;
         const radius = Math.round(badgeSize * 0.12);
 
         // Badge background
