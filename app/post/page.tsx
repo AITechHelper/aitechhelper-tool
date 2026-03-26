@@ -9,7 +9,12 @@ import { useToast } from "../_components/ToastProvider";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
 import { useInstagram } from "../lib/useInstagram";
 import { useFacebook } from "../lib/useFacebook";
-import { convertToInstagramFormat, type InstagramFormat } from "../lib/photoTreatments";
+import {
+  convertToInstagramFormat,
+  type InstagramFormat,
+  applyBrandingWithPhotoAndText,
+  applyPhotoWithText,
+} from "../lib/photoTreatments";
 
 // Idempotency utilities
 function createRequestId(payload: any): string {
@@ -582,24 +587,68 @@ export default function PostPage() {
         throw new Error("API returned an unexpected response shape.");
       }
 
-      // Apply brand logo / contact overlay if the active profile has branding set
+      // Apply text + brand overlay based on image style
       if (result.imageBase64) {
         try {
           const activeBrandRaw = localStorage.getItem("ath_active_brand_profile");
-          if (activeBrandRaw) {
-            const brand = JSON.parse(activeBrandRaw);
-            if (brand.logoBase64 || brand.website || brand.phone) {
-              const includeContact = CONTACT_POST_TYPES.has(form.postType);
-              const overlaid = await applyBrandOverlay(result.imageBase64, {
+          const brand = activeBrandRaw ? JSON.parse(activeBrandRaw) : null;
+          const primaryColor = brand?.primaryColor || form.primaryColor || "#000000";
+          const secondaryColor = brand?.secondaryColor || form.secondaryColor || "#ffffff";
+          const includeContact = CONTACT_POST_TYPES.has(form.postType);
+
+          const isBrandingText =
+            form.imageStyle === "branding_text_photo" ||
+            form.imageStyle === "branded_text_photo";
+          const isLifestyleText = form.imageStyle === "lifestyle_photo_text";
+
+          if (isBrandingText) {
+            // Canvas renders text + scrim + border + logo — no separate brand overlay needed
+            result = {
+              ...result,
+              imageBase64: await applyBrandingWithPhotoAndText(
+                result.imageBase64,
+                result.caption,
+                {
+                  primaryColor,
+                  secondaryColor,
+                  logoBase64: brand?.logoBase64 || undefined,
+                  website: includeContact ? brand?.website || undefined : undefined,
+                  phone: includeContact ? brand?.phone || undefined : undefined,
+                }
+              ),
+            };
+          } else if (isLifestyleText) {
+            // Canvas adds text scrim — then brand overlay adds logo on top
+            result = {
+              ...result,
+              imageBase64: await applyPhotoWithText(result.imageBase64, result.caption),
+            };
+            if (brand?.logoBase64 || brand?.website || brand?.phone) {
+              result = {
+                ...result,
+                imageBase64: await applyBrandOverlay(result.imageBase64, {
+                  logoBase64: brand.logoBase64 || undefined,
+                  primaryColor,
+                  secondaryColor,
+                  website: brand.website || undefined,
+                  phone: brand.phone || undefined,
+                  includeContact,
+                }),
+              };
+            }
+          } else if (brand?.logoBase64 || brand?.website || brand?.phone) {
+            // All other styles: just apply brand logo/contact overlay
+            result = {
+              ...result,
+              imageBase64: await applyBrandOverlay(result.imageBase64, {
                 logoBase64: brand.logoBase64 || undefined,
-                primaryColor: brand.primaryColor || "#000000",
-                secondaryColor: brand.secondaryColor || "#ffffff",
+                primaryColor,
+                secondaryColor,
                 website: brand.website || undefined,
                 phone: brand.phone || undefined,
                 includeContact,
-              });
-              result = { ...result, imageBase64: overlaid };
-            }
+              }),
+            };
           }
         } catch {
           // Overlay failed — use original image

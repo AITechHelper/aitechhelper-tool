@@ -337,6 +337,18 @@ export async function applyBrandingWithPhotoAndText(
       });
     }
 
+    // ── Thin inset border — brand accent ──────────────────────────────────────
+    const borderW = Math.max(3, Math.round(w * 0.006));
+    const borderInset = Math.round(w * 0.018);
+    ctx.strokeStyle = hexToRgba(brandOptions.primaryColor, 0.72);
+    ctx.lineWidth = borderW;
+    ctx.strokeRect(
+      borderInset + borderW / 2,
+      borderInset + borderW / 2,
+      w - (borderInset + borderW / 2) * 2,
+      h - (borderInset + borderW / 2) * 2
+    );
+
     // ── Circular logo badge — top-left ────────────────────────────────────────
     if (brandOptions.logoBase64) {
       try {

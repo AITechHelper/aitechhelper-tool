@@ -222,26 +222,26 @@ Keep branding minimal: tiny accent colors only (if any).
     };
   }
 
-  // 1b) Natural Lifestyle + Text — lifestyle photo with bold headline overlay
+  // 1b) Natural Lifestyle + Text — lifestyle photo, text added via Canvas
   if (style === "lifestyle_photo_text") {
     return {
-      allowText: true,
+      allowText: false,
       photoRequired: true,
       brandingStrength: "light",
       banProducts: true,
       basePrompt: `
-REALISTIC lifestyle photography as the base.
+REALISTIC lifestyle photography. Clean background layer only — NO text anywhere.
 Authentic candid moment or environment scene.
 Fits the niche through context (setting / activity), NOT products.
 Natural lighting, shallow depth of field, high-end commercial photo.
 Looks organic and unposed (not stock-photo cheesy).
-Include a BOLD HEADLINE TEXT overlay in white or high-contrast color in the lower portion of the image.
-NO logos. NO packaging. NO brand names. NO product labels.
+CRITICAL: NO text, NO words, NO letters anywhere in the image.
+Lower portion of the photo should be naturally darker or open so text can be overlaid on top.
+NO logos. NO packaging. NO brand names.
 `,
       layoutHint: `
-Lifestyle framing with bold text treatment in lower third.
-Text should be clean, uppercase, and high-contrast against the photo.
-Keep the photo natural; the text headline is the accent.
+Lifestyle framing. No text at all. Clean photo only.
+Subjects in upper 55-60% of frame. Lower area darker/quieter for text placement.
 `,
     };
   }
@@ -277,37 +277,26 @@ Leave the main photo area clean and realistic.
     };
   }
 
-  // 3) Branded + Text + Photo — professional design with text
+  // 3) Branded + Text + Photo — professional photo background only (text added via Canvas)
   if (style === "branded_text_photo" || style === "branding_text_photo") {
     return {
-      allowText: true,
+      allowText: false,
       photoRequired: true,
       brandingStrength: "heavy",
       banProducts: true,
       basePrompt: `
-REALISTIC photo as the base layer with professional graphic design treatment.
-CRITICAL TEXT RULE: ALL text must be 100% fully visible and never cut off — keep all text within the inner 90% of the canvas with clear padding from every edge.
-Design language:
-- Semi-transparent dark or brand-color overlay region placed over the LOWER HALF of the photo (not a separate block below it) — the photo bleeds through the overlay
-- Bold, clean headline text over the overlay area — large but sized to fit entirely within the frame
-- A thin colored rule line or accent bar above the headline as a design element
-- Subtle brand color accents (thin borders, corner marks, or a side bar) — clean and minimal
-- The photo occupies the FULL image canvas; graphic elements layer ON TOP of it
-- Professional, modern look — think premium ad agency, not playful social template
-Typography: bold headline + smaller subhead. Strong hierarchy. Text must not crowd the edges.
-NO logos. NO corner triangles or bold geometric shapes. NO separate colored block below the image.
+REALISTIC professional photo, full-bleed, edge to edge. This is the background layer only.
+CRITICAL: NO text, NO words, NO letters, NO numbers anywhere in the image. Completely text-free.
+The lower 40% of the photo should be naturally darker or more subdued — shadows, darker tones, or a simpler background — so a text overlay will be readable when placed on top.
+Photo composition: subjects and focal point in the upper 55-60% of the frame. Lower portion intentionally quieter.
+Professional, editorial quality — think premium ad agency photography.
+NO logos. NO graphic design overlays. NO decorative frames. Just the photo.
 `,
       layoutHint: `
-Photo fills the entire canvas edge to edge.
-Semi-transparent overlay covers the bottom 35-45% of the photo for text readability.
-ALL text sits comfortably inside this overlay with at least 5% padding from left/right edges.
-Headline font large, subhead smaller — both fully visible, never clipped.
-One thin horizontal accent line above the headline in brand color.
-MINIMAL GRAPHIC DESIGN ACCENT (pick one):
-- A thin brand-color border running along the inside edge of the entire image (2-4px inset frame), OR
-- A small L-shaped corner bracket accent in one corner (top-left or bottom-right) in brand color, OR
-- A short vertical brand-color bar on the left edge as a side accent stripe.
-Keep it subtle — one small element only. It should feel intentional, not decorative.
+Clean professional photo only. No text. No overlays. No design elements.
+Upper portion: main subject, well-lit, sharp.
+Lower portion: naturally darker tones or open space for text placement.
+Shot with depth of field, professional lighting. Cinematic quality.
 `,
     };
   }
