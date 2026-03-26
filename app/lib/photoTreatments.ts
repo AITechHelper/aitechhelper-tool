@@ -236,9 +236,10 @@ export async function applyBrandingPhotoOnly(
   }
 }
 
-// Treatment 3: Branding + photo + editorial overlay.
-// Layout: deep gradient scrim, large two-tone headline (white + brand accent),
-// accent rule, circular logo badge top-left, website pill top-right.
+// Branding + photo + text overlay.
+// Strict pipeline — every step has a defined zone. Nothing can overlap text.
+// 1. Photo  2. Border (perimeter)  3. Scrim (bottom 38%)
+// 4. Accent rule  5. Headline  6. Logo  7. Contact pill
 export async function applyBrandingWithPhotoAndText(
   imageBase64: string,
   caption: string,
@@ -256,170 +257,136 @@ export async function applyBrandingWithPhotoAndText(
     canvas.width = img.width;
     canvas.height = img.height;
     const ctx = canvas.getContext("2d")!;
-    ctx.drawImage(img, 0, 0);
-
     const w = canvas.width;
     const h = canvas.height;
     const pad = Math.round(w * 0.055);
+    const pc  = brandOptions.primaryColor;
 
-    // ── Step 1: Graphic elements drawn FIRST so text always sits on top ────────
-    const pc = brandOptions.primaryColor;
-    const inset = Math.round(w * 0.022);
-    const thin  = Math.max(3,  Math.round(w * 0.004));
-    const thick = Math.max(8,  Math.round(w * 0.013));
-    const xtra  = Math.max(14, Math.round(w * 0.024));
-    const bLen  = Math.round(w * 0.17);
+    // ── 1. Photo ──────────────────────────────────────────────────────────────
+    ctx.drawImage(img, 0, 0);
 
-    const drawCorners = (insetAmt: number, lw: number, opacity = 0.9) => {
-      ctx.fillStyle = hexToRgba(pc, opacity);
-      const i = insetAmt, l = bLen, t = lw;
-      ctx.fillRect(i, i, l, t); ctx.fillRect(i, i, t, l);
-      ctx.fillRect(w - i - l, i, l, t); ctx.fillRect(w - i - t, i, t, l);
-      ctx.fillRect(i, h - i - t, l, t); ctx.fillRect(i, h - i - l, t, l);
-      ctx.fillRect(w - i - l, h - i - t, l, t); ctx.fillRect(w - i - t, h - i - l, t, l);
-    };
+    // ── 2. Border — perimeter only, 3 options ─────────────────────────────────
+    const inset = Math.round(w * 0.018);
+    const thin  = Math.max(3, Math.round(w * 0.004));
+    const thick = Math.max(8, Math.round(w * 0.012));
+    const bLen  = Math.round(w * 0.16);
 
-    const treatment = Math.floor(Math.random() * 6);
-    switch (treatment) {
-      case 0: // thin full inset border
-        ctx.strokeStyle = hexToRgba(pc, 0.85); ctx.lineWidth = thin;
-        ctx.strokeRect(inset, inset, w - inset * 2, h - inset * 2);
-        break;
-      case 1: // thick full border
-        ctx.strokeStyle = hexToRgba(pc, 0.9); ctx.lineWidth = thick;
-        ctx.strokeRect(thick / 2, thick / 2, w - thick, h - thick);
-        break;
-      case 2: // extra-thick top bar + thin bottom bar
-        ctx.fillStyle = hexToRgba(pc, 0.92);
-        ctx.fillRect(0, 0, w, xtra);
-        ctx.fillRect(0, h - thin, w, thin);
-        break;
-      case 3: // corner L-brackets only
-        drawCorners(inset, thick);
-        break;
-      case 4: // top + bottom thick bars only
-        ctx.fillStyle = hexToRgba(pc, 0.92);
-        ctx.fillRect(0, 0, w, thick);
-        ctx.fillRect(0, h - thick, w, thick);
-        break;
-      case 5: // corner brackets + thin border combined
-        ctx.strokeStyle = hexToRgba(pc, 0.55); ctx.lineWidth = thin;
-        ctx.strokeRect(inset, inset, w - inset * 2, h - inset * 2);
-        drawCorners(inset, thick, 0.95);
-        break;
-    }
-
-    // ── Step 2: Text scrim + headline drawn ON TOP of graphic elements ─────────
-    // Text always left-aligned, bottom area — safe with every border treatment above
-    const rawText = (caption.split(/[.!?\n]/)[0]?.trim() ?? caption).toUpperCase();
-    const wordCount = rawText.split(" ").length;
-    const fontSize = wordCount <= 5
-      ? Math.round(h * 0.082)
-      : wordCount <= 8
-      ? Math.round(h * 0.068)
-      : Math.round(h * 0.054);
-    const maxLines = wordCount <= 5 ? 2 : 3;
-
-    // 3 safe scrim variations — all bottom-anchored, all left-aligned
-    const scrimLayout = Math.floor(Math.random() * 3);
-    ctx.font = `900 ${fontSize}px 'Impact', 'Arial Black', 'Arial', sans-serif`;
-    const lines = wrapTextToLines(ctx, rawText, w - pad * 2, maxLines);
-    const lineH  = Math.round(fontSize * 1.12);
-    const totalTextH = lines.length * lineH;
-    const ruleH  = Math.max(3, Math.round(h * 0.004));
-    const ruleW  = Math.round(w * 0.13);
-
-    if (scrimLayout === 0) {
-      // Standard bottom gradient
-      const sy = Math.round(h * 0.38);
-      const g = ctx.createLinearGradient(0, sy, 0, h);
-      g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(0.4, "rgba(0,0,0,0.52)"); g.addColorStop(1, "rgba(0,0,0,0.92)");
-      ctx.fillStyle = g; ctx.fillRect(0, sy, w, h - sy);
-    } else if (scrimLayout === 1) {
-      // Solid brand-color panel bottom 36%
-      ctx.fillStyle = hexToRgba(pc, 0.88);
-      ctx.fillRect(0, h - Math.round(h * 0.36), w, Math.round(h * 0.36));
+    const borderChoice = Math.floor(Math.random() * 3);
+    if (borderChoice === 0) {
+      // Thin inset border
+      ctx.strokeStyle = hexToRgba(pc, 0.85);
+      ctx.lineWidth = thin;
+      ctx.strokeRect(inset + thin / 2, inset + thin / 2, w - inset * 2 - thin, h - inset * 2 - thin);
+    } else if (borderChoice === 1) {
+      // Thick border
+      ctx.strokeStyle = hexToRgba(pc, 0.9);
+      ctx.lineWidth = thick;
+      ctx.strokeRect(thick / 2, thick / 2, w - thick, h - thick);
     } else {
-      // Deeper gradient starting higher
-      const sy = Math.round(h * 0.48);
-      const g = ctx.createLinearGradient(0, sy, 0, h);
-      g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(0.45, "rgba(0,0,0,0.58)"); g.addColorStop(1, "rgba(0,0,0,0.95)");
-      ctx.fillStyle = g; ctx.fillRect(0, sy, w, h - sy);
+      // Corner L-brackets
+      ctx.fillStyle = hexToRgba(pc, 0.92);
+      const i = inset, l = bLen, t = thick;
+      ctx.fillRect(i, i, l, t);         ctx.fillRect(i, i, t, l);
+      ctx.fillRect(w-i-l, i, l, t);     ctx.fillRect(w-i-t, i, t, l);
+      ctx.fillRect(i, h-i-t, l, t);     ctx.fillRect(i, h-i-l, t, l);
+      ctx.fillRect(w-i-l, h-i-t, l, t); ctx.fillRect(w-i-t, h-i-l, t, l);
     }
 
-    const textY = h - Math.round(h * 0.065) - totalTextH;
-    // Accent rule above headline
-    ctx.fillStyle = scrimLayout === 1 ? "#ffffff" : pc;
-    ctx.fillRect(pad, textY - Math.round(h * 0.026), ruleW, ruleH);
+    // ── 3. Scrim — bottom 38% only, 2 options ─────────────────────────────────
+    const scrimTop = Math.round(h * 0.62);
+    const scrimChoice = Math.floor(Math.random() * 2);
+    if (scrimChoice === 0) {
+      // Gradient fade
+      const g = ctx.createLinearGradient(0, scrimTop, 0, h);
+      g.addColorStop(0,   "rgba(0,0,0,0)");
+      g.addColorStop(0.4, "rgba(0,0,0,0.55)");
+      g.addColorStop(1,   "rgba(0,0,0,0.92)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, scrimTop, w, h - scrimTop);
+    } else {
+      // Solid dark panel
+      ctx.fillStyle = "rgba(0,0,0,0.76)";
+      ctx.fillRect(0, scrimTop, w, h - scrimTop);
+    }
 
-    // Headline — line 1 white, line 2 brand accent (or two-tone on single line)
-    ctx.textAlign = "left"; ctx.textBaseline = "top";
+    // ── 4. Accent rule + 5. Headline — always drawn last, always on top ───────
+    const rawText  = (caption.split(/[.!?\n]/)[0]?.trim() ?? caption).toUpperCase();
+    const wordCount = rawText.split(" ").length;
+    const fontSize  = wordCount <= 5 ? Math.round(h * 0.082)
+                    : wordCount <= 8 ? Math.round(h * 0.068)
+                    :                  Math.round(h * 0.054);
+    const maxLines  = wordCount <= 5 ? 2 : 3;
+
+    ctx.font = `900 ${fontSize}px 'Impact', 'Arial Black', 'Arial', sans-serif`;
+    const lines      = wrapTextToLines(ctx, rawText, w - pad * 2, maxLines);
+    const lineH      = Math.round(fontSize * 1.12);
+    const totalTextH = lines.length * lineH;
+    const textY      = h - Math.round(h * 0.065) - totalTextH;
+
+    // Accent rule
+    ctx.fillStyle = pc;
+    ctx.fillRect(pad, textY - Math.round(h * 0.026), Math.round(w * 0.13), Math.max(3, Math.round(h * 0.004)));
+
+    // Headline — line 1 white, line 2 brand primary
+    ctx.textAlign   = "left";
+    ctx.textBaseline = "top";
     if (lines.length === 1) {
-      const words = lines[0].split(" ");
+      const words   = lines[0].split(" ");
       const splitAt = Math.max(1, Math.ceil(words.length * 0.6));
-      const part1 = words.slice(0, splitAt).join(" ");
-      const part2 = words.slice(splitAt).join(" ");
-      ctx.fillStyle = "#ffffff"; ctx.fillText(part1, pad, textY);
+      const part1   = words.slice(0, splitAt).join(" ");
+      const part2   = words.slice(splitAt).join(" ");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(part1, pad, textY);
       if (part2) {
-        ctx.fillStyle = scrimLayout === 1 ? "#ffffff" : pc;
+        ctx.fillStyle = pc;
         ctx.fillText(part2, pad + ctx.measureText(part1 + " ").width, textY);
       }
     } else {
       lines.forEach((line, i) => {
-        ctx.fillStyle = i === 0 ? "#ffffff" : (scrimLayout === 1 ? "#ffffff" : pc);
+        ctx.fillStyle = i === 0 ? "#ffffff" : pc;
         ctx.fillText(line, pad, textY + i * lineH);
       });
     }
 
-    // ── Raw logo — top-left, no background or clip ────────────────────────────
+    // ── 6. Logo — top-left, raw ───────────────────────────────────────────────
     if (brandOptions.logoBase64) {
       try {
         const logoImg = await loadImage(brandOptions.logoBase64);
         const logoSize = Math.round(w * 0.13);
-        const margin = Math.round(w * 0.038);
+        const margin   = Math.round(w * 0.038);
         const ar = logoImg.width / logoImg.height;
         let lw = logoSize, lh = logoSize;
-        if (ar > 1) lh = logoSize / ar;
-        else lw = logoSize * ar;
+        if (ar > 1) lh = logoSize / ar; else lw = logoSize * ar;
         ctx.drawImage(logoImg, margin, margin, lw, lh);
-      } catch {
-        // Logo load failed — skip gracefully
-      }
+      } catch { /* skip gracefully */ }
     }
 
-    // ── Website / phone pill — top-right ──────────────────────────────────────
-    const rawContact = brandOptions.website || brandOptions.phone || "";
+    // ── 7. Contact pill — top-right ───────────────────────────────────────────
+    const rawContact  = brandOptions.website || brandOptions.phone || "";
     const contactText = rawContact.replace(/^https?:\/\//i, "").replace(/^www\./i, "");
     if (contactText) {
-      const pillFontSize = Math.round(h * 0.022);
-      ctx.font = `600 ${pillFontSize}px 'Arial', 'Helvetica', sans-serif`;
-      const tw = ctx.measureText(contactText).width;
-      const pillPadX = Math.round(w * 0.026);
-      const pillPadY = Math.round(h * 0.011);
-      const pillW = tw + pillPadX * 2;
-      const pillH = pillFontSize + pillPadY * 2;
-      const pillMargin = Math.round(w * 0.038);
-      const px = w - pillW - pillMargin;
-      const py = pillMargin;
-      const pillR = pillH / 2;
+      const pfs  = Math.round(h * 0.022);
+      ctx.font   = `600 ${pfs}px 'Arial', 'Helvetica', sans-serif`;
+      const tw   = ctx.measureText(contactText).width;
+      const ppx  = Math.round(w * 0.026);
+      const ppy  = Math.round(h * 0.011);
+      const pw   = tw + ppx * 2;
+      const ph   = pfs + ppy * 2;
+      const pm   = Math.round(w * 0.038);
+      const px   = w - pw - pm;
+      const py   = pm;
+      const pr   = ph / 2;
 
-      // Semi-transparent dark pill background
       ctx.fillStyle = "rgba(0,0,0,0.52)";
-      drawRoundRect(ctx, px, py, pillW, pillH, pillR);
-      ctx.fill();
-
-      // Pill border — brand secondary subtle
+      drawRoundRect(ctx, px, py, pw, ph, pr); ctx.fill();
       ctx.strokeStyle = hexToRgba(brandOptions.secondaryColor, 0.4);
-      ctx.lineWidth = Math.max(1, Math.round(w * 0.0015));
-      drawRoundRect(ctx, px, py, pillW, pillH, pillR);
-      ctx.stroke();
-
-      // Pill text — brand secondary color
-      ctx.fillStyle = brandOptions.secondaryColor;
-      ctx.font = `600 ${pillFontSize}px 'Arial', 'Helvetica', sans-serif`;
-      ctx.textAlign = "center";
+      ctx.lineWidth   = Math.max(1, Math.round(w * 0.0015));
+      drawRoundRect(ctx, px, py, pw, ph, pr); ctx.stroke();
+      ctx.fillStyle   = brandOptions.secondaryColor;
+      ctx.font        = `600 ${pfs}px 'Arial', 'Helvetica', sans-serif`;
+      ctx.textAlign   = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(contactText, px + pillW / 2, py + pillH / 2);
+      ctx.fillText(contactText, px + pw / 2, py + ph / 2);
     }
 
     return canvas.toDataURL("image/jpeg", 0.93);
