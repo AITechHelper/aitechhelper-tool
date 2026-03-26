@@ -1030,15 +1030,16 @@ ${imageDescription ? `\nIMAGE SCENE DIRECTION — when generating scene_plan, ba
           ? "Use brand colors ONLY as tiny subtle accents (very minimal)."
           : "Use brand colors heavily via shapes/frames/blocks/overlays; premium design.";
 
-    const brandColorsRule =
-      primaryColor || secondaryColor
+    const brandColorsRule = styleSpec.naturalPhotoColors
+      // Natural photo styles: send NO color values to the image prompt — brand colors
+      // are applied by Canvas only. Sending hex values risks AI using them in the scene.
+      ? "CRITICAL PHOTO COLOR RULE: The photo/scene must look completely natural and realistic. People must wear normal neutral business clothing — navy, grey, black, white, beige. Walls and environments must be neutral — white, grey, beige, wood tones. No brand colors, no tinted walls, no colored clothing, no colored props. This is a clean editorial photo only."
+      : primaryColor || secondaryColor
         ? [
             brandingRule,
             primaryColor ? `Primary color: ${primaryColor}.` : "",
             secondaryColor ? `Secondary color: ${secondaryColor}.` : "",
-            styleSpec.naturalPhotoColors
-              ? "CRITICAL PHOTO COLOR RULE: The photo/scene must look completely natural and realistic. People must wear normal neutral business clothing — navy, grey, black, white, beige. Walls and environments must be neutral — white, grey, beige, wood tones. Brand colors must NOT appear anywhere in the photo scene — not on clothing, not on walls, not in the background. Brand colors are ONLY used in the graphic design overlay elements added separately."
-              : styleSpec.brandingStrength === "heavy"
+            styleSpec.brandingStrength === "heavy"
               ? "Keep other colors neutral."
               : "Do not let colors overpower the realism.",
           ]
