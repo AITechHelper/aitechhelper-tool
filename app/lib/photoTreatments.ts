@@ -470,15 +470,15 @@ export async function convertToInstagramFormat(
   canvas.height = canvasH;
   const ctx = canvas.getContext("2d")!;
 
-  // Blurred background — draw only the top 60% of the source image as the fill
-  // so any Canvas text baked into the bottom never shows in the blur bars
+  // Blurred background (cover fill) — source is always the clean raw photo
+  // (format conversion is called before Canvas text overlay in page.tsx)
   const bgScale = Math.max(canvasW / srcW, canvasH / srcH);
   const bgW = srcW * bgScale;
   const bgH = srcH * bgScale;
   const bgX = (canvasW - bgW) / 2;
   const bgY = (canvasH - bgH) / 2;
-  ctx.filter = "blur(36px) brightness(0.5)";
-  ctx.drawImage(img, 0, 0, srcW, srcH * 0.6, bgX, bgY, bgW, bgH * 0.6);
+  ctx.filter = "blur(28px) brightness(0.55)";
+  ctx.drawImage(img, bgX, bgY, bgW, bgH);
   ctx.filter = "none";
 
   // Original image centered (contain fit)

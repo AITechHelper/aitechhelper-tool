@@ -166,6 +166,7 @@ type PostResult = {
   why?: string;
   imageHeadline?: string;
   imageBase64: string;
+  rawImageBase64?: string; // pre-Canvas image used as clean source for format conversion
   imagePrompt?: string;
 };
 
@@ -473,16 +474,38 @@ export default function PostPage() {
     return () => clearInterval(interval);
   }, [isLoading]);
 
-  // Convert image to selected format whenever image or format changes
+  // Convert image to selected format whenever image or format changes.
+  // For branding_text_photo: format the raw clean photo first, then apply Canvas text on top.
+  // This ensures the blur fill bars never contain baked-in text.
   useEffect(() => {
     if (!post?.imageBase64) { setFormattedImage(null); return; }
     if (selectedFormat === "square") { setFormattedImage(post.imageBase64); return; }
+
     let cancelled = false;
-    convertToInstagramFormat(post.imageBase64, selectedFormat).then((result) => {
-      if (!cancelled) setFormattedImage(result);
+    const sourceImage = post.rawImageBase64 ?? post.imageBase64;
+    const isBrandingText =
+      form.imageStyle === "branding_text_photo" ||
+      form.imageStyle === "branded_text_photo";
+
+    convertToInstagramFormat(sourceImage, selectedFormat).then(async (formatted) => {
+      if (cancelled) return;
+      if (isBrandingText && post.rawImageBase64) {
+        // Re-apply Canvas text overlay on the freshly formatted clean image
+        const headlineText = post.imageHeadline || post.caption;
+        const withText = await applyBrandingWithPhotoAndText(formatted, headlineText, {
+          primaryColor,
+          secondaryColor,
+          logoBase64: brand?.logoBase64 || undefined,
+          website: includeContact ? brand?.website || undefined : undefined,
+          phone: includeContact ? brand?.phone || undefined : undefined,
+        });
+        if (!cancelled) setFormattedImage(withText);
+      } else {
+        if (!cancelled) setFormattedImage(formatted);
+      }
     });
     return () => { cancelled = true; };
-  }, [post?.imageBase64, selectedFormat]);
+  }, [post?.imageBase64, post?.rawImageBase64, selectedFormat]);
 
   const activeImage = formattedImage ?? post?.imageBase64 ?? null;
 
@@ -603,12 +626,14 @@ export default function PostPage() {
           const isLifestyleText = form.imageStyle === "lifestyle_photo_text";
 
           if (isBrandingText) {
-            // Canvas renders text + scrim + border + logo — no separate brand overlay needed
+            // Store raw image before Canvas overlay so format conversion uses clean photo
+            const rawImage = result.imageBase64;
             const headlineText = result.imageHeadline || result.caption;
             result = {
               ...result,
+              rawImageBase64: rawImage,
               imageBase64: await applyBrandingWithPhotoAndText(
-                result.imageBase64,
+                rawImage,
                 headlineText,
                 {
                   primaryColor,
