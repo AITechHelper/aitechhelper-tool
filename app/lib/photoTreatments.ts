@@ -240,7 +240,8 @@ export async function applyBrandingPhotoOnly(
 
 // Branding + photo + text overlay.
 // Strict pipeline — every step has a defined zone. Nothing can overlap text.
-// 1. Photo  2. Scrim (bottom 38%)  3. Accent rule  4. Headline  5. Logo  6. Contact pill
+// 1. Photo  2. Scrim (bottom 38%, gradient)  3. Left accent bar  4. Headline (all white)
+// 5. Logo  6. Contact pill
 export async function applyBrandingWithPhotoAndText(
   imageBase64: string,
   caption: string,
@@ -266,24 +267,23 @@ export async function applyBrandingWithPhotoAndText(
     // ── 1. Photo ──────────────────────────────────────────────────────────────
     ctx.drawImage(img, 0, 0);
 
-    // ── 3. Scrim — bottom 38% only, 2 options ─────────────────────────────────
+    // ── 2. Scrim — bottom 38%, always gradient ────────────────────────────────
     const scrimTop = Math.round(h * 0.62);
-    const scrimChoice = Math.floor(Math.random() * 2);
-    if (scrimChoice === 0) {
-      // Gradient fade
-      const g = ctx.createLinearGradient(0, scrimTop, 0, h);
-      g.addColorStop(0,   "rgba(0,0,0,0)");
-      g.addColorStop(0.4, "rgba(0,0,0,0.55)");
-      g.addColorStop(1,   "rgba(0,0,0,0.92)");
-      ctx.fillStyle = g;
-      ctx.fillRect(0, scrimTop, w, h - scrimTop);
-    } else {
-      // Solid dark panel
-      ctx.fillStyle = "rgba(0,0,0,0.76)";
-      ctx.fillRect(0, scrimTop, w, h - scrimTop);
-    }
+    const g = ctx.createLinearGradient(0, scrimTop, 0, h);
+    g.addColorStop(0,   "rgba(0,0,0,0)");
+    g.addColorStop(0.4, "rgba(0,0,0,0.55)");
+    g.addColorStop(1,   "rgba(0,0,0,0.92)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, scrimTop, w, h - scrimTop);
 
-    // ── 4. Accent rule + 5. Headline — always drawn last, always on top ───────
+    // ── 3. Left accent bar — brand color, full height of scrim zone ───────────
+    // Single clean vertical stripe on the left edge. Always the same.
+    // Never on the perimeter so it won't show as a frame in format conversions.
+    const barW = Math.max(6, Math.round(w * 0.018));
+    ctx.fillStyle = hexToRgba(pc, 0.92);
+    ctx.fillRect(0, scrimTop, barW, h - scrimTop);
+
+    // ── 4. Headline — always white, always on top ─────────────────────────────
     const rawText  = (caption.split(/[.!?\n]/)[0]?.trim() ?? caption).toUpperCase();
     const wordCount = rawText.split(" ").length;
     const fontSize  = wordCount <= 5 ? Math.round(h * 0.082)
@@ -297,30 +297,12 @@ export async function applyBrandingWithPhotoAndText(
     const totalTextH = lines.length * lineH;
     const textY      = h - Math.round(h * 0.065) - totalTextH;
 
-    // Accent rule
-    ctx.fillStyle = pc;
-    ctx.fillRect(pad, textY - Math.round(h * 0.026), Math.round(w * 0.13), Math.max(3, Math.round(h * 0.004)));
-
-    // Headline — line 1 white, line 2 brand primary
-    ctx.textAlign   = "left";
+    ctx.fillStyle    = "#ffffff";
+    ctx.textAlign    = "left";
     ctx.textBaseline = "top";
-    if (lines.length === 1) {
-      const words   = lines[0].split(" ");
-      const splitAt = Math.max(1, Math.ceil(words.length * 0.6));
-      const part1   = words.slice(0, splitAt).join(" ");
-      const part2   = words.slice(splitAt).join(" ");
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText(part1, pad, textY);
-      if (part2) {
-        ctx.fillStyle = pc;
-        ctx.fillText(part2, pad + ctx.measureText(part1 + " ").width, textY);
-      }
-    } else {
-      lines.forEach((line, i) => {
-        ctx.fillStyle = i === 0 ? "#ffffff" : pc;
-        ctx.fillText(line, pad, textY + i * lineH);
-      });
-    }
+    lines.forEach((line, i) => {
+      ctx.fillText(line, pad, textY + i * lineH);
+    });
 
     // ── 6. Logo — top-left, raw ───────────────────────────────────────────────
     if (brandOptions.logoBase64) {
