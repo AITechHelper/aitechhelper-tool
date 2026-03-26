@@ -1127,6 +1127,27 @@ ${imageDescription ? `\nIMAGE SCENE DIRECTION — when generating scene_plan, ba
       return { b64, usedPrompt: prompt };
     }
 
+    // Graphic Design style: skip AI image generation entirely.
+    // The client generates the canvas-based graphic using brand colors.
+    if (!styleSpec.photoRequired) {
+      const result = {
+        caption,
+        hashtags,
+        why: "",
+        imageHeadline,
+        imageBase64: "",
+        imagePrompt: "",
+        createdAt: Date.now(),
+      };
+
+      if (!body.refinementText) {
+        tokenStatus = await useToken(userId);
+        console.log(`Token used for user ${userId}. Remaining: ${tokenStatus.remaining}`);
+      }
+
+      return NextResponse.json({ result, userId, tokenData: tokenStatus });
+    }
+
     let b64: string;
 
     try {

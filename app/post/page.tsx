@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { saveImage, deleteImage } from "../lib/imageStorage";
-import { applyBrandOverlay, CONTACT_POST_TYPES } from "../lib/imageOverlay";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
@@ -14,6 +13,8 @@ import {
   type InstagramFormat,
   applyBrandingWithPhotoAndText,
   applyPhotoWithText,
+  applyBrandedPhotoOverlay,
+  generateBrandGraphic,
 } from "../lib/photoTreatments";
 
 // Idempotency utilities
@@ -474,26 +475,46 @@ export default function PostPage() {
     return () => clearInterval(interval);
   }, [isLoading]);
 
-  // Convert image to selected format whenever image or format changes.
-  // Build the final display image for the selected format.
-  // Border is always the very last step so it wraps the entire canvas
-  // (including blurred bars for non-square formats), not just the photo.
+  // Build the final display image for the selected format whenever image or format changes.
   useEffect(() => {
-    if (!post?.imageBase64) { setFormattedImage(null); return; }
+    if (!post?.imageBase64 && form.imageStyle !== "branding_text_only") {
+      setFormattedImage(null);
+      return;
+    }
 
     let cancelled = false;
-    const sourceImage = post.rawImageBase64 ?? post.imageBase64;
+    const sourceImage = post?.rawImageBase64 ?? post?.imageBase64 ?? "";
     const isBrandingText =
       form.imageStyle === "branding_text_photo" ||
       form.imageStyle === "branded_text_photo";
+    const isBrandingPhoto = form.imageStyle === "branding_photo";
+    const isGraphicDesign = form.imageStyle === "branding_text_only";
 
     const activeBrandRaw = typeof window !== "undefined" ? localStorage.getItem("ath_active_brand_profile") : null;
     const activeBrand = activeBrandRaw ? JSON.parse(activeBrandRaw) : null;
-    const resolvedPrimary = activeBrand?.primaryColor || form.primaryColor || "#000000";
+    const resolvedPrimary   = activeBrand?.primaryColor   || form.primaryColor   || "#000000";
     const resolvedSecondary = activeBrand?.secondaryColor || form.secondaryColor || "#ffffff";
-    const resolvedIncludeContact = CONTACT_POST_TYPES.has(form.postType);
 
     async function buildFormattedImage() {
+      if (isGraphicDesign) {
+        // Canvas-only: regenerate at the selected format
+        const result = await generateBrandGraphic(
+          post?.caption || "",
+          post?.imageHeadline || "",
+          {
+            primaryColor:   resolvedPrimary,
+            secondaryColor: resolvedSecondary,
+            logoBase64:     activeBrand?.logoBase64 || undefined,
+            website:        activeBrand?.website    || undefined,
+            phone:          activeBrand?.phone      || undefined,
+            name:           activeBrand?.name       || undefined,
+          },
+          selectedFormat
+        );
+        if (!cancelled) setFormattedImage(result);
+        return;
+      }
+
       // Step 1: format conversion (square = no-op)
       let result = selectedFormat === "square"
         ? post!.imageBase64
@@ -501,18 +522,22 @@ export default function PostPage() {
 
       if (cancelled) return;
 
-      // Step 2: re-apply Canvas text for branding_text_photo on non-square formats
-      if (selectedFormat !== "square" && isBrandingText && post!.rawImageBase64) {
+      // Step 2: re-apply branded overlay for non-square formats
+      if (selectedFormat !== "square" && (isBrandingText || isBrandingPhoto) && post!.rawImageBase64) {
         const headlineText = post!.imageHeadline || post!.caption;
-        result = await applyBrandingWithPhotoAndText(result, headlineText, {
-          primaryColor: resolvedPrimary,
-          secondaryColor: resolvedSecondary,
-          logoBase64: activeBrand?.logoBase64 || undefined,
-          website: resolvedIncludeContact ? activeBrand?.website || undefined : undefined,
-          phone: resolvedIncludeContact ? activeBrand?.phone || undefined : undefined,
-          mode: "headline-brand",
-          format: selectedFormat,
-        });
+        result = await applyBrandedPhotoOverlay(
+          result,
+          {
+            primaryColor:   resolvedPrimary,
+            secondaryColor: resolvedSecondary,
+            logoBase64:     activeBrand?.logoBase64 || undefined,
+            website:        activeBrand?.website    || undefined,
+            phone:          activeBrand?.phone      || undefined,
+            name:           activeBrand?.name       || undefined,
+            format:         selectedFormat,
+          },
+          isBrandingText ? headlineText : undefined
+        );
       }
 
       if (!cancelled) setFormattedImage(result);
@@ -626,78 +651,76 @@ export default function PostPage() {
         throw new Error("API returned an unexpected response shape.");
       }
 
-      // Apply text + brand overlay based on image style
-      if (result.imageBase64) {
-        try {
-          const activeBrandRaw = localStorage.getItem("ath_active_brand_profile");
-          const brand = activeBrandRaw ? JSON.parse(activeBrandRaw) : null;
-          const primaryColor = brand?.primaryColor || form.primaryColor || "#000000";
-          const secondaryColor = brand?.secondaryColor || form.secondaryColor || "#ffffff";
-          const includeContact = CONTACT_POST_TYPES.has(form.postType);
+      // Apply style-specific overlay based on imageStyle
+      try {
+        const activeBrandRaw = localStorage.getItem("ath_active_brand_profile");
+        const brand = activeBrandRaw ? JSON.parse(activeBrandRaw) : null;
+        const primaryColor   = brand?.primaryColor   || form.primaryColor   || "#000000";
+        const secondaryColor = brand?.secondaryColor || form.secondaryColor || "#ffffff";
 
+        const imageStyle = form.imageStyle;
+
+        if (imageStyle === "lifestyle_photo") {
+          // Natural Lifestyle: raw AI photo, no overlays at all.
+          // result.imageBase64 stays as-is.
+
+        } else if (imageStyle === "lifestyle_photo_text") {
+          // Natural Lifestyle + Text: centered text only, no branding.
+          const headlineText = result.imageHeadline || result.caption;
+          result = {
+            ...result,
+            imageBase64: await applyPhotoWithText(result.imageBase64, headlineText),
+          };
+
+        } else if (
+          imageStyle === "branding_photo" ||
+          imageStyle === "branding_text_photo" ||
+          imageStyle === "branded_text_photo"
+        ) {
+          // Branded Photo or Branded + Text: professional frame overlay.
           const isBrandingText =
-            form.imageStyle === "branding_text_photo" ||
-            form.imageStyle === "branded_text_photo";
-          const isLifestyleText = form.imageStyle === "lifestyle_photo_text";
-
-          if (isBrandingText) {
-            // Store raw image before Canvas overlay so format conversion uses clean photo
-            const rawImage = result.imageBase64;
-            const headlineText = result.imageHeadline || result.caption;
-            result = {
-              ...result,
-              rawImageBase64: rawImage,
-              imageBase64: await applyBrandingWithPhotoAndText(
-                rawImage,
-                headlineText,
-                {
-                  primaryColor,
-                  secondaryColor,
-                  logoBase64: brand?.logoBase64 || undefined,
-                  website: includeContact ? brand?.website || undefined : undefined,
-                  phone: includeContact ? brand?.phone || undefined : undefined,
-                  mode: "headline-brand",
-                  format: "square",
-                }
-              ),
-            };
-          } else if (isLifestyleText) {
-            // Canvas adds text scrim — then brand overlay adds logo on top
-            const headlineText = result.imageHeadline || result.caption;
-            result = {
-              ...result,
-              imageBase64: await applyPhotoWithText(result.imageBase64, headlineText),
-            };
-            if (brand?.logoBase64 || brand?.website || brand?.phone) {
-              result = {
-                ...result,
-                imageBase64: await applyBrandOverlay(result.imageBase64, {
-                  logoBase64: brand.logoBase64 || undefined,
-                  primaryColor,
-                  secondaryColor,
-                  website: brand.website || undefined,
-                  phone: brand.phone || undefined,
-                  includeContact,
-                }),
-              };
-            }
-          } else if (brand?.logoBase64 || brand?.website || brand?.phone) {
-            // All other styles: just apply brand logo/contact overlay
-            result = {
-              ...result,
-              imageBase64: await applyBrandOverlay(result.imageBase64, {
-                logoBase64: brand.logoBase64 || undefined,
+            imageStyle === "branding_text_photo" || imageStyle === "branded_text_photo";
+          const headlineText = result.imageHeadline || result.caption;
+          const rawImage = result.imageBase64;
+          result = {
+            ...result,
+            rawImageBase64: rawImage,
+            imageBase64: await applyBrandedPhotoOverlay(
+              rawImage,
+              {
                 primaryColor,
                 secondaryColor,
-                website: brand.website || undefined,
-                phone: brand.phone || undefined,
-                includeContact,
-              }),
-            };
-          }
-        } catch {
-          // Overlay failed — use original image
+                logoBase64: brand?.logoBase64 || undefined,
+                website:    brand?.website    || undefined,
+                phone:      brand?.phone      || undefined,
+                name:       brand?.name       || undefined,
+                format:     "square",
+              },
+              isBrandingText ? headlineText : undefined
+            ),
+          };
+
+        } else if (imageStyle === "branding_text_only") {
+          // Graphic Design: no AI image. Generate canvas graphic from brand colors.
+          result = {
+            ...result,
+            imageBase64: await generateBrandGraphic(
+              result.caption,
+              result.imageHeadline || "",
+              {
+                primaryColor,
+                secondaryColor,
+                logoBase64: brand?.logoBase64 || undefined,
+                website:    brand?.website    || undefined,
+                phone:      brand?.phone      || undefined,
+                name:       brand?.name       || undefined,
+              },
+              "square"
+            ),
+          };
         }
+      } catch {
+        // Overlay failed — use original image
       }
 
       setPost(result);
