@@ -303,6 +303,11 @@ Semi-transparent overlay covers the bottom 35-45% of the photo for text readabil
 ALL text sits comfortably inside this overlay with at least 5% padding from left/right edges.
 Headline font large, subhead smaller — both fully visible, never clipped.
 One thin horizontal accent line above the headline in brand color.
+MINIMAL GRAPHIC DESIGN ACCENT (pick one):
+- A thin brand-color border running along the inside edge of the entire image (2-4px inset frame), OR
+- A small L-shaped corner bracket accent in one corner (top-left or bottom-right) in brand color, OR
+- A short vertical brand-color bar on the left edge as a side accent stripe.
+Keep it subtle — one small element only. It should feel intentional, not decorative.
 `,
     };
   }
