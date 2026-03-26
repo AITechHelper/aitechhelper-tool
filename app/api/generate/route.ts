@@ -189,6 +189,7 @@ type StyleSpec = {
   photoRequired: boolean;
   brandingStrength: "none" | "light" | "heavy";
   banProducts: boolean; // ban product packaging, labels, bags, bottles, boxes, etc.
+  naturalPhotoColors?: boolean; // brand colors go ONLY in design overlays — never in photo scene/people/clothing
   basePrompt: string;
   layoutHint: string;
 };
@@ -284,6 +285,7 @@ Leave the main photo area clean and realistic.
       photoRequired: true,
       brandingStrength: "heavy",
       banProducts: true,
+      naturalPhotoColors: true,
       basePrompt: `
 REALISTIC photo as the full-bleed background with professional graphic design treatment layered on top.
 CRITICAL: NO text, NO words, NO letters anywhere in the image. Text will be added separately.
@@ -1034,7 +1036,9 @@ ${imageDescription ? `\nIMAGE SCENE DIRECTION — when generating scene_plan, ba
             brandingRule,
             primaryColor ? `Primary color: ${primaryColor}.` : "",
             secondaryColor ? `Secondary color: ${secondaryColor}.` : "",
-            styleSpec.brandingStrength === "heavy"
+            styleSpec.naturalPhotoColors
+              ? "CRITICAL: Brand colors must ONLY appear in graphic design overlay elements (borders, accent bars, corner marks, scrim). The photo scene itself — people, clothing, skin, walls, furniture, environment — must use completely natural, realistic colors. Do NOT dress people in brand colors. Do NOT tint walls or backgrounds with brand colors."
+              : styleSpec.brandingStrength === "heavy"
               ? "Keep other colors neutral."
               : "Do not let colors overpower the realism.",
           ]
