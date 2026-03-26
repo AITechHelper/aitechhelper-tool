@@ -240,8 +240,7 @@ export async function applyBrandingPhotoOnly(
 
 // Branding + photo + text overlay.
 // Strict pipeline — every step has a defined zone. Nothing can overlap text.
-// 1. Photo  2. Border (perimeter)  3. Scrim (bottom 38%)
-// 4. Accent rule  5. Headline  6. Logo  7. Contact pill
+// 1. Photo  2. Scrim (bottom 38%)  3. Accent rule  4. Headline  5. Logo  6. Contact pill
 export async function applyBrandingWithPhotoAndText(
   imageBase64: string,
   caption: string,
@@ -266,43 +265,6 @@ export async function applyBrandingWithPhotoAndText(
 
     // ── 1. Photo ──────────────────────────────────────────────────────────────
     ctx.drawImage(img, 0, 0);
-
-    // ── 2. Border — perimeter only, 3 options ─────────────────────────────────
-    const inset = Math.round(w * 0.018);
-    const thin  = Math.max(3, Math.round(w * 0.004));
-    const thick = Math.max(8, Math.round(w * 0.012));
-    const bLen  = Math.round(w * 0.16);
-
-    const borderChoice = Math.floor(Math.random() * 3);
-    if (borderChoice === 0) {
-      // Thin inset border
-      ctx.strokeStyle = hexToRgba(pc, 0.85);
-      ctx.lineWidth = thin;
-      ctx.strokeRect(inset + thin / 2, inset + thin / 2, w - inset * 2 - thin, h - inset * 2 - thin);
-    } else if (borderChoice === 1) {
-      // Thick border
-      ctx.strokeStyle = hexToRgba(pc, 0.9);
-      ctx.lineWidth = thick;
-      ctx.strokeRect(thick / 2, thick / 2, w - thick, h - thick);
-    } else {
-      // Corner L-brackets
-      ctx.fillStyle = hexToRgba(pc, 0.92);
-      const i = inset, l = bLen, t = thick;
-      ctx.fillRect(i, i, l, t);         ctx.fillRect(i, i, t, l);
-      ctx.fillRect(w-i-l, i, l, t);     ctx.fillRect(w-i-t, i, t, l);
-      ctx.fillRect(i, h-i-t, l, t);     ctx.fillRect(i, h-i-l, t, l);
-      ctx.fillRect(w-i-l, h-i-t, l, t); ctx.fillRect(w-i-t, h-i-l, t, l);
-    }
-
-    // ── 2b. Restore photo under logo zone — erase any border elements ─────────
-    // Borders can start as close as the very edge (0,0), so we restore from the
-    // full top-left corner outward to just past the logo. This guarantees nothing
-    // (thin line, thick stroke, L-bracket) bleeds through a transparent logo.
-    const logoZoneSize   = Math.round(w * 0.13);
-    const logoZoneMargin = Math.round(w * 0.038);
-    const lzW = logoZoneMargin + logoZoneSize + Math.round(w * 0.02);
-    const lzH = logoZoneMargin + logoZoneSize + Math.round(w * 0.02);
-    ctx.drawImage(img, 0, 0, lzW, lzH, 0, 0, lzW, lzH);
 
     // ── 3. Scrim — bottom 38% only, 2 options ─────────────────────────────────
     const scrimTop = Math.round(h * 0.62);
