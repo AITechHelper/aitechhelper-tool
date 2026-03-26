@@ -389,7 +389,18 @@ export async function applyBrandingWithPhotoAndText(
       ctx.fillRect(w - i - l, h - i - t, l, t); ctx.fillRect(w - i - t, h - i - l, t, l);
     };
 
-    const treatment = Math.floor(Math.random() * 8);
+    // Exclude graphic treatments that would clash with the chosen text layout:
+    // layout 1 = solid left panel  → skip treatments 4 (thick left stripe) and 5 (border + inner left accent)
+    // layout 3 = right-aligned text → skip treatment 4 (thick left stripe pulls eye the wrong way)
+    // layout 2 = centered text      → skip treatment 4 and 5 (asymmetric left elements fight center alignment)
+    const excludedTreatments: Record<number, number[]> = {
+      1: [4, 5],
+      2: [4, 5],
+      3: [4],
+    };
+    const excluded = excludedTreatments[layout] ?? [];
+    const availableTreatments = [0, 1, 2, 3, 4, 5, 6, 7].filter(t => !excluded.includes(t));
+    const treatment = availableTreatments[Math.floor(Math.random() * availableTreatments.length)];
     switch (treatment) {
       case 0: // thin full inset border + thin top bar
         ctx.strokeStyle = hexToRgba(pc, 0.8); ctx.lineWidth = thin;
