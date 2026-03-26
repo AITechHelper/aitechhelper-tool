@@ -938,11 +938,11 @@ Return JSON:
 }
 
 image_headline rules:
-- 3 to 7 words. Bold, punchy, statement-style.
-- Written to display as large text overlaid on a photo — NOT the same as the caption hook.
+- Bold, punchy, statement-style. Written to display as large text overlaid on a photo.
+- Length is flexible and message-driven: use 3–5 words when short and punchy lands best, use 6–12 words when the message genuinely needs more. Never pad for length, never cut meaning for brevity.
+- NOT the same wording as the caption hook — this is a standalone visual statement.
 - No hashtags, no emojis, no punctuation except one optional exclamation mark.
-- Must be specific to the SpecificRequest if provided, otherwise to the niche/post type.
-- Think billboard copy, not social media copy.
+- Think billboard copy. Sometimes one line. Sometimes two. Whatever serves the message.
 
 Context:
 Niche="${niche}"

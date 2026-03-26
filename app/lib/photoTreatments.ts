@@ -273,10 +273,18 @@ export async function applyBrandingWithPhotoAndText(
     ctx.fillStyle = grad;
     ctx.fillRect(0, scrimY, w, h - scrimY);
 
-    // ── Headline text ─────────────────────────────────────────────────────────
+    // ── Headline text — auto-scale font + lines based on length ──────────────
     const rawText = (caption.split(/[.!?\n]/)[0]?.trim() ?? caption).toUpperCase();
-    ctx.font = `900 ${fontSize}px 'Impact', 'Arial Black', 'Arial', sans-serif`;
-    const lines = wrapTextToLines(ctx, rawText, w - pad * 2, 2);
+    const wordCount = rawText.split(" ").length;
+    const baseFontSize = wordCount <= 5
+      ? Math.round(h * 0.082)   // short: big and bold
+      : wordCount <= 8
+      ? Math.round(h * 0.068)   // medium
+      : Math.round(h * 0.054);  // long: smaller to fit 3 lines
+    const maxLines = wordCount <= 5 ? 2 : 3;
+    ctx.font = `900 ${baseFontSize}px 'Impact', 'Arial Black', 'Arial', sans-serif`;
+    const lines = wrapTextToLines(ctx, rawText, w - pad * 2, maxLines);
+    const fontSize = baseFontSize;
 
     const lineH = Math.round(fontSize * 1.12);
     const totalTextH = lines.length * lineH;
