@@ -261,64 +261,110 @@ export async function applyBrandingWithPhotoAndText(
     const w = canvas.width;
     const h = canvas.height;
     const pad = Math.round(w * 0.055);
-    const bottomPad = Math.round(h * 0.065);
 
-    // ── Deep gradient scrim ───────────────────────────────────────────────────
-    const scrimY = Math.round(h * 0.34);
-    const grad = ctx.createLinearGradient(0, scrimY, 0, h);
-    grad.addColorStop(0, "rgba(0,0,0,0)");
-    grad.addColorStop(0.38, "rgba(0,0,0,0.48)");
-    grad.addColorStop(1, "rgba(0,0,0,0.93)");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, scrimY, w, h - scrimY);
+    // ── Pick a random text layout — varies scrim, position & alignment ────────
+    const layout = Math.floor(Math.random() * 5);
 
-    // ── Headline text — auto-scale font + lines based on length ──────────────
     const rawText = (caption.split(/[.!?\n]/)[0]?.trim() ?? caption).toUpperCase();
     const wordCount = rawText.split(" ").length;
     const fontSize = wordCount <= 5
-      ? Math.round(h * 0.082)   // short: big and bold
+      ? Math.round(h * 0.082)
       : wordCount <= 8
-      ? Math.round(h * 0.068)   // medium
-      : Math.round(h * 0.054);  // long: smaller to fit 3 lines
+      ? Math.round(h * 0.068)
+      : Math.round(h * 0.054);
     const maxLines = wordCount <= 5 ? 2 : 3;
-    ctx.font = `900 ${fontSize}px 'Impact', 'Arial Black', 'Arial', sans-serif`;
-    const lines = wrapTextToLines(ctx, rawText, w - pad * 2, maxLines);
 
+    // Measure lines with current font
+    ctx.font = `900 ${fontSize}px 'Impact', 'Arial Black', 'Arial', sans-serif`;
+    const textMaxW = layout === 1 ? w * 0.55 : w - pad * 2; // narrower for left-panel
+    const lines = wrapTextToLines(ctx, rawText, textMaxW, maxLines);
     const lineH = Math.round(fontSize * 1.12);
     const totalTextH = lines.length * lineH;
-    const textStartY = h - bottomPad - totalTextH;
-
-    // Thin accent rule — brand primary color, sits just above headline
     const ruleH = Math.max(3, Math.round(h * 0.004));
     const ruleW = Math.round(w * 0.13);
-    const ruleY = textStartY - Math.round(h * 0.026);
-    ctx.fillStyle = brandOptions.primaryColor;
-    ctx.fillRect(pad, ruleY, ruleW, ruleH);
 
-    ctx.textAlign = "left";
-    ctx.textBaseline = "top";
-
-    if (lines.length === 1) {
-      // Single line: split words ~60/40 — first chunk white, rest brand accent
-      const words = lines[0].split(" ");
-      const splitAt = Math.max(1, Math.ceil(words.length * 0.6));
-      const part1 = words.slice(0, splitAt).join(" ");
-      const part2 = words.slice(splitAt).join(" ");
-
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText(part1, pad, textStartY);
-
-      if (part2) {
-        const part1Width = ctx.measureText(part1 + " ").width;
-        ctx.fillStyle = brandOptions.primaryColor;
-        ctx.fillText(part2, pad + part1Width, textStartY);
+    const drawLines = (startX: number, startY: number, align: CanvasTextAlign) => {
+      ctx.textAlign = align;
+      ctx.textBaseline = "top";
+      if (lines.length === 1) {
+        const words = lines[0].split(" ");
+        const splitAt = Math.max(1, Math.ceil(words.length * 0.6));
+        const part1 = words.slice(0, splitAt).join(" ");
+        const part2 = words.slice(splitAt).join(" ");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(part1, startX, startY);
+        if (part2) {
+          const part1W = ctx.measureText(part1 + " ").width;
+          ctx.fillStyle = brandOptions.primaryColor;
+          const x2 = align === "center" ? startX : align === "right" ? startX - ctx.measureText(part2).width : startX + part1W;
+          ctx.fillText(part2, align === "left" ? startX + part1W : x2, startY);
+        }
+      } else {
+        lines.forEach((line, i) => {
+          ctx.fillStyle = i === 0 ? "#ffffff" : brandOptions.primaryColor;
+          ctx.fillText(line, startX, startY + i * lineH);
+        });
       }
-    } else {
-      // Two lines: line 1 white, line 2 brand accent
-      lines.forEach((line, i) => {
-        ctx.fillStyle = i === 0 ? "#ffffff" : brandOptions.primaryColor;
-        ctx.fillText(line, pad, textStartY + i * lineH);
-      });
+    };
+
+    switch (layout) {
+      case 0: {
+        // Bottom-left gradient scrim (original feel, kept as one option)
+        const scrimY = Math.round(h * 0.38);
+        const g = ctx.createLinearGradient(0, scrimY, 0, h);
+        g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(0.4, "rgba(0,0,0,0.52)"); g.addColorStop(1, "rgba(0,0,0,0.92)");
+        ctx.fillStyle = g; ctx.fillRect(0, scrimY, w, h - scrimY);
+        const textY0 = h - Math.round(h * 0.065) - totalTextH;
+        ctx.fillStyle = brandOptions.primaryColor;
+        ctx.fillRect(pad, textY0 - Math.round(h * 0.026), ruleW, ruleH);
+        drawLines(pad, textY0, "left");
+        break;
+      }
+      case 1: {
+        // Solid brand-color left panel, text inside it
+        const panelW = Math.round(w * 0.62);
+        ctx.fillStyle = hexToRgba(brandOptions.primaryColor, 0.88);
+        ctx.fillRect(0, h - Math.round(h * 0.38), panelW, Math.round(h * 0.38));
+        const textY1 = h - Math.round(h * 0.065) - totalTextH;
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(pad, textY1 - Math.round(h * 0.026), ruleW, ruleH);
+        drawLines(pad, textY1, "left");
+        break;
+      }
+      case 2: {
+        // Bottom-center gradient scrim, centered text
+        const scrimY2 = Math.round(h * 0.42);
+        const g2 = ctx.createLinearGradient(0, scrimY2, 0, h);
+        g2.addColorStop(0, "rgba(0,0,0,0)"); g2.addColorStop(0.35, "rgba(0,0,0,0.55)"); g2.addColorStop(1, "rgba(0,0,0,0.9)");
+        ctx.fillStyle = g2; ctx.fillRect(0, scrimY2, w, h - scrimY2);
+        const textY2 = h - Math.round(h * 0.08) - totalTextH;
+        ctx.fillStyle = brandOptions.primaryColor;
+        ctx.fillRect(w / 2 - ruleW / 2, textY2 - Math.round(h * 0.028), ruleW, ruleH);
+        drawLines(w / 2, textY2, "center");
+        break;
+      }
+      case 3: {
+        // Solid dark semi-transparent strip bottom 32%, text right-aligned
+        ctx.fillStyle = "rgba(0,0,0,0.78)";
+        ctx.fillRect(0, h - Math.round(h * 0.32), w, Math.round(h * 0.32));
+        const textY3 = h - Math.round(h * 0.07) - totalTextH;
+        ctx.fillStyle = brandOptions.primaryColor;
+        ctx.fillRect(w - pad - ruleW, textY3 - Math.round(h * 0.026), ruleW, ruleH);
+        drawLines(w - pad, textY3, "right");
+        break;
+      }
+      case 4: {
+        // Tall gradient from bottom 55%, text bottom-left, deeper fade
+        const scrimY4 = Math.round(h * 0.45);
+        const g4 = ctx.createLinearGradient(0, scrimY4, 0, h);
+        g4.addColorStop(0, "rgba(0,0,0,0)"); g4.addColorStop(0.5, "rgba(0,0,0,0.6)"); g4.addColorStop(1, "rgba(0,0,0,0.95)");
+        ctx.fillStyle = g4; ctx.fillRect(0, scrimY4, w, h - scrimY4);
+        const textY4 = h - Math.round(h * 0.055) - totalTextH;
+        ctx.fillStyle = brandOptions.primaryColor;
+        ctx.fillRect(pad, textY4 - Math.round(h * 0.03), ruleW * 1.6, ruleH);
+        drawLines(pad, textY4, "left");
+        break;
+      }
     }
 
     // ── Graphic elements — randomised treatment each generation ──────────────
@@ -396,7 +442,7 @@ export async function applyBrandingWithPhotoAndText(
         let lw = logoSize, lh = logoSize;
         if (ar > 1) lh = logoSize / ar;
         else lw = logoSize * ar;
-        ctx.drawImage(logoImg, margin, margin + accentBarH, lw, lh);
+        ctx.drawImage(logoImg, margin, margin, lw, lh);
       } catch {
         // Logo load failed — skip gracefully
       }
