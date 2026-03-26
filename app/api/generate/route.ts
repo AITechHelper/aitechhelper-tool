@@ -277,7 +277,7 @@ Leave the main photo area clean and realistic.
     };
   }
 
-  // 3) Branded + Text + Photo — clean professional design with text
+  // 3) Branded + Text + Photo — professional design with text
   if (style === "branded_text_photo" || style === "branding_text_photo") {
     return {
       allowText: true,
@@ -285,23 +285,24 @@ Leave the main photo area clean and realistic.
       brandingStrength: "heavy",
       banProducts: true,
       basePrompt: `
-REALISTIC photo as the base layer with clean, professional graphic design treatment.
-CRITICAL: This style should feel polished and corporate — NOT playful, NOT busy.
+REALISTIC photo as the base layer with professional graphic design treatment.
+CRITICAL TEXT RULE: ALL text must be 100% fully visible and never cut off — keep all text within the inner 90% of the canvas with clear padding from every edge.
 Design language:
-- Clean color blocks or semi-transparent overlays in brand colors (not geometric shapes or decorative frames)
-- Subtle thin rule lines or minimal dividers as accents only
-- No corner triangles, no bold border frames, no starburst or geometric decorations
-- The layout should look like a premium agency or financial brand social post
-Typography is EXPECTED: bold, clean headline text with strong hierarchy.
-Brand colors used purposefully — as a background panel or accent bar, not covering the photo.
-The photo should remain clearly visible and prominent.
-NO logos. Avoid brand names. Avoid packaging and labels.
+- Semi-transparent dark or brand-color overlay region placed over the LOWER HALF of the photo (not a separate block below it) — the photo bleeds through the overlay
+- Bold, clean headline text over the overlay area — large but sized to fit entirely within the frame
+- A thin colored rule line or accent bar above the headline as a design element
+- Subtle brand color accents (thin borders, corner marks, or a side bar) — clean and minimal
+- The photo occupies the FULL image canvas; graphic elements layer ON TOP of it
+- Professional, modern look — think premium ad agency, not playful social template
+Typography: bold headline + smaller subhead. Strong hierarchy. Text must not crowd the edges.
+NO logos. NO corner triangles or bold geometric shapes. NO separate colored block below the image.
 `,
       layoutHint: `
-Think clean corporate LinkedIn/Instagram ad — structured, minimal, confident.
-Use a solid color panel or gradient bar for text placement (bottom third or side panel).
-Headline large and readable. Subhead smaller. Generous white space.
-No decorative shapes. No busy patterns. Restraint is the aesthetic.
+Photo fills the entire canvas edge to edge.
+Semi-transparent overlay covers the bottom 35-45% of the photo for text readability.
+ALL text sits comfortably inside this overlay with at least 5% padding from left/right edges.
+Headline font large, subhead smaller — both fully visible, never clipped.
+One thin horizontal accent line above the headline in brand color.
 `,
     };
   }
