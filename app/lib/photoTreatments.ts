@@ -182,39 +182,17 @@ export async function applyBrandingPhotoOnly(
     const w = canvas.width;
     const h = canvas.height;
 
-    // Circular logo badge — top-left
+    // Raw logo — top-left, no background or clip
     if (brandOptions.logoBase64) {
       try {
         const logoImg = await loadImage(brandOptions.logoBase64);
-        const badgeR = Math.round(w * 0.056);
+        const logoSize = Math.round(w * 0.13);
         const margin = Math.round(w * 0.038);
-        const cx = margin + badgeR;
-        const cy = margin + badgeR;
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(cx, cy, badgeR, 0, Math.PI * 2);
-        ctx.fillStyle = hexToRgba(brandOptions.primaryColor, 0.94);
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.arc(cx, cy, badgeR, 0, Math.PI * 2);
-        ctx.strokeStyle = hexToRgba(brandOptions.secondaryColor, 0.5);
-        ctx.lineWidth = Math.max(2, Math.round(w * 0.003));
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(cx, cy, badgeR * 0.78, 0, Math.PI * 2);
-        ctx.clip();
-
         const ar = logoImg.width / logoImg.height;
-        const logoSize = badgeR * 1.24;
         let lw = logoSize, lh = logoSize;
         if (ar > 1) lh = logoSize / ar;
         else lw = logoSize * ar;
-        ctx.drawImage(logoImg, cx - lw / 2, cy - lh / 2, lw, lh);
-
-        ctx.restore();
+        ctx.drawImage(logoImg, margin, margin, lw, lh);
       } catch {
         // Logo load failed — skip gracefully
       }
@@ -337,10 +315,10 @@ export async function applyBrandingWithPhotoAndText(
       });
     }
 
-    // ── Thin inset border — brand accent ──────────────────────────────────────
-    const borderW = Math.max(3, Math.round(w * 0.006));
-    const borderInset = Math.round(w * 0.018);
-    ctx.strokeStyle = hexToRgba(brandOptions.primaryColor, 0.72);
+    // ── Graphic elements: thin inset border + top accent bar ──────────────────
+    const borderW = Math.max(3, Math.round(w * 0.005));
+    const borderInset = Math.round(w * 0.016);
+    ctx.strokeStyle = hexToRgba(brandOptions.primaryColor, 0.8);
     ctx.lineWidth = borderW;
     ctx.strokeRect(
       borderInset + borderW / 2,
@@ -349,43 +327,22 @@ export async function applyBrandingWithPhotoAndText(
       h - (borderInset + borderW / 2) * 2
     );
 
-    // ── Circular logo badge — top-left ────────────────────────────────────────
+    // Bold top accent bar — full width, sits at very top edge
+    const accentBarH = Math.max(5, Math.round(h * 0.008));
+    ctx.fillStyle = hexToRgba(brandOptions.primaryColor, 0.9);
+    ctx.fillRect(0, 0, w, accentBarH);
+
+    // ── Raw logo — top-left, no background or clip ────────────────────────────
     if (brandOptions.logoBase64) {
       try {
         const logoImg = await loadImage(brandOptions.logoBase64);
-        const badgeR = Math.round(w * 0.056);
+        const logoSize = Math.round(w * 0.13);
         const margin = Math.round(w * 0.038);
-        const cx = margin + badgeR;
-        const cy = margin + badgeR;
-
-        ctx.save();
-
-        // Circle fill
-        ctx.beginPath();
-        ctx.arc(cx, cy, badgeR, 0, Math.PI * 2);
-        ctx.fillStyle = hexToRgba(brandOptions.primaryColor, 0.94);
-        ctx.fill();
-
-        // Subtle ring — brand secondary at 50% opacity
-        ctx.beginPath();
-        ctx.arc(cx, cy, badgeR, 0, Math.PI * 2);
-        ctx.strokeStyle = hexToRgba(brandOptions.secondaryColor, 0.5);
-        ctx.lineWidth = Math.max(2, Math.round(w * 0.003));
-        ctx.stroke();
-
-        // Clip logo to circle
-        ctx.beginPath();
-        ctx.arc(cx, cy, badgeR * 0.78, 0, Math.PI * 2);
-        ctx.clip();
-
         const ar = logoImg.width / logoImg.height;
-        const logoSize = badgeR * 1.24;
         let lw = logoSize, lh = logoSize;
         if (ar > 1) lh = logoSize / ar;
         else lw = logoSize * ar;
-        ctx.drawImage(logoImg, cx - lw / 2, cy - lh / 2, lw, lh);
-
-        ctx.restore();
+        ctx.drawImage(logoImg, margin, margin + accentBarH, lw, lh);
       } catch {
         // Logo load failed — skip gracefully
       }

@@ -104,40 +104,17 @@ export async function applyBrandOverlay(
       }
     }
 
-    // — Logo badge (top-left corner, avoids covering text in designed templates) —
+    // — Raw logo — top-left, no background or outline —
     if (hasLogo) {
       try {
         const logoImg = await loadImage(logoBase64!);
-
-        const badgeSize = Math.round(w * 0.14);
+        const logoSize = Math.round(w * 0.13);
         const margin = Math.round(w * 0.028);
-        const bx = margin;
-        const by = margin;
-        const radius = Math.round(badgeSize * 0.12);
-
-        // Badge background
-        ctx.fillStyle = hexToRgba(primaryColor, 0.92);
-        drawRoundRect(ctx, bx, by, badgeSize, badgeSize, radius);
-        ctx.fill();
-
-        // Badge border with secondary color
-        ctx.strokeStyle = secondaryColor;
-        ctx.lineWidth = Math.round(w * 0.003);
-        drawRoundRect(ctx, bx, by, badgeSize, badgeSize, radius);
-        ctx.stroke();
-
-        // Draw logo inside badge, maintaining aspect ratio
-        const padding = badgeSize * 0.14;
-        const maxLogoSize = badgeSize - padding * 2;
         const ar = logoImg.width / logoImg.height;
-        let lw = maxLogoSize;
-        let lh = maxLogoSize;
-        if (ar > 1) lh = maxLogoSize / ar;
-        else lw = maxLogoSize * ar;
-        const lx = bx + (badgeSize - lw) / 2;
-        const ly = by + (badgeSize - lh) / 2;
-
-        ctx.drawImage(logoImg, lx, ly, lw, lh);
+        let lw = logoSize, lh = logoSize;
+        if (ar > 1) lh = logoSize / ar;
+        else lw = logoSize * ar;
+        ctx.drawImage(logoImg, margin, margin, lw, lh);
       } catch {
         // Logo failed to load — skip it, image is still usable
       }
