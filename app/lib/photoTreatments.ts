@@ -294,6 +294,16 @@ export async function applyBrandingWithPhotoAndText(
       ctx.fillRect(w-i-l, h-i-t, l, t); ctx.fillRect(w-i-t, h-i-l, t, l);
     }
 
+    // ── 2b. Restore photo under logo zone — erase any border elements ─────────
+    // Borders can start as close as the very edge (0,0), so we restore from the
+    // full top-left corner outward to just past the logo. This guarantees nothing
+    // (thin line, thick stroke, L-bracket) bleeds through a transparent logo.
+    const logoZoneSize   = Math.round(w * 0.13);
+    const logoZoneMargin = Math.round(w * 0.038);
+    const lzW = logoZoneMargin + logoZoneSize + Math.round(w * 0.02);
+    const lzH = logoZoneMargin + logoZoneSize + Math.round(w * 0.02);
+    ctx.drawImage(img, 0, 0, lzW, lzH, 0, 0, lzW, lzH);
+
     // ── 3. Scrim — bottom 38% only, 2 options ─────────────────────────────────
     const scrimTop = Math.round(h * 0.62);
     const scrimChoice = Math.floor(Math.random() * 2);
