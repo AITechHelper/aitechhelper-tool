@@ -487,17 +487,24 @@ export default function PostPage() {
       form.imageStyle === "branding_text_photo" ||
       form.imageStyle === "branded_text_photo";
 
+    // Resolve brand options the same way the generation function does
+    const activeBrandRaw = typeof window !== "undefined" ? localStorage.getItem("ath_active_brand_profile") : null;
+    const activeBrand = activeBrandRaw ? JSON.parse(activeBrandRaw) : null;
+    const resolvedPrimary = activeBrand?.primaryColor || form.primaryColor || "#000000";
+    const resolvedSecondary = activeBrand?.secondaryColor || form.secondaryColor || "#ffffff";
+    const resolvedIncludeContact = CONTACT_POST_TYPES.has(form.postType);
+
     convertToInstagramFormat(sourceImage, selectedFormat).then(async (formatted) => {
       if (cancelled) return;
       if (isBrandingText && post.rawImageBase64) {
         // Re-apply Canvas text overlay on the freshly formatted clean image
         const headlineText = post.imageHeadline || post.caption;
         const withText = await applyBrandingWithPhotoAndText(formatted, headlineText, {
-          primaryColor,
-          secondaryColor,
-          logoBase64: brand?.logoBase64 || undefined,
-          website: includeContact ? brand?.website || undefined : undefined,
-          phone: includeContact ? brand?.phone || undefined : undefined,
+          primaryColor: resolvedPrimary,
+          secondaryColor: resolvedSecondary,
+          logoBase64: activeBrand?.logoBase64 || undefined,
+          website: resolvedIncludeContact ? activeBrand?.website || undefined : undefined,
+          phone: resolvedIncludeContact ? activeBrand?.phone || undefined : undefined,
         });
         if (!cancelled) setFormattedImage(withText);
       } else {
