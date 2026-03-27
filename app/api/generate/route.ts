@@ -189,7 +189,6 @@ type StyleSpec = {
   photoRequired: boolean;
   brandingStrength: "none" | "light" | "heavy";
   banProducts: boolean; // ban product packaging, labels, bags, bottles, boxes, etc.
-  naturalPhotoColors?: boolean; // brand colors go ONLY in design overlays — never in photo scene/people/clothing
   basePrompt: string;
   layoutHint: string;
 };
@@ -223,31 +222,31 @@ Keep branding minimal: tiny accent colors only (if any).
     };
   }
 
-  // 1b) Natural Lifestyle + Text — lifestyle photo, text added via Canvas
+  // 1b) Natural Lifestyle + Text — lifestyle photo with bold headline overlay
   if (style === "lifestyle_photo_text") {
     return {
-      allowText: false,
+      allowText: true,
       photoRequired: true,
       brandingStrength: "light",
       banProducts: true,
       basePrompt: `
-REALISTIC lifestyle photography. Clean background layer only — NO text anywhere.
+REALISTIC lifestyle photography as the base.
 Authentic candid moment or environment scene.
 Fits the niche through context (setting / activity), NOT products.
 Natural lighting, shallow depth of field, high-end commercial photo.
 Looks organic and unposed (not stock-photo cheesy).
-CRITICAL: NO text, NO words, NO letters anywhere in the image.
-Lower portion of the photo should be naturally darker or open so text can be overlaid on top.
-NO logos. NO packaging. NO brand names.
+Include a BOLD HEADLINE TEXT overlay in white or high-contrast color in the lower portion of the image.
+NO logos. NO packaging. NO brand names. NO product labels.
 `,
       layoutHint: `
-Lifestyle framing. No text at all. Clean photo only.
-Subjects in upper 55-60% of frame. Lower area darker/quieter for text placement.
+Lifestyle framing with bold text treatment in lower third.
+Text should be clean, uppercase, and high-contrast against the photo.
+Keep the photo natural; the text headline is the accent.
 `,
     };
   }
 
-  // 2) Branded Photo — Clean photo; canvas applies branding separately
+  // 2) Branded Photo — Clean photo with graphic design frame/accents AROUND it
   if (
     style === "branded_photo" ||
     style === "branding_photo_no_text" ||
@@ -258,39 +257,49 @@ Subjects in upper 55-60% of frame. Lower area darker/quieter for text placement.
       photoRequired: true,
       brandingStrength: "light",
       banProducts: true,
-      naturalPhotoColors: true,
       basePrompt: `
-REALISTIC, clean editorial photo only. Full-bleed, professional composition.
-CRITICAL: NO graphic design elements — no frames, no borders, no corner marks, no swooshes, no overlays, no color blocks, no geometric shapes. Just a clean, natural scene.
-Brand design is applied as canvas overlay — keep the photo completely clean and natural.
+CLEAN, REALISTIC photo as the main subject — DO NOT alter or stylize the photo itself.
+The photo should look natural and untouched.
+Add graphic design elements AROUND or ON TOP of the photo edges:
+  - Bold colored frames or borders in brand colors
+  - Geometric shapes (circles, lines, corners) as decorative accents
+  - Color blocks or panels beside or behind the photo
+  - Subtle overlays at corners or edges only
+KEEP the photo center clean and unaltered.
 NO readable text. NO logos. NO packaging. NO labels.
+Modern Instagram feed aesthetic with designed frame/accents.
 `,
       layoutHint: `
-Full-bleed clean photo. One clear subject, natural lighting, modern Instagram-quality composition.
-Leave the entire photo clean — no design elements of any kind.
+Think of a photo inside a designed frame or template.
+Graphic elements should frame or accent the photo, not be embedded in it.
+Leave the main photo area clean and realistic.
 `,
     };
   }
 
-  // 3) Branded + Text + Photo — Canvas adds scrim, text, logo, contact bar
+  // 3) Branded + Text + Photo — HEAVY graphic design elements with text
   if (style === "branded_text_photo" || style === "branding_text_photo") {
     return {
-      allowText: false,
+      allowText: true,
       photoRequired: true,
       brandingStrength: "heavy",
       banProducts: true,
-      naturalPhotoColors: true,
       basePrompt: `
-REALISTIC editorial photo, full-bleed, clean and professional.
-CRITICAL: NO graphic design elements baked into the photo — no frames, no borders, no corner marks, no swooshes, no overlays, no inset lines. Just a clean, natural scene.
-The scene's bottom third should naturally have depth or shadow to allow text overlay.
-All design treatment is applied separately via canvas — generate ONLY the photo.
-CRITICAL: NO text, NO words, NO letters anywhere in the image.
-NO logos. NO packaging. NO labels.
+REALISTIC photo as the base layer with HEAVY graphic design treatment.
+CRITICAL: This style requires MAXIMUM graphic design elements:
+- Bold frames, shapes, borders, and geometric overlays in brand colors
+- Gradients, color blocks, and design accents throughout
+- The design should look like a professional social media template
+Brand colors MUST dominate the visual design.
+Typography is EXPECTED: clean, modern, high-contrast headline text.
+The photo is a backdrop; the graphic design and text are the stars.
+NO logos. Avoid brand names. Avoid packaging and labels.
 `,
       layoutHint: `
-Full-bleed clean photo. Natural depth or shadow in the bottom third for text readability.
-No design elements of any kind — canvas handles all overlay treatment.
+Think premium Instagram template with bold design elements.
+Use geometric shapes, frames, and overlays extensively.
+Headline + subhead style layout with strong visual hierarchy.
+Brand colors should be impossible to miss.
 `,
     };
   }
@@ -918,16 +927,8 @@ Return JSON:
 {
   "caption": string,
   "hashtags": string,
-  "scene_plan": string,
-  "image_headline": string
+  "scene_plan": string
 }
-
-image_headline rules:
-- Bold, punchy, statement-style. Written to display as large text overlaid on a photo.
-- Length is flexible and message-driven: use 3–5 words when short and punchy lands best, use 6–12 words when the message genuinely needs more. Never pad for length, never cut meaning for brevity.
-- NOT the same wording as the caption hook — this is a standalone visual statement.
-- No hashtags, no emojis, no punctuation except one optional exclamation mark.
-- Think billboard copy. Sometimes one line. Sometimes two. Whatever serves the message.
 
 Context:
 Niche="${niche}"
@@ -972,7 +973,6 @@ ${imageDescription ? `\nIMAGE SCENE DIRECTION — when generating scene_plan, ba
     let caption = String(parsed.caption || "").trim();
     let hashtags = String(parsed.hashtags || "").trim();
     let scenePlan = String(parsed.scene_plan || "").trim();
-    const imageHeadline = String(parsed.image_headline || "").trim();
 
     if (caption.length > maxCaptionChars)
       caption = caption.slice(0, maxCaptionChars).trim();
@@ -1013,13 +1013,21 @@ ${imageDescription ? `\nIMAGE SCENE DIRECTION — when generating scene_plan, ba
         ? "Do not add any branding shapes/frames."
         : styleSpec.brandingStrength === "light"
           ? "Use brand colors ONLY as tiny subtle accents (very minimal)."
-          : "Brand design is applied as canvas overlay — keep the photo completely clean and natural.";
+          : "Use brand colors heavily via shapes/frames/blocks/overlays; premium design.";
 
-    // Brand colors are applied by Canvas overlays only — never sent to the image prompt.
-    // Sending hex values risks AI using them in the scene/clothing/environment.
-    const brandColorsRule = styleSpec.naturalPhotoColors
-      ? "CRITICAL PHOTO COLOR RULE: The photo/scene must look completely natural and realistic. People must wear normal neutral business clothing — navy, grey, black, white, beige. Walls and environments must be neutral — white, grey, beige, wood tones. No brand colors, no tinted walls, no colored clothing, no colored props. This is a clean editorial photo only."
-      : brandingRule;
+    const brandColorsRule =
+      primaryColor || secondaryColor
+        ? [
+            brandingRule,
+            primaryColor ? `Primary color: ${primaryColor}.` : "",
+            secondaryColor ? `Secondary color: ${secondaryColor}.` : "",
+            styleSpec.brandingStrength === "heavy"
+              ? "Keep other colors neutral."
+              : "Do not let colors overpower the realism.",
+          ]
+            .filter(Boolean)
+            .join(" ")
+        : brandingRule;
 
     const productBanRule = styleSpec.banProducts
       ? hasRefImage
@@ -1127,27 +1135,6 @@ ${imageDescription ? `\nIMAGE SCENE DIRECTION — when generating scene_plan, ba
       return { b64, usedPrompt: prompt };
     }
 
-    // Graphic Design style: skip AI image generation entirely.
-    // The client generates the canvas-based graphic using brand colors.
-    if (!styleSpec.photoRequired) {
-      const result = {
-        caption,
-        hashtags,
-        why: "",
-        imageHeadline,
-        imageBase64: "",
-        imagePrompt: "",
-        createdAt: Date.now(),
-      };
-
-      if (!body.refinementText) {
-        tokenStatus = await useToken(userId);
-        console.log(`Token used for user ${userId}. Remaining: ${tokenStatus.remaining}`);
-      }
-
-      return NextResponse.json({ result, userId, tokenData: tokenStatus });
-    }
-
     let b64: string;
 
     try {
@@ -1193,7 +1180,6 @@ ${imageDescription ? `\nIMAGE SCENE DIRECTION — when generating scene_plan, ba
       caption,
       hashtags,
       why: "",
-      imageHeadline,
       imageBase64: `data:image/png;base64,${b64}`,
       imagePrompt: imageInstruction,
       createdAt: Date.now(),
