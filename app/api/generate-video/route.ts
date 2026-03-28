@@ -1,7 +1,7 @@
 // app/api/generate-video/route.ts
 // Starts a Luma Dream Machine video generation job.
-// Uses GPT-4o to build a cinematic, optimised prompt before sending to Luma.
-// Returns { generationId, tempBlobUrl? } immediately — client polls /api/video-status/[id].
+// Uses GPT-4o to build a cinematic prompt AND generate caption + hashtags in parallel.
+// Returns { generationId, enrichedPrompt, caption, hashtags, tempBlobUrl? } immediately.
 
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
@@ -19,6 +19,9 @@ type Body = {
   prompt: string;
   aspectRatio?: AspectRatio;
   mood?: Mood;
+  tone?: string;
+  captionLength?: "Short" | "Medium" | "Long";
+  hashtagCount?: number;
   imageBase64?: string;
   brandContext?: {
     niche?: string;
@@ -26,6 +29,8 @@ type Body = {
     tone?: string;
     name?: string;
     website?: string;
+    primaryColor?: string;
+    secondaryColor?: string;
   };
 };
 
@@ -38,7 +43,6 @@ const PEOPLE_NICHES = [
   "real estate", "realtor", "broker", "agent",
 ];
 
-// Words in the user's own prompt that signal they want a person visible
 const PEOPLE_PROMPT_KEYWORDS = [
   "agent", "person", "man", "woman", "couple", "people", "professional",
   "trainer", "coach", "chef", "realtor", "broker", "doctor", "worker",
@@ -48,9 +52,10 @@ const PEOPLE_PROMPT_KEYWORDS = [
 function shouldIncludePerson(niche?: string, userTopic?: string): boolean {
   const n = (niche ?? "").toLowerCase();
   const t = (userTopic ?? "").toLowerCase();
-  const nicheMatch  = PEOPLE_NICHES.some((kw) => n.includes(kw));
-  const topicMatch  = PEOPLE_PROMPT_KEYWORDS.some((kw) => t.includes(kw));
-  return nicheMatch || topicMatch;
+  return (
+    PEOPLE_NICHES.some((kw) => n.includes(kw)) ||
+    PEOPLE_PROMPT_KEYWORDS.some((kw) => t.includes(kw))
+  );
 }
 
 const MOOD_INSTRUCTIONS: Record<Mood, string> = {
@@ -61,57 +66,127 @@ const MOOD_INSTRUCTIONS: Record<Mood, string> = {
 };
 
 const FORMAT_CONTEXT: Record<AspectRatio, string> = {
-  "9:16":  "vertical 9:16 format optimised for Instagram Reels and TikTok — tall composition, close-in details",
+  "9:16":  "vertical 9:16 format for Instagram Reels and TikTok — tall composition, close-in details",
   "1:1":   "square 1:1 format for Instagram Feed — balanced centered composition",
   "16:9":  "wide 16:9 cinematic format for Facebook and YouTube — sweeping wide shots, landscape framing",
 };
 
-async function buildVideoPromptWithGPT(
+function captionMaxChars(len?: "Short" | "Medium" | "Long") {
+  if (len === "Short") return 160;
+  if (len === "Long")  return 360;
+  return 240;
+}
+
+// ── Build the Luma video prompt ──────────────────────────────────────────────
+
+async function buildVideoPrompt(
+  openai: OpenAI,
   userTopic: string,
   brand: Body["brandContext"] | undefined,
   aspectRatio: AspectRatio,
-  mood: Mood
+  mood: Mood,
 ): Promise<string> {
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
-
-  const usePerson = shouldIncludePerson(brand?.niche, userTopic);
-  const moodGuide = MOOD_INSTRUCTIONS[mood];
+  const usePerson   = shouldIncludePerson(brand?.niche, userTopic);
+  const moodGuide   = MOOD_INSTRUCTIONS[mood];
   const formatGuide = FORMAT_CONTEXT[aspectRatio];
+
+  const colorHint = brand?.primaryColor
+    ? `Brand color palette: primary ${brand.primaryColor}${brand.secondaryColor ? `, secondary ${brand.secondaryColor}` : ""}. Where natural, let the scene reflect these tones in surfaces, light, or environment — do not force them.`
+    : "";
 
   const systemPrompt = `You are a cinematographer writing prompts for Luma Dream Machine, an AI video model that generates 5-second clips.
 
-Luma works best with simple, focused scenes. Your job is to write a SHORT, minimal prompt — ONE scene, ONE camera movement, ONE lighting condition. Do not describe multiple rooms, multiple objects, or sequences of events. The more you pack in, the worse the output.
+Luma works best with a single focused scene. Write a prompt covering exactly these elements — ONE of each — described with rich, specific detail:
+1. Scene: one specific space or moment
+2. Camera: one movement (slow pan, gentle dolly, subtle push-in, aerial glide, handheld drift)
+3. Lighting: one condition (time of day, quality of light, direction, color temperature)
+4. Surface & texture: what materials are visible — floors, walls, fabrics, metals
+5. Color palette: dominant hues in the frame
+6. Subject motion: subtle movement within the scene (a door ajar, steam rising, fabric shifting, leaves moving)
 
 Rules:
-- Pick ONE specific moment or setting and describe it precisely
-- ONE camera move only (slow pan, gentle dolly, subtle push-in)
-- ONE lighting condition (e.g. warm afternoon light, overcast morning, soft studio light)
-- 2-3 sentences — describe each element with rich, specific detail
-- No lists. No "and then". No scene changes.
+- 2-4 sentences. No lists. No "and then". No scene changes.
 - NO text, logos, captions, watermarks
-- NO fire, flames, candles, or any light sources that flicker
-- NO complex backgrounds with many objects
-${usePerson ? "- One person in frame, natural pose, wide or medium shot, not looking at camera" : "- No people — focus on the space, object, or environment only"}
+- NO fire, flames, candles, or flickering light sources
+- NO complex backgrounds packed with many objects
+${usePerson ? "- Include one person naturally in the scene — wide or medium shot, not looking at camera, natural relaxed pose" : "- No people — focus on the environment, space, or object only"}
 - Format: ${formatGuide}
 - Mood: ${moodGuide}
-- Return ONLY the prompt. No explanation, no preamble.`;
+${colorHint}
+- Return ONLY the prompt text. No explanation, no preamble.`;
 
-  const userMessage = `Topic: "${userTopic}"
-${brand?.niche ? `Industry: ${brand.niche}` : ""}
-${brand?.audience ? `Audience: ${brand.audience}` : ""}`;
+  const userMessage = [
+    `Topic: "${userTopic}"`,
+    brand?.niche    ? `Industry: ${brand.niche}`    : "",
+    brand?.audience ? `Audience: ${brand.audience}` : "",
+  ].filter(Boolean).join("\n");
 
-  const response = await openai.chat.completions.create({
+  const res = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
       { role: "system", content: systemPrompt },
-      { role: "user", content: userMessage },
+      { role: "user",   content: userMessage   },
     ],
-    max_tokens: 200,
+    max_tokens: 250,
     temperature: 0.8,
   });
 
-  return response.choices[0]?.message?.content?.trim() ?? userTopic;
+  return res.choices[0]?.message?.content?.trim() ?? userTopic;
 }
+
+// ── Generate caption + hashtags ──────────────────────────────────────────────
+
+async function generateCaption(
+  openai: OpenAI,
+  userTopic: string,
+  brand: Body["brandContext"] | undefined,
+  tone: string,
+  captionLength: "Short" | "Medium" | "Long",
+  hashtagCount: number,
+): Promise<{ caption: string; hashtags: string }> {
+  const maxChars  = captionMaxChars(captionLength);
+  const niche     = brand?.niche    || "business";
+  const audience  = brand?.audience || "customers";
+
+  const systemPrompt = `You are a social media copywriter writing a caption for a short branded video.
+
+Rules:
+- Write for ${niche} targeting ${audience}
+- Tone: ${tone}
+- Max ${maxChars} characters for the caption body (not counting hashtags)
+- Start with a strong hook — first line must stop the scroll
+- No emojis unless they feel completely natural
+- No generic filler phrases ("In today's world", "Are you ready?")
+- Do NOT mention the video itself or that this is a video post
+- End with a natural call to action
+- Generate exactly ${hashtagCount} relevant hashtags (return as a single space-separated string, each starting with #)
+- Return JSON: { "caption": "...", "hashtags": "..." }`;
+
+  const userMessage = `Video topic: "${userTopic}"`;
+
+  const res = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user",   content: userMessage   },
+    ],
+    max_tokens: 400,
+    temperature: 0.75,
+    response_format: { type: "json_object" },
+  });
+
+  try {
+    const parsed = JSON.parse(res.choices[0]?.message?.content ?? "{}");
+    return {
+      caption:  String(parsed.caption  ?? ""),
+      hashtags: String(parsed.hashtags ?? ""),
+    };
+  } catch {
+    return { caption: "", hashtags: "" };
+  }
+}
+
+// ── Route handler ────────────────────────────────────────────────────────────
 
 export async function POST(req: Request) {
   const { userId } = await auth();
@@ -120,7 +195,16 @@ export async function POST(req: Request) {
   }
 
   const body = (await req.json()) as Body;
-  const { prompt, aspectRatio = "9:16", mood = "cinematic", imageBase64, brandContext } = body;
+  const {
+    prompt,
+    aspectRatio    = "9:16",
+    mood           = "cinematic",
+    tone           = "Confident",
+    captionLength  = "Medium",
+    hashtagCount   = 12,
+    imageBase64,
+    brandContext,
+  } = body;
 
   if (!prompt?.trim()) {
     return NextResponse.json({ error: "prompt is required" }, { status: 400 });
@@ -135,37 +219,40 @@ export async function POST(req: Request) {
     );
   }
 
-  // Deduct 2 tokens
   await useToken(userId);
   await useToken(userId);
 
-  // Build an optimised cinematic prompt with GPT-4o
-  const enrichedPrompt = await buildVideoPromptWithGPT(prompt, brandContext, aspectRatio, mood);
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
-  const luma = new LumaAI({ authToken: process.env.LUMA_API_KEY! });
+  // Build video prompt + caption in parallel
+  const [enrichedPrompt, captionResult] = await Promise.all([
+    buildVideoPrompt(openai, prompt, brandContext, aspectRatio, mood),
+    generateCaption(openai, prompt, brandContext, tone, captionLength, hashtagCount),
+  ]);
 
+  // Start Luma generation
+  const luma   = new LumaAI({ authToken: process.env.LUMA_API_KEY! });
   let tempBlobUrl: string | undefined;
 
   const params: Parameters<typeof luma.generations.video.create>[0] = {
-    model: "ray-flash-2",
-    prompt: enrichedPrompt,
+    model:        "ray-flash-2",
+    prompt:       enrichedPrompt,
     aspect_ratio: aspectRatio,
-    duration: "5s",
+    duration:     "5s",
   };
 
-  // Image-to-video: upload the base64 image to Vercel Blob so Luma can fetch it
   if (imageBase64) {
     tempBlobUrl = await uploadTempImage(imageBase64);
-    params.keyframes = {
-      frame0: { type: "image", url: tempBlobUrl },
-    };
+    params.keyframes = { frame0: { type: "image", url: tempBlobUrl } };
   }
 
   const generation = await luma.generations.video.create(params);
 
   return NextResponse.json({
-    generationId: generation.id,
-    enrichedPrompt, // return it so UI can optionally display it
-    tempBlobUrl: tempBlobUrl ?? null,
+    generationId:   generation.id,
+    enrichedPrompt,
+    caption:        captionResult.caption,
+    hashtags:       captionResult.hashtags,
+    tempBlobUrl:    tempBlobUrl ?? null,
   });
 }

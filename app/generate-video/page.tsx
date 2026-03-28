@@ -7,9 +7,10 @@ import { useInstagram } from "../lib/useInstagram";
 import { useFacebook } from "../lib/useFacebook";
 import { useToast } from "../_components/ToastProvider";
 
-type AspectRatio = "9:16" | "1:1" | "16:9";
-type Mood        = "cinematic" | "bright-airy" | "high-energy" | "luxury";
-type VideoState  = "idle" | "generating" | "completed" | "failed";
+type AspectRatio  = "9:16" | "1:1" | "16:9";
+type Mood         = "cinematic" | "bright-airy" | "high-energy" | "luxury";
+type CaptionLen   = "Short" | "Medium" | "Long";
+type VideoState   = "idle" | "generating" | "completed" | "failed";
 
 const FORMAT_OPTIONS: { ratio: AspectRatio; label: string; sublabel: string; recommended?: boolean }[] = [
   { ratio: "9:16",  label: "9:16 Reels",     sublabel: "Instagram & TikTok", recommended: true },
@@ -24,6 +25,19 @@ const MOOD_OPTIONS: { value: Mood; emoji: string; label: string; description: st
   { value: "luxury",      emoji: "💎", label: "Luxury",        description: "Elegant, rich, slow reveal"  },
 ];
 
+const TONE_OPTIONS = [
+  "Confident", "Friendly", "Professional", "Luxury",
+  "Bold", "Inspirational", "Energetic", "Warm",
+];
+
+const CAPTION_LENGTH_OPTIONS: { value: CaptionLen; label: string; sub: string }[] = [
+  { value: "Short",  label: "Short",  sub: "~160 chars" },
+  { value: "Medium", label: "Medium", sub: "~240 chars" },
+  { value: "Long",   label: "Long",   sub: "~360 chars" },
+];
+
+const HASHTAG_COUNTS = [0, 5, 10, 15, 20, 30];
+
 // Green to match the dashboard video card
 const G1 = "#10b981";
 const G2 = "#059669";
@@ -36,26 +50,45 @@ export default function GenerateVideoPage() {
   const instagram     = useInstagram();
   const facebook      = useFacebook();
 
-  const [topic,       setTopic]       = useState("");
-  const [aspectRatio, setAspectRatio] = useState<AspectRatio>("9:16");
-  const [mood,        setMood]        = useState<Mood>("cinematic");
-  const [videoState,  setVideoState]  = useState<VideoState>("idle");
-  const [videoUrl,    setVideoUrl]    = useState<string | null>(null);
-  const [enrichedPrompt, setEnrichedPrompt] = useState<string | null>(null);
-  const [errorMsg,    setErrorMsg]    = useState<string | null>(null);
-  const [savedToLibrary, setSavedToLibrary] = useState(false);
-  const [igPublished, setIgPublished] = useState(false);
-  const [fbPublished, setFbPublished] = useState(false);
-  const [igPosting,   setIgPosting]   = useState(false);
-  const [fbPosting,   setFbPosting]   = useState(false);
+  // Form state
+  const [topic,         setTopic]         = useState("");
+  const [aspectRatio,   setAspectRatio]   = useState<AspectRatio>("9:16");
+  const [mood,          setMood]          = useState<Mood>("cinematic");
+  const [tone,          setTone]          = useState("Confident");
+  const [captionLength, setCaptionLength] = useState<CaptionLen>("Medium");
+  const [hashtagCount,  setHashtagCount]  = useState(12);
 
-  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const generationIdRef = useRef<string | null>(null);
-  const tempBlobUrlRef  = useRef<string | null>(null);
+  // Result state
+  const [videoState,     setVideoState]     = useState<VideoState>("idle");
+  const [videoUrl,       setVideoUrl]       = useState<string | null>(null);
+  const [enrichedPrompt, setEnrichedPrompt] = useState<string | null>(null);
+  const [caption,        setCaption]        = useState<string | null>(null);
+  const [hashtags,       setHashtags]       = useState<string | null>(null);
+  const [errorMsg,       setErrorMsg]       = useState<string | null>(null);
+
+  // Post state
+  const [savedToLibrary, setSavedToLibrary] = useState(false);
+  const [igPublished,    setIgPublished]    = useState(false);
+  const [fbPublished,    setFbPublished]    = useState(false);
+  const [igPosting,      setIgPosting]      = useState(false);
+  const [fbPosting,      setFbPosting]      = useState(false);
+
+  // Copy state
+  const [captionCopied,  setCaptionCopied]  = useState(false);
+  const [hashtagsCopied, setHashtagsCopied] = useState(false);
+
+  const pollIntervalRef  = useRef<ReturnType<typeof setInterval> | null>(null);
+  const generationIdRef  = useRef<string | null>(null);
+  const tempBlobUrlRef   = useRef<string | null>(null);
 
   useEffect(() => {
     return () => { if (pollIntervalRef.current) clearInterval(pollIntervalRef.current); };
   }, []);
+
+  // Pre-fill tone from brand profile
+  useEffect(() => {
+    if (activeProfile?.tone) setTone(activeProfile.tone);
+  }, [activeProfile?.tone]);
 
   async function handleGenerate() {
     if (!topic.trim()) { addToast("Please describe what your video is about.", "error"); return; }
@@ -63,6 +96,8 @@ export default function GenerateVideoPage() {
     setVideoState("generating");
     setVideoUrl(null);
     setEnrichedPrompt(null);
+    setCaption(null);
+    setHashtags(null);
     setErrorMsg(null);
     setSavedToLibrary(false);
     setIgPublished(false);
@@ -76,8 +111,19 @@ export default function GenerateVideoPage() {
           prompt: topic,
           aspectRatio,
           mood,
+          tone,
+          captionLength,
+          hashtagCount,
           brandContext: activeProfile
-            ? { niche: activeProfile.niche, audience: activeProfile.audience, tone: activeProfile.tone, name: activeProfile.name, website: (activeProfile as any).website ?? "" }
+            ? {
+                niche:          activeProfile.niche,
+                audience:       activeProfile.audience,
+                tone:           activeProfile.tone,
+                name:           activeProfile.name,
+                website:        (activeProfile as any).website ?? "",
+                primaryColor:   (activeProfile as any).primaryColor ?? "",
+                secondaryColor: (activeProfile as any).secondaryColor ?? "",
+              }
             : undefined,
         }),
       });
@@ -87,6 +133,8 @@ export default function GenerateVideoPage() {
       generationIdRef.current = data.generationId;
       tempBlobUrlRef.current  = data.tempBlobUrl ?? null;
       if (data.enrichedPrompt) setEnrichedPrompt(data.enrichedPrompt);
+      if (data.caption)        setCaption(data.caption);
+      if (data.hashtags)       setHashtags(data.hashtags);
 
       pollIntervalRef.current = setInterval(pollStatus, 5000);
     } catch (err: any) {
@@ -114,10 +162,29 @@ export default function GenerateVideoPage() {
     } catch { /* network hiccup — keep polling */ }
   }
 
+  function buildFullCaption() {
+    const parts: string[] = [];
+    if (caption)  parts.push(caption);
+    if (hashtags) parts.push(hashtags);
+    return parts.join("\n\n");
+  }
+
+  async function copyText(text: string, onDone: () => void) {
+    try {
+      await navigator.clipboard.writeText(text);
+      onDone();
+      setTimeout(onDone, 2000);
+    } catch { addToast("Could not copy to clipboard", "error"); }
+  }
+
   async function handleSaveToLibrary() {
     if (!videoUrl) return;
     try {
-      const res = await fetch("/api/media-assets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ assetType: "video", videoUrl, aspectRatio, name: topic.slice(0, 60) || "AI Video" }) });
+      const res = await fetch("/api/media-assets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assetType: "video", videoUrl, aspectRatio, name: topic.slice(0, 60) || "AI Video" }),
+      });
       if (!res.ok) throw new Error("Failed to save");
       setSavedToLibrary(true);
       addToast("Video saved to your library!", "success");
@@ -128,7 +195,11 @@ export default function GenerateVideoPage() {
     if (!videoUrl) return;
     setIgPosting(true);
     try {
-      const res  = await fetch("/api/instagram/publish-reel", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ videoUrl, caption: topic }) });
+      const res  = await fetch("/api/instagram/publish-reel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ videoUrl, caption: buildFullCaption() || topic }),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setIgPublished(true);
@@ -141,7 +212,11 @@ export default function GenerateVideoPage() {
     if (!videoUrl) return;
     setFbPosting(true);
     try {
-      const res  = await fetch("/api/facebook/publish-video", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ videoUrl, caption: topic }) });
+      const res  = await fetch("/api/facebook/publish-video", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ videoUrl, caption: buildFullCaption() || topic }),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setFbPublished(true);
@@ -151,9 +226,17 @@ export default function GenerateVideoPage() {
   }
 
   function handleReset() {
-    setVideoState("idle"); setVideoUrl(null); setEnrichedPrompt(null); setErrorMsg(null);
-    setSavedToLibrary(false); setIgPublished(false); setFbPublished(false);
-    generationIdRef.current = null; tempBlobUrlRef.current = null;
+    setVideoState("idle");
+    setVideoUrl(null);
+    setEnrichedPrompt(null);
+    setCaption(null);
+    setHashtags(null);
+    setErrorMsg(null);
+    setSavedToLibrary(false);
+    setIgPublished(false);
+    setFbPublished(false);
+    generationIdRef.current = null;
+    tempBlobUrlRef.current  = null;
   }
 
   const canGenerate = topic.trim().length > 0;
@@ -179,12 +262,10 @@ export default function GenerateVideoPage() {
             </div>
           )}
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
-          <a href="/dashboard" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(16,185,129,0.1) 100%)", border: "1px solid rgba(16,185,129,0.3)", borderRadius: 10, padding: "10px 16px", color: "#34d399", cursor: "pointer", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            Dashboard
-          </a>
-        </div>
+        <a href="/dashboard" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(16,185,129,0.1) 100%)", border: "1px solid rgba(16,185,129,0.3)", borderRadius: 10, padding: "10px 16px", color: "#34d399", cursor: "pointer", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          Dashboard
+        </a>
       </div>
 
       {/* ── Main container ── */}
@@ -194,14 +275,14 @@ export default function GenerateVideoPage() {
         {(videoState === "idle" || videoState === "failed") && (
           <div style={{ background: "#101a33", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: "24px 24px" }}>
 
-            <h2 style={{ margin: "0 0 4px 0", fontSize: 16, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" as const, display: "flex", alignItems: "center", gap: 8 }}>
+            <h2 style={{ margin: "0 0 4px 0", fontSize: 16, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" as const }}>
               Video Settings
             </h2>
-            <p style={{ margin: "0 0 24px 0", opacity: 0.6, fontSize: 13 }}>Choose your format, mood, and topic</p>
+            <p style={{ margin: "0 0 24px 0", opacity: 0.6, fontSize: 13 }}>Format, mood, tone, and caption options</p>
 
-            {/* Format */}
+            {/* ── Format ── */}
             <div style={{ marginBottom: 24 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, opacity: 0.9 }}>Format</div>
+              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, opacity: 0.6, textTransform: "uppercase" as const, letterSpacing: "0.07em" }}>Format</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
                 {FORMAT_OPTIONS.map((opt) => {
                   const sel = aspectRatio === opt.ratio;
@@ -216,9 +297,9 @@ export default function GenerateVideoPage() {
               </div>
             </div>
 
-            {/* Mood */}
+            {/* ── Visual Mood ── */}
             <div style={{ marginBottom: 24 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, opacity: 0.9 }}>Visual Mood</div>
+              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, opacity: 0.6, textTransform: "uppercase" as const, letterSpacing: "0.07em" }}>Visual Mood</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
                 {MOOD_OPTIONS.map((opt) => {
                   const sel = mood === opt.value;
@@ -233,19 +314,71 @@ export default function GenerateVideoPage() {
               </div>
             </div>
 
-            {/* Topic */}
+            {/* ── Topic ── */}
             <div style={{ marginBottom: 24 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8, opacity: 0.9, display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, opacity: 0.6, textTransform: "uppercase" as const, letterSpacing: "0.07em", display: "flex", alignItems: "center", gap: 8 }}>
                 What&apos;s this video about?
-                <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 999, background: `rgba(16,185,129,0.2)`, color: "#34d399", fontWeight: 600 }}>Required</span>
+                <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 999, background: `rgba(16,185,129,0.2)`, color: "#34d399", fontWeight: 600, textTransform: "none" as const, letterSpacing: 0 }}>Required</span>
               </div>
               <textarea
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                placeholder={activeProfile?.niche ? `e.g. Showcase a beautiful ${activeProfile.niche} space with morning light…` : "e.g. A sleek modern office at golden hour, warm light streaming through the windows…"}
+                placeholder={activeProfile?.niche
+                  ? `e.g. Showcase a beautiful ${activeProfile.niche} space with morning light…`
+                  : "e.g. A sleek modern office at golden hour, warm light streaming through the windows…"}
                 rows={4}
                 style={{ width: "100%", background: "#0b1220", color: "#e6edf7", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "12px 14px", fontSize: 14, resize: "vertical" as const, fontFamily: "inherit", boxSizing: "border-box" as const, outline: "none" }}
               />
+            </div>
+
+            {/* ── Caption Tone ── */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, opacity: 0.6, textTransform: "uppercase" as const, letterSpacing: "0.07em" }}>Caption Tone</div>
+              <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 8 }}>
+                {TONE_OPTIONS.map((t) => {
+                  const sel = tone === t;
+                  return (
+                    <button key={t} onClick={() => setTone(t)} style={{ background: sel ? `rgba(16,185,129,0.18)` : "rgba(255,255,255,0.04)", border: sel ? `1.5px solid ${G1}` : "1px solid rgba(255,255,255,0.1)", borderRadius: 999, padding: "7px 16px", fontSize: 13, fontWeight: sel ? 700 : 500, color: sel ? "#34d399" : "#b0bec5", cursor: "pointer", transition: "all 0.15s ease" }}>
+                      {t}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ── Caption Length + Hashtag Count (2-col) ── */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
+
+              {/* Caption Length */}
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, opacity: 0.6, textTransform: "uppercase" as const, letterSpacing: "0.07em" }}>Caption Length</div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {CAPTION_LENGTH_OPTIONS.map((opt) => {
+                    const sel = captionLength === opt.value;
+                    return (
+                      <button key={opt.value} onClick={() => setCaptionLength(opt.value)} style={{ flex: 1, background: sel ? `rgba(16,185,129,0.15)` : "rgba(255,255,255,0.03)", border: sel ? `2px solid ${G1}` : "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "12px 8px", cursor: "pointer", textAlign: "center" as const, color: "#e6edf7", transition: "all 0.15s ease" }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 3 }}>{opt.label}</div>
+                        <div style={{ fontSize: 10, opacity: 0.55 }}>{opt.sub}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Hashtag Count */}
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, opacity: 0.6, textTransform: "uppercase" as const, letterSpacing: "0.07em" }}>Hashtag Count</div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" as const }}>
+                  {HASHTAG_COUNTS.map((n) => {
+                    const sel = hashtagCount === n;
+                    return (
+                      <button key={n} onClick={() => setHashtagCount(n)} style={{ background: sel ? `rgba(16,185,129,0.18)` : "rgba(255,255,255,0.04)", border: sel ? `1.5px solid ${G1}` : "1px solid rgba(255,255,255,0.1)", borderRadius: 999, padding: "7px 14px", fontSize: 13, fontWeight: sel ? 700 : 500, color: sel ? "#34d399" : "#b0bec5", cursor: "pointer", minWidth: 40, transition: "all 0.15s ease" }}>
+                        {n === 0 ? "None" : n}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* Error */}
@@ -255,13 +388,11 @@ export default function GenerateVideoPage() {
               </div>
             )}
 
-            {/* Step nav */}
+            {/* Generate button row */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-              {/* Progress dots */}
               <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                 <div style={{ width: 32, height: 10, borderRadius: 6, background: `linear-gradient(135deg, ${G1} 0%, ${G2} 100%)`, boxShadow: `0 2px 10px rgba(16,185,129,0.4)` }} />
               </div>
-              {/* Generate button */}
               <button
                 onClick={handleGenerate}
                 disabled={!canGenerate}
@@ -279,11 +410,16 @@ export default function GenerateVideoPage() {
           <div style={{ background: "#101a33", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: "48px 24px", textAlign: "center" as const }}>
             <div style={{ fontSize: 40, marginBottom: 16, display: "inline-block", animation: "spin 2s linear infinite" }}>🎬</div>
             <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 8 }}>Crafting your video…</div>
-            <div style={{ opacity: 0.7, fontSize: 14, marginBottom: 4 }}>Writing a cinematic prompt, then generating with Luma.</div>
+            <div style={{ opacity: 0.7, fontSize: 14, marginBottom: 4 }}>Writing a cinematic prompt and generating with Luma.</div>
             <div style={{ opacity: 0.5, fontSize: 13, marginBottom: 28 }}>Usually takes 1–2 minutes. Hang tight.</div>
             {enrichedPrompt && (
               <div style={{ background: `rgba(16,185,129,0.07)`, border: `1px solid rgba(16,185,129,0.2)`, borderRadius: 10, padding: "12px 16px", marginBottom: 24, fontSize: 13, color: "#6ee7b7", textAlign: "left" as const, lineHeight: 1.6, maxWidth: 560, margin: "0 auto 24px" }}>
                 <span style={{ fontWeight: 700, color: "#34d399" }}>Prompt sent to Luma: </span>{enrichedPrompt}
+              </div>
+            )}
+            {caption && (
+              <div style={{ background: `rgba(16,185,129,0.05)`, border: `1px solid rgba(16,185,129,0.15)`, borderRadius: 10, padding: "12px 16px", marginBottom: 24, fontSize: 13, color: "#a7f3d0", textAlign: "left" as const, lineHeight: 1.6, maxWidth: 560, margin: "16px auto 24px" }}>
+                <span style={{ fontWeight: 700, color: "#34d399" }}>Caption ready: </span>{caption}
               </div>
             )}
             <div style={{ display: "flex", justifyContent: "center", gap: 6 }}>
@@ -297,7 +433,7 @@ export default function GenerateVideoPage() {
         {/* ── Completed ── */}
         {videoState === "completed" && videoUrl && (
           <div>
-            {/* Video player card */}
+            {/* Video player */}
             <div style={{ background: "#101a33", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, overflow: "hidden", marginBottom: 16 }}>
               <video src={videoUrl} autoPlay loop muted playsInline controls style={{ width: "100%", display: "block", maxHeight: aspectRatio === "16:9" ? 420 : 600 }} />
             </div>
@@ -306,6 +442,47 @@ export default function GenerateVideoPage() {
             {enrichedPrompt && (
               <div style={{ background: `rgba(16,185,129,0.07)`, border: `1px solid rgba(16,185,129,0.15)`, borderRadius: 10, padding: "10px 16px", marginBottom: 16, fontSize: 13, color: "#6ee7b7", lineHeight: 1.6 }}>
                 <span style={{ fontWeight: 700, color: "#34d399" }}>Luma prompt: </span>{enrichedPrompt}
+              </div>
+            )}
+
+            {/* Caption + Hashtags */}
+            {(caption || hashtags) && (
+              <div style={{ background: "#101a33", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: "20px 24px", marginBottom: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 16, opacity: 0.6, textTransform: "uppercase" as const, letterSpacing: "0.07em" }}>Generated Caption</div>
+
+                {caption && (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <span style={{ fontSize: 12, opacity: 0.5 }}>Caption</span>
+                      <button
+                        onClick={() => copyText(caption, () => setCaptionCopied(true))}
+                        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, padding: "4px 12px", fontSize: 11, color: captionCopied ? "#34d399" : "#b0bec5", cursor: "pointer", fontWeight: 600 }}
+                      >
+                        {captionCopied ? "✓ Copied" : "Copy"}
+                      </button>
+                    </div>
+                    <div style={{ background: "#0b1220", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "12px 14px", fontSize: 14, lineHeight: 1.6, color: "#e6edf7", whiteSpace: "pre-wrap" as const }}>
+                      {caption}
+                    </div>
+                  </div>
+                )}
+
+                {hashtags && (
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <span style={{ fontSize: 12, opacity: 0.5 }}>Hashtags</span>
+                      <button
+                        onClick={() => copyText(hashtags, () => setHashtagsCopied(true))}
+                        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, padding: "4px 12px", fontSize: 11, color: hashtagsCopied ? "#34d399" : "#b0bec5", cursor: "pointer", fontWeight: 600 }}
+                      >
+                        {hashtagsCopied ? "✓ Copied" : "Copy"}
+                      </button>
+                    </div>
+                    <div style={{ background: "#0b1220", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 14px", fontSize: 13, lineHeight: 1.8, color: "#60a5fa", wordBreak: "break-word" as const }}>
+                      {hashtags}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
