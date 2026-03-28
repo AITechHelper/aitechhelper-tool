@@ -1,21 +1,25 @@
 // app/api/generate-video/route.ts
 // Starts a Luma Dream Machine video generation job.
+// Uses GPT-4o to build a cinematic, optimised prompt before sending to Luma.
 // Returns { generationId, tempBlobUrl? } immediately — client polls /api/video-status/[id].
 
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import LumaAI from "lumaai";
+import OpenAI from "openai";
 import { getTokenStatus, useToken } from "../../lib/tokens";
 import { uploadTempImage } from "../../lib/videoBlob";
 
 export const runtime = "nodejs";
 
 type AspectRatio = "1:1" | "9:16" | "16:9";
+type Mood = "cinematic" | "bright-airy" | "high-energy" | "luxury";
 
 type Body = {
   prompt: string;
   aspectRatio?: AspectRatio;
-  imageBase64?: string; // image-to-video: post page "Animate" flow
+  mood?: Mood;
+  imageBase64?: string;
   brandContext?: {
     niche?: string;
     audience?: string;
@@ -25,22 +29,76 @@ type Body = {
   };
 };
 
-function buildVideoPrompt(prompt: string, brand?: Body["brandContext"]): string {
-  const parts: string[] = [];
+// Niches where a person in frame makes sense
+const PEOPLE_NICHES = [
+  "personal trainer", "fitness coach", "life coach", "business coach",
+  "therapist", "counselor", "speaker", "consultant", "makeup artist",
+  "beauty", "chef", "nutritionist", "yoga instructor", "influencer",
+  "motivational", "wellness coach", "stylist", "photographer",
+];
 
-  if (brand?.niche) parts.push(`Industry: ${brand.niche}.`);
-  if (brand?.audience) parts.push(`Target audience: ${brand.audience}.`);
-  if (brand?.tone) parts.push(`Visual tone: ${brand.tone}.`);
+function shouldIncludePerson(niche?: string): boolean {
+  if (!niche) return false;
+  const n = niche.toLowerCase();
+  return PEOPLE_NICHES.some((keyword) => n.includes(keyword));
+}
 
-  parts.push(prompt.trim());
+const MOOD_INSTRUCTIONS: Record<Mood, string> = {
+  "cinematic":    "dramatic lighting, slow cinematic dolly or pan, shallow depth of field, moody atmosphere, film-like quality",
+  "bright-airy":  "soft natural daylight, clean bright whites, open airy spaces, lifestyle feel, warm and inviting",
+  "high-energy":  "dynamic sweeping camera movement, bold saturated colors, kinetic motion, fast and impactful",
+  "luxury":       "slow elegant reveal, rich warm tones, premium textures and materials, upscale refined aesthetic, quiet drama",
+};
 
-  parts.push(
-    "Short 5-second social media video. Clean, professional, cinematic. " +
-    "Smooth camera motion. No text overlays. No logos. No people speaking to camera. " +
-    "Suitable for Instagram Reels and Facebook."
-  );
+const FORMAT_CONTEXT: Record<AspectRatio, string> = {
+  "9:16":  "vertical 9:16 format optimised for Instagram Reels and TikTok — tall composition, close-in details",
+  "1:1":   "square 1:1 format for Instagram Feed — balanced centered composition",
+  "16:9":  "wide 16:9 cinematic format for Facebook and YouTube — sweeping wide shots, landscape framing",
+};
 
-  return parts.join(" ");
+async function buildVideoPromptWithGPT(
+  userTopic: string,
+  brand: Body["brandContext"] | undefined,
+  aspectRatio: AspectRatio,
+  mood: Mood
+): Promise<string> {
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+
+  const usePerson = shouldIncludePerson(brand?.niche);
+  const moodGuide = MOOD_INSTRUCTIONS[mood];
+  const formatGuide = FORMAT_CONTEXT[aspectRatio];
+
+  const systemPrompt = `You are an expert cinematographer writing video generation prompts for an AI video model called Luma Dream Machine.
+
+Your job is to take a basic user topic and transform it into a vivid, specific, cinematic 2-3 sentence prompt that will produce a beautiful 5-second social media video.
+
+Rules:
+- Describe WHAT IS SEEN visually — camera angle, movement, lighting, colors, textures, mood
+- Be specific and visual. Never use abstract business language
+- NO text overlays, NO logos, NO captions, NO watermarks
+- NO people speaking directly to camera
+- Avoid close-ups of faces (Luma distorts them) — use wide, medium, or detail shots instead
+${usePerson ? "- A person may appear in the scene naturally (not looking at camera)" : "- Focus on environments, spaces, objects, and details — NO people"}
+- The video is ${formatGuide}
+- Visual mood: ${moodGuide}
+- Keep the prompt under 120 words
+- Return ONLY the prompt text, nothing else`;
+
+  const userMessage = `Topic: "${userTopic}"
+${brand?.niche ? `Industry: ${brand.niche}` : ""}
+${brand?.audience ? `Audience: ${brand.audience}` : ""}`;
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userMessage },
+    ],
+    max_tokens: 200,
+    temperature: 0.8,
+  });
+
+  return response.choices[0]?.message?.content?.trim() ?? userTopic;
 }
 
 export async function POST(req: Request) {
@@ -50,7 +108,7 @@ export async function POST(req: Request) {
   }
 
   const body = (await req.json()) as Body;
-  const { prompt, aspectRatio = "9:16", imageBase64, brandContext } = body;
+  const { prompt, aspectRatio = "9:16", mood = "cinematic", imageBase64, brandContext } = body;
 
   if (!prompt?.trim()) {
     return NextResponse.json({ error: "prompt is required" }, { status: 400 });
@@ -69,8 +127,10 @@ export async function POST(req: Request) {
   await useToken(userId);
   await useToken(userId);
 
+  // Build an optimised cinematic prompt with GPT-4o
+  const enrichedPrompt = await buildVideoPromptWithGPT(prompt, brandContext, aspectRatio, mood);
+
   const luma = new LumaAI({ authToken: process.env.LUMA_API_KEY! });
-  const enrichedPrompt = buildVideoPrompt(prompt, brandContext);
 
   let tempBlobUrl: string | undefined;
 
@@ -93,6 +153,7 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     generationId: generation.id,
+    enrichedPrompt, // return it so UI can optionally display it
     tempBlobUrl: tempBlobUrl ?? null,
   });
 }
