@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
+    "preview": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -15,6 +16,8 @@
     "@capacitor/ios": "^8.1.0",
     "@clerk/nextjs": "^6.37.2",
     "@neondatabase/serverless": "^1.0.2",
+    "@vercel/blob": "^2.3.2",
+    "lumaai": "^1.19.1",
     "next": "16.1.2",
     "openai": "^6.16.0",
     "react": "19.2.3",

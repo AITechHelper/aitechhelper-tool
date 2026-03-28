@@ -121,3 +121,11 @@ CREATE INDEX IF NOT EXISTS idx_media_assets_user_id ON media_assets(user_id);
 -- ALTER TABLE brand_profiles ADD COLUMN IF NOT EXISTS logo_base64 TEXT DEFAULT NULL;
 -- ALTER TABLE brand_profiles ADD COLUMN IF NOT EXISTS website TEXT NOT NULL DEFAULT '';
 -- ALTER TABLE brand_profiles ADD COLUMN IF NOT EXISTS phone TEXT NOT NULL DEFAULT '';
+
+-- Migration: add video support to media_assets
+-- Run these ALTER TABLE statements in your Neon console to upgrade an existing database:
+--
+-- ALTER TABLE media_assets ALTER COLUMN image_base64 DROP NOT NULL;
+-- ALTER TABLE media_assets ADD COLUMN IF NOT EXISTS asset_type TEXT NOT NULL DEFAULT 'image';
+-- ALTER TABLE media_assets ADD COLUMN IF NOT EXISTS video_url TEXT;
+-- ALTER TABLE media_assets ADD COLUMN IF NOT EXISTS aspect_ratio TEXT;

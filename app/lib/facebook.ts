@@ -71,6 +71,35 @@ export async function removeFacebookPage(
   `;
 }
 
+// Publish a video to a Facebook Page
+// videoUrl must be a publicly accessible HTTPS URL (e.g. Vercel Blob URL).
+export async function publishVideoToFacebook(
+  pageAccessToken: string,
+  pageId: string,
+  videoUrl: string,
+  description: string
+): Promise<{ id: string }> {
+  const res = await fetch(
+    `https://graph.facebook.com/v21.0/${pageId}/videos`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        file_url: videoUrl,
+        description,
+        access_token: pageAccessToken,
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Failed to publish video to Facebook: ${err}`);
+  }
+
+  return res.json();
+}
+
 // Publish a photo post to a Facebook Page
 export async function publishToFacebook(
   pageAccessToken: string,

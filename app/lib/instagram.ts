@@ -131,6 +131,77 @@ async function getPublishableUserId(
   return instagramUserId;
 }
 
+// Publish a Reel (video) to Instagram (3-step: create container, wait, publish)
+// videoUrl must be a publicly accessible HTTPS URL (e.g. Vercel Blob URL).
+// Video must be 9:16 aspect ratio for Reels. MP4 format.
+export async function publishReelToInstagram(
+  accessToken: string,
+  instagramUserId: string,
+  videoUrl: string,
+  caption: string
+): Promise<{ id: string }> {
+  const publishUserId = await getPublishableUserId(accessToken, instagramUserId);
+
+  // Step 1: Create Reels media container
+  const containerRes = await fetch(
+    `https://graph.instagram.com/v21.0/${publishUserId}/media`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        media_type: "REELS",
+        video_url: videoUrl,
+        caption,
+        access_token: accessToken,
+      }),
+    }
+  );
+
+  if (!containerRes.ok) {
+    const err = await containerRes.text();
+    throw new Error(`Failed to create Reels container: ${err}`);
+  }
+
+  const container = await containerRes.json();
+  const containerId = container.id;
+
+  // Step 2: Poll until Instagram finishes processing the video (takes longer than images)
+  const maxAttempts = 24; // 24 × 5s = 2 min
+  for (let i = 0; i < maxAttempts; i++) {
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    const statusRes = await fetch(
+      `https://graph.instagram.com/v21.0/${containerId}?fields=status_code&access_token=${accessToken}`
+    );
+    if (statusRes.ok) {
+      const statusData = await statusRes.json();
+      if (statusData.status_code === "FINISHED") break;
+      if (statusData.status_code === "ERROR") {
+        throw new Error("Instagram Reel processing failed");
+      }
+    }
+  }
+
+  // Step 3: Publish the container
+  const publishRes = await fetch(
+    `https://graph.instagram.com/v21.0/${publishUserId}/media_publish`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        creation_id: containerId,
+        access_token: accessToken,
+      }),
+    }
+  );
+
+  if (!publishRes.ok) {
+    const err = await publishRes.text();
+    throw new Error(`Failed to publish Reel: ${err}`);
+  }
+
+  return publishRes.json();
+}
+
 // Publish a photo to Instagram (2-step: create container, then publish)
 export async function publishToInstagram(
   accessToken: string,

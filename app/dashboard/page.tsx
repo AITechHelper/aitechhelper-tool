@@ -1837,6 +1837,63 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            {/* Generate a Branded Video Card — full width below the two cards */}
+            <div
+              style={{
+                ...styles.actionCard,
+                background: "linear-gradient(135deg, #065f46 0%, #047857 50%, #059669 100%)",
+                padding: 0,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column" as const,
+                gridColumn: "1 / -1",
+              }}
+              className="primary-action-card hover-card"
+              onClick={() => {
+                setNavLoading("video");
+                router.push("/generate-video");
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", padding: "22px 28px", gap: 24 }}>
+                {/* Icon */}
+                <div className="ath-card-icon" style={{ fontSize: 44, flexShrink: 0 }}>🎬</div>
+
+                {/* Text */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="ath-card-title" style={{ fontSize: 20, fontWeight: 700, marginBottom: 3 }}>
+                    Generate a Branded Video
+                  </div>
+                  <div className="ath-card-subtitle" style={{ fontSize: 13, opacity: 0.85, marginBottom: 10 }}>
+                    A short branded clip, ready to post — powered by Luma Dream Machine
+                  </div>
+                  <div className="ath-card-body" style={{ display: "flex", gap: 20, flexWrap: "wrap" as const }}>
+                    {["5 seconds, AI-generated", "Post to Instagram Reels & Facebook", "Pick your format (9:16, 1:1, 16:9)"].map((line) => (
+                      <div key={line} style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#6ee7b7", flexShrink: 0 }} />
+                        <span style={{ fontSize: 13, fontWeight: 600 }}>{line}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* CTA */}
+                <div
+                  style={{
+                    flexShrink: 0,
+                    background: "#10b981",
+                    borderRadius: 10,
+                    padding: "12px 20px",
+                    fontWeight: 700,
+                    fontSize: 14,
+                    whiteSpace: "nowrap" as const,
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  {navLoading === "video" ? "Loading…" : "Create a Video →"}
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
