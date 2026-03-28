@@ -109,6 +109,7 @@ Rules:
 - NO text, logos, captions, watermarks
 - NO fire, flames, candles, or flickering light sources
 - NO complex backgrounds packed with many objects
+- Camera angle MUST be at natural eye level or slightly low — NEVER overhead, bird's eye, top-down, or looking down at a surface
 ${usePerson ? "- Include one person naturally in the scene — wide or medium shot, not looking at camera, natural relaxed pose" : "- No people — focus on the environment, space, or object only"}
 - Format: ${formatGuide}
 - Mood: ${moodGuide}
