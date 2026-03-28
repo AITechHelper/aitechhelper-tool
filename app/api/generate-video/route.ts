@@ -86,7 +86,7 @@ Rules:
 - Pick ONE specific moment or setting and describe it precisely
 - ONE camera move only (slow pan, gentle dolly, subtle push-in)
 - ONE lighting condition (e.g. warm afternoon light, overcast morning, soft studio light)
-- 2-3 short sentences maximum — under 80 words
+- 2-3 sentences — describe each element with rich, specific detail
 - No lists. No "and then". No scene changes.
 - NO text, logos, captions, watermarks
 - NO fire, flames, candles, or any light sources that flicker
