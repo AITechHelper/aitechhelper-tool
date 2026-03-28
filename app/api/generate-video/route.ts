@@ -94,33 +94,32 @@ async function buildVideoPrompt(
     ? `Brand color palette: primary ${brand.primaryColor}${brand.secondaryColor ? `, secondary ${brand.secondaryColor}` : ""}. Where natural, let the scene reflect these tones in surfaces, light, or environment — do not force them.`
     : "";
 
-  const systemPrompt = `You are a cinematographer writing prompts for Luma Dream Machine, an AI video model that generates 5-second clips.
+  const systemPrompt = `You are writing a precise scene description for Luma Dream Machine, an AI video model that generates 5-second clips.
 
-Luma works best with a single focused scene. Write a prompt covering exactly these elements — ONE of each — described with rich, specific detail:
-1. Scene: one specific space or moment
-2. Camera: one movement (slow pan, gentle dolly, subtle push-in, aerial glide, handheld drift)
-3. Lighting: one condition (time of day, quality of light, direction, color temperature)
-4. Surface & texture: what materials are visible — floors, walls, fabrics, metals
-5. Color palette: dominant hues in the frame
-6. Subject motion: subtle movement within the scene (a door ajar, steam rising, fabric shifting, leaves moving)
+Your job is to eliminate all ambiguity. Luma will render EXACTLY what you describe — if you don't specify it, Luma will invent it, and it will be wrong.
 
-Rules:
-- 2-4 sentences. No lists. No "and then". No scene changes.
-- NO text, logos, captions, watermarks
-- NO fire, flames, candles, or flickering light sources
-- NO complex backgrounds packed with many objects
-- Camera angle MUST be at natural eye level or slightly low — NEVER overhead, bird's eye, top-down, or looking down at a surface
-- Camera is always an external observer — NEVER first-person, POV, or from the perspective of any person in the scene
-${usePerson ? "- Include one person naturally in the scene — wide or medium shot, not looking at camera, natural relaxed pose" : "- No people — focus on the environment, space, or object only"}
+Structure your prompt in this order:
+1. ENVIRONMENT: exact room or location (e.g. "a modern home office with a white desk", "a bright open-plan office", "a clean kitchen counter") — be specific, not generic
+2. OBJECTS: every key prop that must appear (e.g. "a open laptop showing a dashboard", "a coffee mug", "printed floor plans on the desk") — name them explicitly
+3. PEOPLE & ACTION: ${usePerson ? "exactly what each person is doing with their body and hands (e.g. 'a man in a blazer seated at the desk, pointing at the laptop screen while a second person leans in to look') — no vague 'standing' or 'walking', specify the exact interaction" : "no people — describe only the objects and environment in detail"}
+4. CAMERA: one specific shot (medium shot, close-up on hands, slow push toward the screen) — eye level only, external observer, never POV or overhead
+5. MOOD in one phrase only: ${moodGuide}
+
+Hard rules:
+- 3-5 sentences. No lists. No scene changes. No "and then".
+- NO text, logos, captions, watermarks on screen
+- NO fire, flames, candles, flickering light
+- NO overhead, bird's eye, top-down, or POV camera angles
+- Camera is ALWAYS an external observer, never from a character's point of view
 - Format: ${formatGuide}
-- Mood: ${moodGuide}
 ${colorHint}
-- Return ONLY the prompt text. No explanation, no preamble.`;
+- Return ONLY the prompt. No explanation, no preamble.`;
 
   const userMessage = [
     `Topic: "${userTopic}"`,
-    brand?.niche    ? `Industry: ${brand.niche}`    : "",
-    brand?.audience ? `Audience: ${brand.audience}` : "",
+    brand?.niche    ? `Business type: ${brand.niche}`    : "",
+    brand?.audience ? `Target audience: ${brand.audience}` : "",
+    `Describe the exact scene that visually represents this topic. Be specific about what objects are on screen, what the person is doing with their hands, and the exact setting. Do not leave anything open to interpretation.`,
   ].filter(Boolean).join("\n");
 
   const res = await openai.chat.completions.create({
