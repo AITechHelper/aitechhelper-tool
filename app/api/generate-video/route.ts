@@ -35,12 +35,22 @@ const PEOPLE_NICHES = [
   "therapist", "counselor", "speaker", "consultant", "makeup artist",
   "beauty", "chef", "nutritionist", "yoga instructor", "influencer",
   "motivational", "wellness coach", "stylist", "photographer",
+  "real estate", "realtor", "broker", "agent",
 ];
 
-function shouldIncludePerson(niche?: string): boolean {
-  if (!niche) return false;
-  const n = niche.toLowerCase();
-  return PEOPLE_NICHES.some((keyword) => n.includes(keyword));
+// Words in the user's own prompt that signal they want a person visible
+const PEOPLE_PROMPT_KEYWORDS = [
+  "agent", "person", "man", "woman", "couple", "people", "professional",
+  "trainer", "coach", "chef", "realtor", "broker", "doctor", "worker",
+  "employee", "customer", "client", "team", "staff", "owner", "showing",
+];
+
+function shouldIncludePerson(niche?: string, userTopic?: string): boolean {
+  const n = (niche ?? "").toLowerCase();
+  const t = (userTopic ?? "").toLowerCase();
+  const nicheMatch  = PEOPLE_NICHES.some((kw) => n.includes(kw));
+  const topicMatch  = PEOPLE_PROMPT_KEYWORDS.some((kw) => t.includes(kw));
+  return nicheMatch || topicMatch;
 }
 
 const MOOD_INSTRUCTIONS: Record<Mood, string> = {
@@ -64,7 +74,7 @@ async function buildVideoPromptWithGPT(
 ): Promise<string> {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
-  const usePerson = shouldIncludePerson(brand?.niche);
+  const usePerson = shouldIncludePerson(brand?.niche, userTopic);
   const moodGuide = MOOD_INSTRUCTIONS[mood];
   const formatGuide = FORMAT_CONTEXT[aspectRatio];
 
@@ -77,8 +87,10 @@ Rules:
 - Be specific and visual. Never use abstract business language
 - NO text overlays, NO logos, NO captions, NO watermarks
 - NO people speaking directly to camera
-- Avoid close-ups of faces (Luma distorts them) — use wide, medium, or detail shots instead
-${usePerson ? "- A person may appear in the scene naturally (not looking at camera)" : "- Focus on environments, spaces, objects, and details — NO people"}
+- Avoid close-ups of faces (Luma distorts them) — use wide or medium shots, show people from behind or at an angle
+- NEVER suggest fire, flames, candles, or fireplaces — Luma renders these incorrectly and dangerously
+- NEVER suggest fast-moving crowds or complex human interactions — keep people simple and natural
+${usePerson ? "- Include a person naturally in the scene (not looking at camera, wide or medium shot)" : "- Focus on environments, spaces, objects, and details — NO people"}
 - The video is ${formatGuide}
 - Visual mood: ${moodGuide}
 - Keep the prompt under 120 words
