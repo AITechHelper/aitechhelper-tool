@@ -49,13 +49,9 @@ const PEOPLE_PROMPT_KEYWORDS = [
   "employee", "customer", "client", "team", "staff", "owner", "showing",
 ];
 
-function shouldIncludePerson(niche?: string, userTopic?: string): boolean {
-  const n = (niche ?? "").toLowerCase();
+function shouldIncludePerson(userTopic?: string): boolean {
   const t = (userTopic ?? "").toLowerCase();
-  return (
-    PEOPLE_NICHES.some((kw) => n.includes(kw)) ||
-    PEOPLE_PROMPT_KEYWORDS.some((kw) => t.includes(kw))
-  );
+  return PEOPLE_PROMPT_KEYWORDS.some((kw) => t.includes(kw));
 }
 
 const MOOD_INSTRUCTIONS: Record<Mood, string> = {
@@ -86,7 +82,7 @@ async function buildVideoPrompt(
   aspectRatio: AspectRatio,
   mood: Mood,
 ): Promise<string> {
-  const usePerson   = shouldIncludePerson(brand?.niche, userTopic);
+  const usePerson   = shouldIncludePerson(userTopic);
   const moodGuide   = MOOD_INSTRUCTIONS[mood];
   const formatGuide = FORMAT_CONTEXT[aspectRatio];
 
@@ -109,10 +105,11 @@ Hard rules:
 - 3-5 sentences. No lists. No scene changes. No "and then".
 - NO text, logos, captions, watermarks on screen
 - NO fire, flames, candles, flickering light
-- NO overhead, bird's eye, top-down, or POV camera angles
-- Camera is ALWAYS an external observer, never from a character's point of view
-- NEVER shoot subjects from behind or in silhouette — faces or profiles must be visible, subjects must be front-lit or side-lit
-- NO backlit subjects — light must come from the front or side, not from behind the subject
+- Camera height MUST be between 4 and 6 feet off the ground — eye level of a standing adult. NEVER above 6 feet. NEVER angled downward more than 5 degrees.
+- ABSOLUTELY NO overhead, bird's eye, top-down, drone, high-angle, or downward-looking shots of any kind
+- Camera is ALWAYS an external observer — never POV, never from a character's perspective
+- NEVER shoot subjects from behind or in silhouette — faces or profiles must be clearly visible
+- NO backlit subjects — light source must be in front of or beside the subject, never behind them
 - Format: ${formatGuide}
 ${colorHint}
 - Return ONLY the prompt. No explanation, no preamble.`;
