@@ -111,6 +111,8 @@ Hard rules:
 - NO fire, flames, candles, flickering light
 - NO overhead, bird's eye, top-down, or POV camera angles
 - Camera is ALWAYS an external observer, never from a character's point of view
+- NEVER shoot subjects from behind or in silhouette — faces or profiles must be visible, subjects must be front-lit or side-lit
+- NO backlit subjects — light must come from the front or side, not from behind the subject
 - Format: ${formatGuide}
 ${colorHint}
 - Return ONLY the prompt. No explanation, no preamble.`;

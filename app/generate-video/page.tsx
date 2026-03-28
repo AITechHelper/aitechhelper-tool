@@ -608,8 +608,18 @@ export default function GenerateVideoPage() {
         {/* ── Completed ── */}
         {videoState === "completed" && videoUrl && (
           <div>
-            <div style={{ background: "#101a33", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, overflow: "hidden", marginBottom: 16 }}>
-              <video src={videoUrl} autoPlay loop muted playsInline controls style={{ width: "100%", display: "block", maxHeight: aspectRatio === "16:9" ? 420 : 600 }} />
+            <div style={{ background: "#101a33", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, overflow: "hidden", marginBottom: 16, display: "flex", justifyContent: "center" }}>
+              <video
+                src={videoUrl}
+                autoPlay loop muted playsInline controls
+                style={{
+                  display: "block",
+                  width: aspectRatio === "16:9" ? "100%" : "auto",
+                  maxWidth: "100%",
+                  maxHeight: aspectRatio === "16:9" ? 420 : aspectRatio === "1:1" ? 520 : 640,
+                  objectFit: "contain",
+                }}
+              />
             </div>
 
             {enrichedPrompt && (
