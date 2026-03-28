@@ -1725,7 +1725,7 @@ export default function DashboardPage() {
               >
                 <img className="ath-card-icon" src="/logo-icon.png" alt="AI Social Helper" style={{ width: 64, height: 64, marginBottom: 8, objectFit: "contain", display: "block", margin: "0 auto 8px" }} />
                 <div className="ath-card-title" style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
-                  Generate a Post
+                  New Post
                 </div>
                 <div className="ath-card-subtitle" style={{ fontSize: 13, opacity: 0.85 }}>
                   One post, done in seconds
@@ -1762,16 +1762,16 @@ export default function DashboardPage() {
                     transition: "all 0.15s ease",
                   }}
                 >
-                  {navLoading === "generator" ? "Loading…" : "Create a Post →"}
+                  {navLoading === "generator" ? "Loading…" : "New Post →"}
                 </div>
               </div>
             </div>
 
-            {/* Plan Your Month Card */}
+            {/* Generate a Branded Video Card */}
             <div
               style={{
                 ...styles.actionCard,
-                background: "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
+                background: "linear-gradient(135deg, #065f46 0%, #047857 50%, #059669 100%)",
                 padding: 0,
                 overflow: "hidden",
                 display: "flex",
@@ -1779,10 +1779,8 @@ export default function DashboardPage() {
               }}
               className="primary-action-card hover-card"
               onClick={() => {
-                if (!tokenBalance.isLoading && tokenBalance.tokensRemaining === 0) { router.push("/subscribe"); return; }
-                setNavLoading("calendar");
-                const activeProfile = profiles.find(p => p.id === activeProfileId);
-                router.push(getNicheCalendarPath(activeProfile?.niche ?? ""));
+                setNavLoading("video");
+                router.push("/generate-video");
               }}
             >
               {/* Card Header */}
@@ -1793,12 +1791,12 @@ export default function DashboardPage() {
                   textAlign: "center" as const,
                 }}
               >
-                <div className="ath-card-icon" style={{ fontSize: 48, marginBottom: 8 }}>📅</div>
+                <div className="ath-card-icon" style={{ fontSize: 48, marginBottom: 8 }}>🎬</div>
                 <div className="ath-card-title" style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
-                  Calendar
+                  New Video
                 </div>
                 <div className="ath-card-subtitle" style={{ fontSize: 13, opacity: 0.85 }}>
-                  Your full month, planned for you
+                  A short branded clip, ready to post
                 </div>
               </div>
 
@@ -1813,9 +1811,9 @@ export default function DashboardPage() {
                 }}
               >
                 <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, flex: 1, marginBottom: 20, textAlign: "left" as const }}>
-                  {["Your whole month, planned automatically.", "Every weekday has its own post type.", "Click any day. Generate that post."].map((line) => (
+                  {["5 seconds, AI-generated.", "Post to Instagram Reels & Facebook.", "Pick your format (9:16, 1:1, 16:9)."].map((line) => (
                     <div key={line} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#9d6af5", flexShrink: 0, marginTop: 5 }} />
+                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#6ee7b7", flexShrink: 0, marginTop: 5 }} />
                       <span style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5 }}>{line}</span>
                     </div>
                   ))}
@@ -1823,7 +1821,7 @@ export default function DashboardPage() {
                 <div
                   style={{
                     marginTop: "auto",
-                    background: "#7c3aed",
+                    background: "#10b981",
                     borderRadius: 10,
                     padding: "14px 20px",
                     textAlign: "center" as const,
@@ -1832,16 +1830,16 @@ export default function DashboardPage() {
                     transition: "all 0.15s ease",
                   }}
                 >
-                  {navLoading === "calendar" ? "Loading…" : "Open Calendar →"}
+                  {navLoading === "video" ? "Loading…" : "New Video →"}
                 </div>
               </div>
             </div>
 
-            {/* Generate a Branded Video Card — full width below the two cards */}
+            {/* Plan Your Month Card — full width at the bottom */}
             <div
               style={{
                 ...styles.actionCard,
-                background: "linear-gradient(135deg, #065f46 0%, #047857 50%, #059669 100%)",
+                background: "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
                 padding: 0,
                 overflow: "hidden",
                 display: "flex",
@@ -1850,26 +1848,28 @@ export default function DashboardPage() {
               }}
               className="primary-action-card hover-card"
               onClick={() => {
-                setNavLoading("video");
-                router.push("/generate-video");
+                if (!tokenBalance.isLoading && tokenBalance.tokensRemaining === 0) { router.push("/subscribe"); return; }
+                setNavLoading("calendar");
+                const activeProfile = profiles.find(p => p.id === activeProfileId);
+                router.push(getNicheCalendarPath(activeProfile?.niche ?? ""));
               }}
             >
               <div style={{ display: "flex", alignItems: "center", padding: "22px 28px", gap: 24 }}>
                 {/* Icon */}
-                <div className="ath-card-icon" style={{ fontSize: 44, flexShrink: 0 }}>🎬</div>
+                <div className="ath-card-icon" style={{ fontSize: 44, flexShrink: 0 }}>📅</div>
 
                 {/* Text */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="ath-card-title" style={{ fontSize: 20, fontWeight: 700, marginBottom: 3 }}>
-                    Generate a Branded Video
+                    Content Calendar
                   </div>
                   <div className="ath-card-subtitle" style={{ fontSize: 13, opacity: 0.85, marginBottom: 10 }}>
-                    A short branded clip, ready to post — powered by Luma Dream Machine
+                    Your full month, planned for you
                   </div>
                   <div className="ath-card-body" style={{ display: "flex", gap: 20, flexWrap: "wrap" as const }}>
-                    {["5 seconds, AI-generated", "Post to Instagram Reels & Facebook", "Pick your format (9:16, 1:1, 16:9)"].map((line) => (
+                    {["Your whole month, planned automatically.", "Every weekday has its own post type.", "Click any day. Generate that post."].map((line) => (
                       <div key={line} style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#6ee7b7", flexShrink: 0 }} />
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#9d6af5", flexShrink: 0 }} />
                         <span style={{ fontSize: 13, fontWeight: 600 }}>{line}</span>
                       </div>
                     ))}
@@ -1880,7 +1880,7 @@ export default function DashboardPage() {
                 <div
                   style={{
                     flexShrink: 0,
-                    background: "#10b981",
+                    background: "#7c3aed",
                     borderRadius: 10,
                     padding: "12px 20px",
                     fontWeight: 700,
@@ -1889,7 +1889,7 @@ export default function DashboardPage() {
                     transition: "all 0.15s ease",
                   }}
                 >
-                  {navLoading === "video" ? "Loading…" : "Create a Video →"}
+                  {navLoading === "calendar" ? "Loading…" : "Open Content Calendar →"}
                 </div>
               </div>
             </div>
