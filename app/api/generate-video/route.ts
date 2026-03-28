@@ -94,11 +94,11 @@ async function buildVideoPrompt(
 
 Your job is to eliminate all ambiguity. Luma will render EXACTLY what you describe — if you don't specify it, Luma will invent it, and it will be wrong.
 
-Structure your prompt in this order:
-1. ENVIRONMENT: exact room or location (e.g. "a modern home office with a white desk", "a bright open-plan office", "a clean kitchen counter") — be specific, not generic
-2. OBJECTS: every key prop that must appear (e.g. "a open laptop showing a dashboard", "a coffee mug", "printed floor plans on the desk") — name them explicitly
-3. PEOPLE & ACTION: ${usePerson ? "exactly what each person is doing with their body and hands (e.g. 'a man in a blazer seated at the desk, pointing at the laptop screen while a second person leans in to look') — no vague 'standing' or 'walking', specify the exact interaction" : "no people — describe only the objects and environment in detail"}
-4. CAMERA: one specific shot (medium shot, close-up on hands, slow push toward the screen) — eye level only, external observer, never POV or overhead
+Structure your prompt in this EXACT order:
+1. CAMERA FIRST — open with the exact camera position and shot type. Use this format: "Straight-on [shot type] at standing eye level, camera facing directly forward, [movement]." For example: "Straight-on medium shot at standing eye level, camera facing directly forward, slow gentle push-in." This MUST be the very first sentence.
+2. ENVIRONMENT: exact room or location — be specific, not generic
+3. OBJECTS: every key prop that must appear — name them explicitly
+4. PEOPLE & ACTION: ${usePerson ? "exactly what each person is doing with their body and hands — no vague 'standing' or 'walking', specify the exact interaction" : "no people in the scene"}
 5. MOOD in one phrase only: ${moodGuide}
 
 Hard rules:
