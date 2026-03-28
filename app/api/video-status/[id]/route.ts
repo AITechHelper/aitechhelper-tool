@@ -11,14 +11,14 @@ export const runtime = "nodejs";
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { id } = params;
+  const { id } = await params;
   const url = new URL(req.url);
   const tempBlobUrl = url.searchParams.get("tempBlobUrl") ?? undefined;
 
