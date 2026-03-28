@@ -1866,11 +1866,11 @@ export default function DashboardPage() {
                   <div className="ath-card-subtitle" style={{ fontSize: 13, opacity: 0.85, marginBottom: 10 }}>
                     Your full month, planned for you
                   </div>
-                  <div className="ath-card-body" style={{ display: "flex", gap: 20, flexWrap: "wrap" as const }}>
+                  <div className="ath-card-body" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
                     {["Your whole month, planned automatically.", "Every weekday has its own post type.", "Click any day. Generate that post."].map((line) => (
-                      <div key={line} style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#9d6af5", flexShrink: 0 }} />
-                        <span style={{ fontSize: 13, fontWeight: 600 }}>{line}</span>
+                      <div key={line} style={{ display: "flex", alignItems: "flex-start", gap: 7 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#9d6af5", flexShrink: 0, marginTop: 4 }} />
+                        <span style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.4 }}>{line}</span>
                       </div>
                     ))}
                   </div>
