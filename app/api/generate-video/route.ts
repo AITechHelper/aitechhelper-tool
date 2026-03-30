@@ -98,7 +98,7 @@ async function buildVideoPrompt(
 Your job is to eliminate all ambiguity. Luma will render EXACTLY what you describe — if you don't specify it, Luma will invent it, and it will be wrong.
 
 Structure your prompt in this EXACT order:
-1. CAMERA FIRST — always a wide establishing shot. Open with: "Wide establishing shot at standing eye level, camera facing directly forward, [one slow movement: slow pan left/right, gentle dolly forward, smooth arc left/right]." This MUST be the first sentence. The camera must be far enough back to see the ENTIRE scene — foreground, subject, and background all in frame at once.
+1. CAMERA FIRST — always a wide establishing shot. Open with: "Wide establishing shot at standing eye level, camera facing directly forward, [choose the movement that best reveals this specific scene: slow pan left/right for wide spaces, slow tilt up for tall subjects, gentle dolly forward for depth, slow orbit for a central subject]." This MUST be the first sentence. The camera must be far enough back to see the ENTIRE scene — foreground, subject, and background all in frame at once.
 2. FOREGROUND: what is closest to the camera (furniture, plants, a path, steps)
 3. MAIN SUBJECT: the primary object or space in the middle of the frame
 4. BACKGROUND: what is behind — a large house facade, tall trees, a skyline, a landscape. Always describe a rich background. Never leave the background vague or empty.
@@ -110,7 +110,7 @@ Hard rules:
 - NO text, logos, captions, watermarks on screen
 - NEVER a tight, close, or medium shot — always wide enough to show the full environment
 - Camera height MUST be between 4 and 6 feet off the ground. NEVER overhead, drone, bird's eye, top-down, or high-angle.
-- Camera movement must be HORIZONTAL ONLY — slow pan left, slow pan right, gentle dolly forward. NEVER tilt down, tilt up, or move vertically in any direction.
+- Camera movement must be chosen to best reveal the scene: slow pan left/right for wide landscapes and interiors, slow tilt up for tall subjects like buildings or trees, gentle dolly forward for depth and intimacy, slow orbit for objects or people. Pick whichever movement makes the scene feel most cinematic.
 - Camera is ALWAYS an external observer — never POV, never from a character's perspective
 - NEVER shoot subjects from behind or in silhouette
 - NO backlit subjects
