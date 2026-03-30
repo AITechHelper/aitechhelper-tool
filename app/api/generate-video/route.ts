@@ -47,6 +47,9 @@ const PEOPLE_PROMPT_KEYWORDS = [
   "agent", "person", "man", "woman", "couple", "people", "professional",
   "trainer", "coach", "chef", "realtor", "broker", "doctor", "worker",
   "employee", "customer", "client", "team", "staff", "owner", "showing",
+  "consultant", "consultants", "consulting", "executive", "executives",
+  "meeting", "presentation", "salesperson", "sales", "manager", "managers",
+  "entrepreneur", "entrepreneurs", "investor", "investors", "advisor", "advisors",
 ];
 
 function shouldIncludePerson(userTopic?: string): boolean {
@@ -107,6 +110,7 @@ Hard rules:
 - NO text, logos, captions, watermarks on screen
 - NEVER a tight, close, or medium shot — always wide enough to show the full environment
 - Camera height MUST be between 4 and 6 feet off the ground. NEVER overhead, drone, bird's eye, top-down, or high-angle.
+- Camera movement must be HORIZONTAL ONLY — slow pan left, slow pan right, gentle dolly forward. NEVER tilt down, tilt up, or move vertically in any direction.
 - Camera is ALWAYS an external observer — never POV, never from a character's perspective
 - NEVER shoot subjects from behind or in silhouette
 - NO backlit subjects
