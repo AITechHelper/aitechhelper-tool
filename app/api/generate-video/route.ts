@@ -55,16 +55,16 @@ function shouldIncludePerson(userTopic?: string): boolean {
 }
 
 const MOOD_INSTRUCTIONS: Record<Mood, string> = {
-  "cinematic":    "dramatic lighting, slow cinematic dolly or pan, shallow depth of field, moody atmosphere, film-like quality",
-  "bright-airy":  "soft natural daylight, clean bright whites, open airy spaces, lifestyle feel, warm and inviting",
-  "high-energy":  "dynamic sweeping camera movement, bold saturated colors, kinetic motion, fast and impactful",
-  "luxury":       "slow elegant reveal, rich warm tones, premium textures and materials, upscale refined aesthetic, quiet drama",
+  "cinematic":    "shallow depth of field, rich color grading, film-like quality, dramatic contrast between foreground and background",
+  "bright-airy":  "soft natural daylight, clean bright tones, warm and inviting, lifestyle feel",
+  "high-energy":  "bold saturated colors, kinetic energy, high contrast, fast and impactful",
+  "luxury":       "rich warm tones, premium textures and materials, upscale refined aesthetic, quiet drama",
 };
 
 const FORMAT_CONTEXT: Record<AspectRatio, string> = {
-  "9:16":  "vertical 9:16 format for Instagram Reels and TikTok — tall composition, close-in details",
-  "1:1":   "square 1:1 format for Instagram Feed — balanced centered composition",
-  "16:9":  "wide 16:9 cinematic format for Facebook and YouTube — sweeping wide shots, landscape framing",
+  "9:16":  "vertical 9:16 format — use a wide establishing shot that captures the full scene top-to-bottom: foreground elements, the main subject in the middle, and background architecture or landscape filling the upper portion",
+  "1:1":   "square 1:1 format — wide balanced composition showing the full scene with foreground, subject, and background all visible",
+  "16:9":  "wide 16:9 cinematic format — sweeping wide shot showing the entire environment with depth from foreground to background",
 };
 
 function captionMaxChars(len?: "Short" | "Medium" | "Long") {
@@ -95,21 +95,21 @@ async function buildVideoPrompt(
 Your job is to eliminate all ambiguity. Luma will render EXACTLY what you describe — if you don't specify it, Luma will invent it, and it will be wrong.
 
 Structure your prompt in this EXACT order:
-1. CAMERA FIRST — open with the exact camera position and shot type. Use this format: "Straight-on [shot type] at standing eye level, camera facing directly forward, [movement]." For example: "Straight-on medium shot at standing eye level, camera facing directly forward, slow gentle push-in." This MUST be the very first sentence.
-2. ENVIRONMENT: exact room or location — be specific, not generic
-3. OBJECTS: every key prop that must appear — name them explicitly
-4. PEOPLE & ACTION: ${usePerson ? "exactly what each person is doing with their body and hands — no vague 'standing' or 'walking', specify the exact interaction" : "no people in the scene"}
-5. MOOD in one phrase only: ${moodGuide}
+1. CAMERA FIRST — always a wide establishing shot. Open with: "Wide establishing shot at standing eye level, camera facing directly forward, [one slow movement: slow pan left/right, gentle dolly forward, smooth arc left/right]." This MUST be the first sentence. The camera must be far enough back to see the ENTIRE scene — foreground, subject, and background all in frame at once.
+2. FOREGROUND: what is closest to the camera (furniture, plants, a path, steps)
+3. MAIN SUBJECT: the primary object or space in the middle of the frame
+4. BACKGROUND: what is behind — a large house facade, tall trees, a skyline, a landscape. Always describe a rich background. Never leave the background vague or empty.
+5. PEOPLE & ACTION: ${usePerson ? "exactly what each person is doing with their body and hands — no vague 'standing' or 'walking', specify the exact interaction" : "no people in the scene"}
+6. MOOD in one phrase only: ${moodGuide}
 
 Hard rules:
 - 3-5 sentences. No lists. No scene changes. No "and then".
 - NO text, logos, captions, watermarks on screen
-- NO fire, flames, candles, flickering light
-- Camera height MUST be between 4 and 6 feet off the ground — eye level of a standing adult. NEVER above 6 feet. NEVER angled downward more than 5 degrees.
-- ABSOLUTELY NO overhead, bird's eye, top-down, drone, high-angle, or downward-looking shots of any kind
+- NEVER a tight, close, or medium shot — always wide enough to show the full environment
+- Camera height MUST be between 4 and 6 feet off the ground. NEVER overhead, drone, bird's eye, top-down, or high-angle.
 - Camera is ALWAYS an external observer — never POV, never from a character's perspective
-- NEVER shoot subjects from behind or in silhouette — faces or profiles must be clearly visible
-- NO backlit subjects — light source must be in front of or beside the subject, never behind them
+- NEVER shoot subjects from behind or in silhouette
+- NO backlit subjects
 - Format: ${formatGuide}
 ${colorHint}
 - Return ONLY the prompt. No explanation, no preamble.`;
