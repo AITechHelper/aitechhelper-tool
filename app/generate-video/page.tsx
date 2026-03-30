@@ -6,6 +6,8 @@ import { useBrandProfiles } from "../lib/useBrandProfiles";
 import { useInstagram } from "../lib/useInstagram";
 import { useFacebook } from "../lib/useFacebook";
 import { useToast } from "../_components/ToastProvider";
+import { useTokenBalance } from "../lib/useTokenBalance";
+import OutOfTokensModal from "../_components/OutOfTokensModal";
 
 type AspectRatio  = "9:16" | "1:1" | "16:9";
 type Mood         = "cinematic" | "bright-airy" | "high-energy" | "luxury";
@@ -49,6 +51,9 @@ export default function GenerateVideoPage() {
   const activeProfile = profiles.find((p) => p.id === activeProfileId) ?? profiles[0] ?? null;
   const instagram     = useInstagram();
   const facebook      = useFacebook();
+
+  const tokenBalance = useTokenBalance();
+  const [showOutOfTokens, setShowOutOfTokens] = useState(false);
 
   // Step state
   const [currentStep,    setCurrentStep]    = useState(0);
@@ -115,6 +120,7 @@ export default function GenerateVideoPage() {
 
   async function handleGenerate() {
     if (!topic.trim()) { addToast("Please describe what your video is about.", "error"); return; }
+    if (!hasTokens) { setShowOutOfTokens(true); return; }
 
     setVideoState("generating");
     setVideoUrl(null);
@@ -261,7 +267,8 @@ export default function GenerateVideoPage() {
     setCurrentStep(0);
   }
 
-  const canGenerate = topic.trim().length > 0;
+  const hasTokens = !tokenBalance.isLoading && tokenBalance.tokensRemaining >= 2;
+  const canGenerate = topic.trim().length > 0 && hasTokens;
 
   // ── Shared styles ──────────────────────────────────────────────────────────
   const card: React.CSSProperties = {
@@ -696,6 +703,8 @@ export default function GenerateVideoPage() {
           </div>
         )}
       </div>
+
+      {showOutOfTokens && <OutOfTokensModal onClose={() => setShowOutOfTokens(false)} />}
 
       <style>{`
         @keyframes spin  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
