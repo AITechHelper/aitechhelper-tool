@@ -704,7 +704,7 @@ export default function GenerateVideoPage() {
         )}
       </div>
 
-      {showOutOfTokens && <OutOfTokensModal onClose={() => setShowOutOfTokens(false)} />}
+      <OutOfTokensModal isOpen={showOutOfTokens} onClose={() => setShowOutOfTokens(false)} />
 
       <style>{`
         @keyframes spin  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
