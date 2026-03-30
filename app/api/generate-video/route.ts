@@ -1,11 +1,11 @@
 // app/api/generate-video/route.ts
-// Starts a Luma Dream Machine video generation job.
+// Starts a Runway Gen-4 video generation job.
 // Uses GPT-4o to build a cinematic prompt AND generate caption + hashtags in parallel.
 // Returns { generationId, enrichedPrompt, caption, hashtags, tempBlobUrl? } immediately.
 
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import LumaAI from "lumaai";
+import RunwayML from "@runwayml/sdk";
 import OpenAI from "openai";
 import { getTokenStatus, useToken } from "../../lib/tokens";
 import { uploadTempImage } from "../../lib/videoBlob";
@@ -34,14 +34,20 @@ type Body = {
   };
 };
 
-// Niches where a person in frame makes sense
-const PEOPLE_NICHES = [
-  "personal trainer", "fitness coach", "life coach", "business coach",
-  "therapist", "counselor", "speaker", "consultant", "makeup artist",
-  "beauty", "chef", "nutritionist", "yoga instructor", "influencer",
-  "motivational", "wellness coach", "stylist", "photographer",
-  "real estate", "realtor", "broker", "agent",
-];
+// Runway ratio strings
+// text-to-video gen4.5 only supports 1280:720 and 720:1280 — 1:1 falls back to 720:1280
+const TEXT_RATIO: Record<AspectRatio, "1280:720" | "720:1280"> = {
+  "9:16":  "720:1280",
+  "1:1":   "720:1280",  // gen4.5 text-to-video doesn't support square
+  "16:9":  "1280:720",
+};
+
+// image-to-video gen4_turbo supports square
+const IMAGE_RATIO: Record<AspectRatio, "1280:720" | "720:1280" | "960:960" | "1104:832" | "832:1104" | "1584:672"> = {
+  "9:16":  "720:1280",
+  "1:1":   "960:960",
+  "16:9":  "1280:720",
+};
 
 const PEOPLE_PROMPT_KEYWORDS = [
   "agent", "person", "man", "woman", "couple", "people", "professional",
@@ -76,7 +82,7 @@ function captionMaxChars(len?: "Short" | "Medium" | "Long") {
   return 240;
 }
 
-// ── Build the Luma video prompt ──────────────────────────────────────────────
+// ── Build the Runway video prompt ─────────────────────────────────────────────
 
 async function buildVideoPrompt(
   openai: OpenAI,
@@ -93,9 +99,9 @@ async function buildVideoPrompt(
     ? `Brand color palette: primary ${brand.primaryColor}${brand.secondaryColor ? `, secondary ${brand.secondaryColor}` : ""}. Where natural, let the scene reflect these tones in surfaces, light, or environment — do not force them.`
     : "";
 
-  const systemPrompt = `You are writing a precise scene description for Luma Dream Machine, an AI video model that generates 5-second clips.
+  const systemPrompt = `You are writing a precise scene description for Runway Gen-4, an AI video model that generates 5-second clips.
 
-Your job is to eliminate all ambiguity. Luma will render EXACTLY what you describe — if you don't specify it, Luma will invent it, and it will be wrong.
+Your job is to eliminate all ambiguity. Runway will render EXACTLY what you describe — if you don't specify it, Runway will invent it, and it will be wrong.
 
 Structure your prompt in this EXACT order:
 1. CAMERA FIRST — always a wide establishing shot. Open with: "Wide establishing shot at standing eye level, camera facing directly forward, [choose the movement that best reveals this specific scene: slow pan left/right for wide spaces, slow tilt up for tall subjects, gentle dolly forward for depth, slow orbit for a central subject]." This MUST be the first sentence. The camera must be far enough back to see the ENTIRE scene — foreground, subject, and background all in frame at once.
@@ -234,26 +240,33 @@ export async function POST(req: Request) {
     generateCaption(openai, prompt, brandContext, tone, captionLength, hashtagCount),
   ]);
 
-  // Start Luma generation
-  const luma   = new LumaAI({ authToken: process.env.LUMA_API_KEY! });
+  // Start Runway generation
+  const runway = new RunwayML({ apiKey: process.env.RUNWAYML_API_SECRET! });
   let tempBlobUrl: string | undefined;
-
-  const params: Parameters<typeof luma.generations.video.create>[0] = {
-    model:        "ray-2",
-    prompt:       enrichedPrompt,
-    aspect_ratio: aspectRatio,
-    duration:     "5s",
-  };
+  let task: { id: string };
 
   if (imageBase64) {
+    // Image-to-video: gen4_turbo
     tempBlobUrl = await uploadTempImage(imageBase64);
-    params.keyframes = { frame0: { type: "image", url: tempBlobUrl } };
+    task = await runway.imageToVideo.create({
+      model:       "gen4_turbo",
+      promptImage: tempBlobUrl,
+      promptText:  enrichedPrompt,
+      ratio:       IMAGE_RATIO[aspectRatio],
+      duration:    5,
+    });
+  } else {
+    // Text-to-video: gen4.5
+    task = await runway.textToVideo.create({
+      model:      "gen4.5",
+      promptText: enrichedPrompt,
+      ratio:      TEXT_RATIO[aspectRatio],
+      duration:   5,
+    });
   }
 
-  const generation = await luma.generations.video.create(params);
-
   return NextResponse.json({
-    generationId:   generation.id,
+    generationId:   task.id,
     enrichedPrompt,
     caption:        captionResult.caption,
     hashtags:       captionResult.hashtags,

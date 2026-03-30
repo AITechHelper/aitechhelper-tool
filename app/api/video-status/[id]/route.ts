@@ -1,10 +1,10 @@
 // app/api/video-status/[id]/route.ts
-// Polls Luma for generation status. On completion, downloads video and saves to Vercel Blob.
+// Polls Runway for generation status. On completion, downloads video and saves to Vercel Blob.
 // Client calls this every 5 seconds until status is "completed" or "failed".
 
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import LumaAI from "lumaai";
+import RunwayML from "@runwayml/sdk";
 import { uploadVideoFromUrl, deleteBlobUrl } from "../../../lib/videoBlob";
 
 export const runtime = "nodejs";
@@ -22,30 +22,38 @@ export async function GET(
   const url = new URL(req.url);
   const tempBlobUrl = url.searchParams.get("tempBlobUrl") ?? undefined;
 
-  const luma = new LumaAI({ authToken: process.env.LUMA_API_KEY! });
-  const generation = await luma.generations.get(id);
-  const state = generation.state;
+  const runway = new RunwayML({ apiKey: process.env.RUNWAYML_API_SECRET! });
+  const task = await runway.tasks.retrieve(id);
 
-  if (state === "queued" || state === "dreaming") {
-    return NextResponse.json({ status: "processing", state });
+  if (
+    task.status === "PENDING" ||
+    task.status === "RUNNING" ||
+    task.status === "THROTTLED"
+  ) {
+    return NextResponse.json({ status: "processing", state: task.status });
   }
 
-  if (state === "failed") {
+  if (task.status === "FAILED") {
     if (tempBlobUrl) await deleteBlobUrl(tempBlobUrl);
     return NextResponse.json({
       status: "failed",
-      reason: generation.failure_reason ?? "Unknown error from Luma",
+      reason: task.failure ?? "Runway generation failed",
     });
   }
 
-  if (state === "completed") {
-    const lumaVideoUrl = generation.assets?.video;
-    if (!lumaVideoUrl) {
+  if (task.status === "CANCELLED") {
+    if (tempBlobUrl) await deleteBlobUrl(tempBlobUrl);
+    return NextResponse.json({ status: "failed", reason: "Runway task was cancelled" });
+  }
+
+  if (task.status === "SUCCEEDED") {
+    const runwayVideoUrl = task.output?.[0];
+    if (!runwayVideoUrl) {
       return NextResponse.json({ status: "failed", reason: "No video URL returned" });
     }
 
-    // Download from Luma and persist to Vercel Blob (Luma URLs expire)
-    const videoUrl = await uploadVideoFromUrl(lumaVideoUrl, id);
+    // Download from Runway and persist to Vercel Blob (Runway URLs expire in 24-48h)
+    const videoUrl = await uploadVideoFromUrl(runwayVideoUrl, id);
 
     // Clean up the temporary input image blob if one was used
     if (tempBlobUrl) await deleteBlobUrl(tempBlobUrl);
@@ -54,5 +62,5 @@ export async function GET(
   }
 
   // Unexpected state
-  return NextResponse.json({ status: "processing", state });
+  return NextResponse.json({ status: "processing", state: "unknown" });
 }

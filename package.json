@@ -16,6 +16,7 @@
     "@capacitor/ios": "^8.1.0",
     "@clerk/nextjs": "^6.37.2",
     "@neondatabase/serverless": "^1.0.2",
+    "@runwayml/sdk": "^3.17.0",
     "@vercel/blob": "^2.3.2",
     "lumaai": "^1.19.1",
     "next": "16.1.2",
