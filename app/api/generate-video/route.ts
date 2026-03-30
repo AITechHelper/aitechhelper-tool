@@ -235,7 +235,7 @@ export async function POST(req: Request) {
   let tempBlobUrl: string | undefined;
 
   const params: Parameters<typeof luma.generations.video.create>[0] = {
-    model:        "ray-flash-2",
+    model:        "ray-2",
     prompt:       enrichedPrompt,
     aspect_ratio: aspectRatio,
     duration:     "5s",
