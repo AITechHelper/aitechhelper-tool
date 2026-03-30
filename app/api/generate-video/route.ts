@@ -62,9 +62,9 @@ const MOOD_INSTRUCTIONS: Record<Mood, string> = {
 };
 
 const FORMAT_CONTEXT: Record<AspectRatio, string> = {
-  "9:16":  "vertical 9:16 format — use a wide establishing shot that captures the full scene top-to-bottom: foreground elements, the main subject in the middle, and background architecture or landscape filling the upper portion",
-  "1:1":   "square 1:1 format — wide balanced composition showing the full scene with foreground, subject, and background all visible",
-  "16:9":  "wide 16:9 cinematic format — sweeping wide shot showing the entire environment with depth from foreground to background",
+  "9:16":  "vertical 9:16 format — wide establishing shot capturing the full scene top-to-bottom: foreground elements at the bottom, main subject in the middle, background architecture or landscape filling the upper portion. Never crop or zoom in.",
+  "1:1":   "square 1:1 format — wide establishing shot showing the complete environment: foreground, main subject, and background architecture or landscape all fully visible. Never crop or zoom in.",
+  "16:9":  "wide 16:9 cinematic format — wide establishing shot showing the entire environment with full depth: foreground, main subject, and background architecture or landscape all in frame. Never crop or zoom in.",
 };
 
 function captionMaxChars(len?: "Short" | "Medium" | "Long") {
