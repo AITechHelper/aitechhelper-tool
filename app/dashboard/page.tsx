@@ -1854,41 +1854,34 @@ export default function DashboardPage() {
                 router.push(getNicheCalendarPath(activeProfile?.niche ?? ""));
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", padding: "22px 28px", gap: 24 }}>
-                {/* Icon */}
-                <div className="ath-card-icon" style={{ fontSize: 44, flexShrink: 0 }}>📅</div>
-
-                {/* Text */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="ath-card-title" style={{ fontSize: 20, fontWeight: 700, marginBottom: 3 }}>
-                    Content Calendar
-                  </div>
-                  <div className="ath-card-subtitle" style={{ fontSize: 13, opacity: 0.85, marginBottom: 10 }}>
-                    Your full month, planned for you
-                  </div>
-                  <div className="ath-card-body" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-                    {["Your whole month, planned automatically.", "Every weekday has its own post type.", "Click any day. Generate that post."].map((line) => (
-                      <div key={line} style={{ display: "flex", alignItems: "flex-start", gap: 7 }}>
-                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#9d6af5", flexShrink: 0, marginTop: 4 }} />
-                        <span style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.4 }}>{line}</span>
-                      </div>
-                    ))}
+              <div style={{ display: "flex", alignItems: "center", padding: "20px 28px", gap: 28 }}>
+                {/* Icon + Title */}
+                <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 14 }}>
+                  <div className="ath-card-icon" style={{ fontSize: 36 }}>📅</div>
+                  <div>
+                    <div className="ath-card-title" style={{ fontSize: 18, fontWeight: 700, marginBottom: 2 }}>Content Calendar</div>
+                    <div className="ath-card-subtitle" style={{ fontSize: 12, opacity: 0.75, whiteSpace: "nowrap" as const }}>Your full month, planned for you</div>
                   </div>
                 </div>
 
+                {/* Divider */}
+                <div style={{ width: 1, alignSelf: "stretch", background: "rgba(255,255,255,0.15)", flexShrink: 0 }} />
+
+                {/* Bullets */}
+                <div className="ath-card-body" style={{ flex: 1, display: "flex", gap: 0, justifyContent: "space-around", alignItems: "center" }}>
+                  {["Whole month, planned automatically", "Every weekday has its own post type", "Click any day — generate that post"].map((line) => (
+                    <div key={line} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#a78bfa", flexShrink: 0 }} />
+                      <span style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" as const }}>{line}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Divider */}
+                <div style={{ width: 1, alignSelf: "stretch", background: "rgba(255,255,255,0.15)", flexShrink: 0 }} />
+
                 {/* CTA */}
-                <div
-                  style={{
-                    flexShrink: 0,
-                    background: "#7c3aed",
-                    borderRadius: 10,
-                    padding: "12px 20px",
-                    fontWeight: 700,
-                    fontSize: 14,
-                    whiteSpace: "nowrap" as const,
-                    transition: "all 0.15s ease",
-                  }}
-                >
+                <div style={{ flexShrink: 0, background: "rgba(255,255,255,0.15)", borderRadius: 10, padding: "12px 20px", fontWeight: 700, fontSize: 14, whiteSpace: "nowrap" as const, transition: "all 0.15s ease" }}>
                   {navLoading === "calendar" ? "Loading…" : "Open Content Calendar →"}
                 </div>
               </div>
