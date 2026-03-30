@@ -704,7 +704,12 @@ export default function GenerateVideoPage() {
         )}
       </div>
 
-      <OutOfTokensModal isOpen={showOutOfTokens} onClose={() => setShowOutOfTokens(false)} />
+      <OutOfTokensModal
+        isOpen={showOutOfTokens}
+        onClose={() => setShowOutOfTokens(false)}
+        tokensUsed={tokenBalance.tokensUsed}
+        totalTokens={tokenBalance.totalMonthlyTokens}
+      />
 
       <style>{`
         @keyframes spin  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
