@@ -592,11 +592,11 @@ export default function GenerateVideoPage() {
           <div style={{ background: "#101a33", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: "48px 24px", textAlign: "center" as const }}>
             <div style={{ fontSize: 40, marginBottom: 16, display: "inline-block", animation: "spin 2s linear infinite" }}>🎬</div>
             <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 8 }}>Crafting your video…</div>
-            <div style={{ opacity: 0.7, fontSize: 14, marginBottom: 4 }}>Writing a cinematic prompt and generating with Luma.</div>
+            <div style={{ opacity: 0.7, fontSize: 14, marginBottom: 4 }}>Writing a cinematic prompt and generating your video.</div>
             <div style={{ opacity: 0.5, fontSize: 13, marginBottom: 28 }}>Usually takes 1–2 minutes. Hang tight.</div>
             {enrichedPrompt && (
               <div style={{ background: `rgba(16,185,129,0.07)`, border: `1px solid rgba(16,185,129,0.2)`, borderRadius: 10, padding: "12px 16px", marginBottom: 24, fontSize: 13, color: "#6ee7b7", textAlign: "left" as const, lineHeight: 1.6, maxWidth: 560, margin: "0 auto 24px" }}>
-                <span style={{ fontWeight: 700, color: "#34d399" }}>Prompt sent to Luma: </span>{enrichedPrompt}
+                {enrichedPrompt}
               </div>
             )}
             {caption && (
@@ -631,7 +631,7 @@ export default function GenerateVideoPage() {
 
             {enrichedPrompt && (
               <div style={{ background: `rgba(16,185,129,0.07)`, border: `1px solid rgba(16,185,129,0.15)`, borderRadius: 10, padding: "10px 16px", marginBottom: 16, fontSize: 13, color: "#6ee7b7", lineHeight: 1.6 }}>
-                <span style={{ fontWeight: 700, color: "#34d399" }}>Luma prompt: </span>{enrichedPrompt}
+                {enrichedPrompt}
               </div>
             )}
 
@@ -684,9 +684,19 @@ export default function GenerateVideoPage() {
                 <button onClick={handleSaveToLibrary} disabled={savedToLibrary} style={{ background: savedToLibrary ? "rgba(16,185,129,0.15)" : "rgba(255,255,255,0.06)", border: savedToLibrary ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: savedToLibrary ? "#6ee7b7" : "#e6edf7", padding: "13px 16px", fontSize: 13, fontWeight: 600, cursor: savedToLibrary ? "default" : "pointer", transition: "all 0.15s ease" }}>
                   {savedToLibrary ? "✓ Saved to Library" : "Save to Library"}
                 </button>
-                <a href={videoUrl} download={`video-${Date.now()}.mp4`} target="_blank" rel="noopener noreferrer" style={{ display: "block", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: "#e6edf7", padding: "13px 16px", fontSize: 13, fontWeight: 600, textDecoration: "none", textAlign: "center" as const }}>
+                <button onClick={async () => {
+                  if (!videoUrl) return;
+                  const res = await fetch(videoUrl);
+                  const blob = await res.blob();
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `video-${Date.now()}.mp4`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: "#e6edf7", padding: "13px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
                   Download MP4
-                </a>
+                </button>
               </div>
               <button onClick={handleReset} style={{ marginTop: 12, width: "100%", background: "none", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "rgba(255,255,255,0.5)", padding: "12px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
                 ↩ Generate Another Video

@@ -99,20 +99,22 @@ async function buildVideoPrompt(
     ? `Brand color palette: primary ${brand.primaryColor}${brand.secondaryColor ? `, secondary ${brand.secondaryColor}` : ""}. Where natural, let the scene reflect these tones in surfaces, light, or environment — do not force them.`
     : "";
 
-  const systemPrompt = `You are writing a precise scene description for Runway Gen-4, an AI video model that generates 5-second clips.
+  const systemPrompt = `You are writing a precise scene description for Runway Gen-4, an AI video model that generates 5-second photorealistic clips.
 
 Your job is to eliminate all ambiguity. Runway will render EXACTLY what you describe — if you don't specify it, Runway will invent it, and it will be wrong.
 
 Structure your prompt in this EXACT order:
 1. CAMERA FIRST — always a wide establishing shot. Open with: "Wide establishing shot at standing eye level, camera facing directly forward, [choose the movement that best reveals this specific scene: slow pan left/right for wide spaces, slow tilt up for tall subjects, gentle dolly forward for depth, slow orbit for a central subject]." This MUST be the first sentence. The camera must be far enough back to see the ENTIRE scene — foreground, subject, and background all in frame at once.
-2. FOREGROUND: what is closest to the camera (furniture, plants, a path, steps)
-3. MAIN SUBJECT: the primary object or space in the middle of the frame
-4. BACKGROUND: what is behind — a large house facade, tall trees, a skyline, a landscape. Always describe a rich background. Never leave the background vague or empty.
-5. PEOPLE & ACTION: ${usePerson ? "exactly what each person is doing with their body and hands — no vague 'standing' or 'walking', specify the exact interaction" : "no people in the scene"}
-6. MOOD in one phrase only: ${moodGuide}
+2. LIGHTING: specify the time of day (e.g. golden hour, midday, overcast morning) and the direction of the main light source (e.g. soft diffused natural light from camera-left, warm sunlight from camera-right). Be explicit — never leave lighting unspecified.
+3. FOREGROUND: what is closest to the camera (furniture, plants, a path, steps)
+4. MAIN SUBJECT: the primary object or space in the middle of the frame
+5. BACKGROUND: what is behind — a large house facade, tall trees, a skyline, a landscape. Always describe a rich background. Never leave the background vague or empty.
+6. PEOPLE & ACTION: ${usePerson ? "describe at most 2 people with specific HELD POSES only — never mid-motion actions. Describe the frozen position: 'right hand extended palm-up holding a clipboard', 'both hands resting on the counter'. All other people in the scene should simply be standing or seated naturally with no described action. NEVER describe clapping, waving, gesturing mid-air, or any motion-in-progress." : "no people in the scene"}
+7. MOOD in one phrase only: ${moodGuide}
 
 Hard rules:
-- 3-5 sentences. No lists. No scene changes. No "and then".
+- Photorealistic. No stylized, illustrated, painterly, or animated look.
+- 4-6 sentences. No lists. No scene changes. No "and then".
 - NO text, logos, captions, watermarks on screen
 - NEVER a tight, close, or medium shot — always wide enough to show the full environment
 - Camera height MUST be between 4 and 6 feet off the ground. NEVER overhead, drone, bird's eye, top-down, or high-angle.
@@ -120,6 +122,7 @@ Hard rules:
 - Camera is ALWAYS an external observer — never POV, never from a character's perspective
 - NEVER shoot subjects from behind or in silhouette
 - NO backlit subjects
+- NEVER describe physical states abstractly (sweaty, tired, excited, relieved). Instead describe only what is visually observable: "flushed cheeks", "sleeves rolled up", "slight smile". Runway renders concepts literally and incorrectly — only describe what the camera would actually see.
 - Format: ${formatGuide}
 ${colorHint}
 - Return ONLY the prompt. No explanation, no preamble.`;
@@ -137,7 +140,7 @@ ${colorHint}
       { role: "system", content: systemPrompt },
       { role: "user",   content: userMessage   },
     ],
-    max_tokens: 250,
+    max_tokens: 350,
     temperature: 0.8,
   });
 
