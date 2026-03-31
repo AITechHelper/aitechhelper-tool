@@ -1868,7 +1868,7 @@ export default function DashboardPage() {
                 <div style={{ width: 1, alignSelf: "stretch", background: "rgba(255,255,255,0.15)", flexShrink: 0 }} />
 
                 {/* Bullets */}
-                <div className="ath-card-body" style={{ flex: 1, minWidth: 0, display: "flex", gap: 12, justifyContent: "space-around", alignItems: "center", flexWrap: "wrap" as const }}>
+                <div className="ath-card-body" style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" as const, gap: 6, justifyContent: "center" }}>
                   {["Whole month, planned automatically", "Every weekday has its own post type", "Click any day — generate that post"].map((line) => (
                     <div key={line} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#a78bfa", flexShrink: 0 }} />
