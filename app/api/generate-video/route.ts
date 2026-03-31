@@ -49,19 +49,6 @@ const IMAGE_RATIO: Record<AspectRatio, "1280:720" | "720:1280" | "960:960" | "11
   "16:9":  "1280:720",
 };
 
-const PEOPLE_PROMPT_KEYWORDS = [
-  "agent", "person", "man", "woman", "couple", "people", "professional",
-  "trainer", "coach", "chef", "realtor", "broker", "doctor", "worker",
-  "employee", "customer", "client", "team", "staff", "owner", "showing",
-  "consultant", "consultants", "consulting", "executive", "executives",
-  "meeting", "presentation", "salesperson", "sales", "manager", "managers",
-  "entrepreneur", "entrepreneurs", "investor", "investors", "advisor", "advisors",
-];
-
-function shouldIncludePerson(userTopic?: string): boolean {
-  const t = (userTopic ?? "").toLowerCase();
-  return PEOPLE_PROMPT_KEYWORDS.some((kw) => t.includes(kw));
-}
 
 const MOOD_INSTRUCTIONS: Record<Mood, string> = {
   "cinematic":    "shallow depth of field, rich color grading, film-like quality, dramatic contrast between foreground and background",
@@ -91,7 +78,6 @@ async function buildVideoPrompt(
   aspectRatio: AspectRatio,
   mood: Mood,
 ): Promise<string> {
-  const usePerson   = shouldIncludePerson(userTopic);
   const moodGuide   = MOOD_INSTRUCTIONS[mood];
   const formatGuide = FORMAT_CONTEXT[aspectRatio];
 
@@ -109,7 +95,7 @@ Structure your prompt in this EXACT order:
 3. FOREGROUND: what is closest to the camera (furniture, plants, a path, steps)
 4. MAIN SUBJECT: the primary object or space in the middle of the frame
 5. BACKGROUND: what is behind — a large house facade, tall trees, a skyline, a landscape. Always describe a rich background. Never leave the background vague or empty.
-6. PEOPLE & ACTION: ${usePerson ? "describe at most 2 people with specific HELD POSES only — never mid-motion actions. Describe the frozen position: 'right hand extended palm-up holding a clipboard', 'both hands resting on the counter'. All other people in the scene should simply be standing or seated naturally with no described action. NEVER describe clapping, waving, gesturing mid-air, or any motion-in-progress." : "no people in the scene"}
+6. PEOPLE & ACTION: If the topic mentions any person, role, or profession (roofer, doctor, agent, chef, plumber, stylist, teacher, etc.) include them. If the topic is purely about a product, property, or place with no person implied, omit people. When people are included: describe at most 2 with specific HELD POSES only — never mid-motion actions. Describe the frozen position: 'right hand extended holding a clipboard', 'both hands resting on the counter'. All other people stand or sit naturally with no described action. NEVER describe clapping, waving, gesturing mid-air, or any motion-in-progress.
 7. MOOD in one phrase only: ${moodGuide}
 
 Hard rules:
