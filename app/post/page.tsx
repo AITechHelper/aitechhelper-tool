@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { saveImage, deleteImage } from "../lib/imageStorage";
+import { saveToDevice } from "../lib/saveToDevice";
 import { applyBrandOverlay, CONTACT_POST_TYPES } from "../lib/imageOverlay";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
@@ -694,14 +695,9 @@ export default function PostPage() {
     if (canRefine) await generatePost(refinementText.trim());
   }
 
-  function downloadImage() {
+  async function downloadImage() {
     if (!activeImage) return;
-    const a = document.createElement("a");
-    a.href = activeImage;
-    a.download = `ai-social-helper-${selectedFormat}.jpg`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    await saveToDevice(activeImage, `ai-social-helper-${selectedFormat}.jpg`);
     addToast("Image downloaded!", "success");
   }
 

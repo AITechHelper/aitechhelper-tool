@@ -1788,7 +1788,7 @@ export default function DashboardPage() {
                 router.push(getNicheCalendarPath(activeProfile?.niche ?? ""));
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", padding: "20px 28px", gap: 28 }}>
+              <div className="calendar-card-inner" style={{ display: "flex", alignItems: "center", padding: "20px 28px", gap: 28 }}>
                 {/* Icon + Title */}
                 <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 14 }}>
                   <div className="ath-card-icon" style={{ fontSize: 36 }}>📅</div>
@@ -1799,10 +1799,10 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Divider */}
-                <div style={{ width: 1, alignSelf: "stretch", background: "rgba(255,255,255,0.15)", flexShrink: 0 }} />
+                <div className="calendar-card-divider" style={{ width: 1, alignSelf: "stretch", background: "rgba(255,255,255,0.15)", flexShrink: 0 }} />
 
                 {/* Bullets */}
-                <div className="ath-card-body" style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" as const, gap: 6, justifyContent: "center" }}>
+                <div className="calendar-card-bullets ath-card-body" style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" as const, gap: 6, justifyContent: "center" }}>
                   {["Whole month, planned automatically", "Every weekday has its own post type", "Click any day — generate that post"].map((line) => (
                     <div key={line} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#a78bfa", flexShrink: 0 }} />
@@ -1812,11 +1812,11 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Divider */}
-                <div style={{ width: 1, alignSelf: "stretch", background: "rgba(255,255,255,0.15)", flexShrink: 0 }} />
+                <div className="calendar-card-divider" style={{ width: 1, alignSelf: "stretch", background: "rgba(255,255,255,0.15)", flexShrink: 0 }} />
 
                 {/* CTA */}
-                <div style={{ flexShrink: 0, background: "rgba(255,255,255,0.15)", borderRadius: 10, padding: "12px 20px", fontWeight: 700, fontSize: 14, whiteSpace: "nowrap" as const, transition: "all 0.15s ease" }}>
-                  {navLoading === "calendar" ? "Loading…" : "Open Content Calendar →"}
+                <div className="calendar-card-cta" style={{ flexShrink: 0, background: "rgba(255,255,255,0.15)", borderRadius: 10, padding: "12px 20px", fontWeight: 700, fontSize: 14, whiteSpace: "nowrap" as const, transition: "all 0.15s ease" }}>
+                  {navLoading === "calendar" ? "Loading…" : <><span className="calendar-card-cta-full">Open Content Calendar </span>→</>}
                 </div>
               </div>
             </div>
@@ -2643,10 +2643,17 @@ export default function DashboardPage() {
         @media (max-width: 540px) {
           .ath-token-pill { top: 16px !important; left: 16px !important; right: auto !important; }
           /* Cap email pill so it can't overlap token pill on left */
-          .ath-email-pill { max-width: calc(100vw - 145px) !important; }
-          .ath-email-pill > div { max-width: 100% !important; }
+          .ath-email-pill { max-width: 140px !important; }
+          .ath-email-pill > div { max-width: 100% !important; padding: 6px 10px !important; font-size: 11px !important; }
           /* Push page header below email pill on right + token pill on left */
           .dash-page-header { padding-top: 80px !important; }
+          /* Calendar card: collapse to icon+title+arrow only on mobile */
+          .calendar-card-inner { padding: 16px !important; gap: 12px !important; }
+          .calendar-card-divider { display: none !important; }
+          .calendar-card-bullets { display: none !important; }
+          .calendar-card-cta { padding: 10px 14px !important; font-size: 13px !important; }
+          .calendar-card-cta-text::after { content: "→"; }
+          .calendar-card-cta-full { display: none !important; }
         }
         /* Sub-480px: tighten modal padding, ensure single-column layouts */
         @media (max-width: 420px) {

@@ -8,6 +8,7 @@ import { useFacebook } from "../lib/useFacebook";
 import { useToast } from "../_components/ToastProvider";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
+import { saveToDevice } from "../lib/saveToDevice";
 
 type AspectRatio  = "9:16" | "1:1" | "16:9";
 type Mood         = "cinematic" | "bright-airy" | "high-energy" | "luxury";
@@ -686,14 +687,7 @@ export default function GenerateVideoPage() {
                 </button>
                 <button onClick={async () => {
                   if (!videoUrl) return;
-                  const res = await fetch(videoUrl);
-                  const blob = await res.blob();
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `video-${Date.now()}.mp4`;
-                  a.click();
-                  URL.revokeObjectURL(url);
+                  await saveToDevice(videoUrl, `video-${Date.now()}.mp4`);
                 }} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: "#e6edf7", padding: "13px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
                   Download MP4
                 </button>

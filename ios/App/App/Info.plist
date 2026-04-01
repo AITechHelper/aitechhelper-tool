@@ -58,5 +58,8 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
 	</dict>
+	<!-- Required to save images/videos to Camera Roll -->
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>AI Social Helper saves generated images and videos to your photo library.</string>
 </dict>
 </plist>

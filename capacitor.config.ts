@@ -7,8 +7,17 @@ const config: CapacitorConfig = {
   server: {
     url: "https://www.aisocialhelper.com",
     cleartext: false,
-    // Allow navigation within the app domain
-    allowNavigation: ["www.aisocialhelper.com", "aisocialhelper.com"],
+    // Allow navigation within the app domain and Clerk auth domains
+    allowNavigation: [
+      "www.aisocialhelper.com",
+      "aisocialhelper.com",
+      "*.clerk.accounts.dev",
+      "*.clerk.dev",
+      "clerk.com",
+      "billing.stripe.com",
+      "checkout.stripe.com",
+      "*.stripe.com",
+    ],
   },
   ios: {
     // Dark background matches the app's color scheme
@@ -17,8 +26,8 @@ const config: CapacitorConfig = {
     contentInset: "automatic",
     // Use WKWebView scroll behavior that feels native
     scrollEnabled: true,
-    // Disable the bounce/rubber-band on the outer WebView shell
-    limitsNavigationsToAppBoundDomains: true,
+    // Allow Clerk and other auth domains to load inside the WebView
+    limitsNavigationsToAppBoundDomains: false,
   },
 };
 
