@@ -1052,101 +1052,35 @@ export default function DashboardPage() {
                   Set up your brand profile in 30 seconds:
                 </div>
 
-                {/* What you'll save - 3-column pill grid */}
+                {/* What you'll save - vertical bullet list */}
                 <div
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                    gap: 14,
+                    display: "flex",
+                    flexDirection: "column" as const,
+                    gap: 10,
                     marginBottom: 24,
-                    alignItems: "center",
                   }}
-                  className="profile-benefits-pill-grid"
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 10,
-                      padding: "10px 12px",
-                      borderRadius: 14,
-                      border: "1px solid rgba(126,179,255,0.18)",
-                      background: "rgba(16,26,51,0.35)",
-                      color: "#cbd6ea",
-                      fontWeight: 700,
-                      fontSize: 16,
-                      whiteSpace: "nowrap" as const,
-                    }}
-                  >
+                  {["Brand colors", "Niche + audience", "Tone of voice"].map((item) => (
                     <div
+                      key={item}
                       style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: 999,
-                        background: "#7eb3ff",
-                        opacity: 0.9,
-                        flexShrink: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "10px 14px",
+                        borderRadius: 12,
+                        border: "1px solid rgba(126,179,255,0.18)",
+                        background: "rgba(16,26,51,0.35)",
+                        color: "#cbd6ea",
+                        fontWeight: 600,
+                        fontSize: 14,
                       }}
-                    />
-                    Brand colors
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 10,
-                      padding: "10px 12px",
-                      borderRadius: 14,
-                      border: "1px solid rgba(126,179,255,0.18)",
-                      background: "rgba(16,26,51,0.35)",
-                      color: "#cbd6ea",
-                      fontWeight: 700,
-                      fontSize: 16,
-                      whiteSpace: "nowrap" as const,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: 999,
-                        background: "#7eb3ff",
-                        opacity: 0.9,
-                        flexShrink: 0,
-                      }}
-                    />
-                    Niche + audience
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 10,
-                      padding: "10px 12px",
-                      borderRadius: 14,
-                      border: "1px solid rgba(126,179,255,0.18)",
-                      background: "rgba(16,26,51,0.35)",
-                      color: "#cbd6ea",
-                      fontWeight: 700,
-                      fontSize: 16,
-                      whiteSpace: "nowrap" as const,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: 999,
-                        background: "#7eb3ff",
-                        opacity: 0.9,
-                        flexShrink: 0,
-                      }}
-                    />
-                    Tone of voice
-                  </div>
+                    >
+                      <div style={{ width: 7, height: 7, borderRadius: 999, background: "#7eb3ff", opacity: 0.9, flexShrink: 0 }} />
+                      {item}
+                    </div>
+                  ))}
                 </div>
 
                 {/* Benefit line */}
@@ -2326,18 +2260,14 @@ export default function DashboardPage() {
                       <label style={{ fontSize: 13, fontWeight: 600, color: "#e6edf7", marginBottom: 4, display: "block" }}>
                         Your niche
                       </label>
-                      <select
+                      <input
                         style={{ ...styles.input, marginBottom: 0 }}
                         value={newProfileNiche}
                         onChange={(e) => setNewProfileNiche(e.target.value)}
-                      >
-                        <option value="" disabled>Select your niche…</option>
-                        <option value="Real Estate Agent">Real Estate Agent</option>
-                        <option value="Fitness Coach">Fitness Coach</option>
-                        <option value="Restaurant Owner">Restaurant Owner</option>
-                      </select>
+                        placeholder='e.g. "Fitness Coach", "Egg Salesman", "Plumber"'
+                      />
                       <div style={{ fontSize: 12, color: "#8fa3bf", marginTop: 4, lineHeight: 1.4 }}>
-                        Your industry or specialty. Shapes every post we generate for you.
+                        Your industry or specialty. Type anything — AI will build your calendar around it.
                       </div>
                     </div>
 
