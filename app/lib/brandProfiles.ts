@@ -24,6 +24,7 @@ export interface BrandProfile {
   website?: string;
   phone?: string;
   createdAt: string;
+  generatedTemplate?: object | null;
 }
 
 export async function getProfiles(userId: string): Promise<BrandProfile[]> {
@@ -37,7 +38,8 @@ export async function getProfiles(userId: string): Promise<BrandProfile[]> {
       logo_base64 as "logoBase64",
       website,
       phone,
-      created_at as "createdAt"
+      created_at as "createdAt",
+      generated_template as "generatedTemplate"
     FROM brand_profiles
     WHERE user_id = ${userId}
     ORDER BY created_at ASC
@@ -97,6 +99,9 @@ export async function updateProfile(
   const shouldUpdateLogo = updates.logoBase64 !== undefined;
   const logoNewVal = shouldUpdateLogo ? (updates.logoBase64 || null) : null;
 
+  const shouldUpdateTemplate = updates.generatedTemplate !== undefined;
+  const templateNewVal = shouldUpdateTemplate ? (updates.generatedTemplate ?? null) : null;
+
   await sql`
     UPDATE brand_profiles SET
       name = COALESCE(${updates.name ?? null}, name),
@@ -111,6 +116,7 @@ export async function updateProfile(
       logo_base64 = CASE WHEN ${shouldUpdateLogo} THEN ${logoNewVal} ELSE logo_base64 END,
       website = COALESCE(${updates.website ?? null}, website),
       phone = COALESCE(${updates.phone ?? null}, phone),
+      generated_template = CASE WHEN ${shouldUpdateTemplate} THEN ${templateNewVal ? JSON.stringify(templateNewVal) : null}::jsonb ELSE generated_template END,
       updated_at = NOW()
     WHERE id = ${profileId} AND user_id = ${userId}
   `;
@@ -126,7 +132,8 @@ export async function updateProfile(
       logo_base64 as "logoBase64",
       website,
       phone,
-      created_at as "createdAt"
+      created_at as "createdAt",
+      generated_template as "generatedTemplate"
     FROM brand_profiles
     WHERE id = ${profileId} AND user_id = ${userId}
   `;

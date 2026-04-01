@@ -22,34 +22,6 @@ type FormState = {
   secondaryColor: string;
 };
 
-// Supported niche options
-const nicheOptions = [
-  {
-    value: "Real Estate Agent",
-    icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
-    label: "Real Estate Agent",
-    desc: "Realtors & brokers",
-  },
-  {
-    value: "Fitness Coach",
-    icon: "M13 10V3L4 14h7v7l9-11h-7z",
-    label: "Fitness Coach",
-    desc: "Trainers & coaches",
-  },
-  {
-    value: "Restaurant Owner",
-    icon: "M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z",
-    label: "Restaurant Owner",
-    desc: "Restaurants & cafes",
-  },
-  {
-    value: "Generic",
-    icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9",
-    label: "Generic Post",
-    desc: "Any business or niche",
-  },
-];
-
 // Post types with icons and short descriptions
 const postTypes = [
   {
@@ -446,14 +418,7 @@ export default function Page() {
     generatePost();
   }, [autogenRequested, dayContext, form.niche, form.audience]);
 
-  // Niche-to-template-key mapping — only recognized niches get pillar-based post types
-  const NICHE_TEMPLATE_MAP: Record<string, string> = {
-    "Real Estate Agent": "realtor",
-    "Fitness Coach": "fitness",
-    "Restaurant Owner": "restaurant",
-  };
-
-  const nicheTemplateKey = NICHE_TEMPLATE_MAP[form.niche];
+  const nicheTemplateKey = { "Real Estate Agent": "realtor", "Fitness Coach": "fitness", "Restaurant Owner": "restaurant" }[form.niche];
   const activeTemplate = nicheTemplateKey ? getTemplate(nicheTemplateKey) : null;
   const activePillars = activeTemplate ? activeTemplate.pillars : null;
   const activeWeeklyStructure = activeTemplate ? activeTemplate.weeklyStructure : null;
@@ -733,31 +698,6 @@ export default function Page() {
       fontSize: 11,
       opacity: 0.6,
       background: "rgba(0,0,0,0.2)",
-    },
-
-    // Niche selection cards
-    nicheCardGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(4, 1fr)",
-      gap: 12,
-      marginBottom: 4,
-    },
-    nicheCard: {
-      background: "rgba(255,255,255,0.03)",
-      border: "1px solid rgba(255,255,255,0.08)",
-      borderRadius: 14,
-      padding: "20px 12px",
-      cursor: "pointer",
-      transition: "all 0.15s ease",
-      textAlign: "center" as const,
-      display: "flex",
-      flexDirection: "column" as const,
-      alignItems: "center",
-      gap: 8,
-    },
-    nicheCardSelected: {
-      background: "rgba(44, 107, 237, 0.15)",
-      border: "1px solid rgba(44, 107, 237, 0.5)",
     },
 
     // Post type cards

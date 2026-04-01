@@ -15,6 +15,7 @@ import {
   getPillarForWorkdayIndex,
   weekdayToWorkdayIndex,
   nicheKeyFromLabel,
+  type NicheTemplate,
 } from "../lib/nicheTemplates";
 
 type ImageStyle =
@@ -365,10 +366,10 @@ function getFirstDayOfMonth(year: number, month: number) {
   return new Date(year, month, 1).getDay();
 }
 
-function buildMonthPlan(year: number, month: number, nicheKey?: string): DayPlan[] {
+function buildMonthPlan(year: number, month: number, nicheKey?: string, customTemplate?: NicheTemplate): DayPlan[] {
   const daysInMonth = getDaysInMonth(year, month);
   const plans: DayPlan[] = [];
-  const template = getTemplate(nicheKey);
+  const template = customTemplate ?? getTemplate(nicheKey);
 
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
@@ -476,13 +477,42 @@ function CalendarPageInner() {
   const [selectedDay, setSelectedDay] = useState<DayPlan | null>(null);
   const [activeBrandProfile, setActiveBrandProfile] = useState<any>(null);
 
-  // Niche key: prefer URL param (?niche=realtor), fall back to active brand profile's niche
+  // Raw niche label from brand profile (e.g. "egg salesman", "Fitness Coach")
+  const nicheLabel: string | undefined = useMemo(() => {
+    if (activeBrandProfile?.niche) return activeBrandProfile.niche as string;
+    return undefined;
+  }, [activeBrandProfile]);
+
+  // Niche key: prefer URL param (?niche=realtor), then map hardcoded niches
   const nicheKey = useMemo(() => {
     const urlNiche = searchParams.get("niche");
     if (urlNiche) return urlNiche;
-    if (activeBrandProfile?.niche) return nicheKeyFromLabel(activeBrandProfile.niche);
+    if (nicheLabel) return nicheKeyFromLabel(nicheLabel); // undefined for custom niches
     return undefined;
-  }, [searchParams, activeBrandProfile]);
+  }, [searchParams, nicheLabel]);
+
+  // Generated template for custom niches (stored in localStorage)
+  const [generatedTemplate, setGeneratedTemplate] = useState<NicheTemplate | null>(null);
+  const [isGeneratingTemplate, setIsGeneratingTemplate] = useState(false);
+
+  // Load any previously generated template for this niche from localStorage cache
+  useEffect(() => {
+    if (!nicheLabel) { setGeneratedTemplate(null); return; }
+    const storageKey = `ath_generated_template_${nicheLabel.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`;
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      try {
+        setGeneratedTemplate((prev) => prev ?? JSON.parse(saved));
+      } catch {}
+    }
+    // Note: if nothing in localStorage, the DB fetch in the mount effect will populate it
+  }, [nicheLabel]);
+
+  // Whether this niche needs a generated template (not one of the 3 hardcoded ones)
+  const needsGeneratedTemplate = !!nicheLabel && !nicheKey;
+  // Whether the generate button should be shown
+  const showGenerateTemplateBtn = needsGeneratedTemplate && !generatedTemplate && !isGeneratingTemplate;
+
   const [showOutOfTokens, setShowOutOfTokens] = useState(false);
 
   // Social publishing
@@ -502,6 +532,43 @@ function CalendarPageInner() {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [planningGeneration, setPlanningGeneration] = useState(false);
   const [customConfigsMap, setCustomConfigsMap] = useState<Map<number, any>>(new Map());
+
+  // Generate a niche template via OpenAI and persist to DB + localStorage
+  async function generateNicheTemplate() {
+    if (!nicheLabel || isGeneratingTemplate) return;
+    setIsGeneratingTemplate(true);
+    try {
+      const profileId = activeBrandProfile?.profileId ?? activeBrandProfile?.id;
+      const res = await fetch("/api/generate-niche-template", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ niche: nicheLabel, profileId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to generate template");
+
+      // Cache in localStorage for instant loads
+      const storageKey = `ath_generated_template_${nicheLabel.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`;
+      localStorage.setItem(storageKey, JSON.stringify(data.template));
+
+      // Also update the active brand profile cache so the template is available immediately
+      try {
+        const cached = localStorage.getItem("ath_active_brand_profile");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          parsed.generatedTemplate = data.template;
+          localStorage.setItem("ath_active_brand_profile", JSON.stringify(parsed));
+        }
+      } catch {}
+
+      setGeneratedTemplate(data.template);
+      addToast(`Content template generated for ${nicheLabel}!`, "success");
+    } catch (err: any) {
+      addToast(err?.message || "Failed to generate template. Please try again.", "error");
+    } finally {
+      setIsGeneratingTemplate(false);
+    }
+  }
 
   // Load gallery data for current month
   const loadGalleryData = useCallback(() => {
@@ -526,16 +593,43 @@ function CalendarPageInner() {
   useEffect(() => {
     window.scrollTo(0, 0);
 
-    // Load active brand profile
+    // Load active brand profile from localStorage (fast path)
+    let localProfile: any = null;
     try {
       const activeBrand = localStorage.getItem("ath_active_brand_profile");
       if (activeBrand) {
         const parsed = JSON.parse(activeBrand);
         if (parsed && parsed.profileId) {
+          localProfile = parsed;
           setActiveBrandProfile(parsed);
+          // If the cached profile already has a generated template, load it now
+          if (parsed.generatedTemplate) {
+            setGeneratedTemplate(parsed.generatedTemplate);
+          }
         }
       }
     } catch {}
+
+    // Always fetch fresh profile from DB — picks up generated templates saved on other devices
+    fetch("/api/brand-profiles")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.profiles?.length || !data.activeProfileId) return;
+        const active = data.profiles.find((p: any) => p.id === data.activeProfileId);
+        if (!active) return;
+        // Merge into the local profile shape (calendar uses profileId, API returns id)
+        const merged = { ...localProfile, ...active, profileId: active.id };
+        setActiveBrandProfile(merged);
+        // Update localStorage cache
+        localStorage.setItem("ath_active_brand_profile", JSON.stringify(merged));
+        // If DB has a generated template, use it (source of truth)
+        if (active.generatedTemplate) {
+          setGeneratedTemplate(active.generatedTemplate);
+          const slug = (active.niche ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "_");
+          if (slug) localStorage.setItem(`ath_generated_template_${slug}`, JSON.stringify(active.generatedTemplate));
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // Load gallery on mount and month change
@@ -567,8 +661,8 @@ function CalendarPageInner() {
   }, [loadGalleryData]);
 
   const plan = useMemo(
-    () => buildMonthPlan(currentYear, currentMonth, nicheKey),
-    [currentYear, currentMonth, nicheKey]
+    () => buildMonthPlan(currentYear, currentMonth, nicheKey, generatedTemplate ?? undefined),
+    [currentYear, currentMonth, nicheKey, generatedTemplate]
   );
   const firstDayOfMonth = getFirstDayOfMonth(currentYear, currentMonth);
 
@@ -1289,6 +1383,75 @@ function CalendarPageInner() {
             ))}
           </div>
 
+          {/* Generate template CTA for custom niches */}
+          {showGenerateTemplateBtn && (
+            <div style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "48px 24px",
+              background: "linear-gradient(135deg, rgba(124,58,237,0.08) 0%, rgba(44,107,237,0.08) 100%)",
+              border: "1px dashed rgba(124,58,237,0.3)",
+              borderRadius: 16,
+              marginBottom: 20,
+              gap: 16,
+              textAlign: "center",
+            }}>
+              <div style={{ fontSize: 40 }}>✨</div>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "#e6edf7", marginBottom: 6 }}>
+                  Set up your content calendar
+                </div>
+                <div style={{ fontSize: 14, opacity: 0.7, color: "#e6edf7", maxWidth: 360 }}>
+                  AI will build a custom weekly content strategy for <strong style={{ color: "#a78bfa" }}>{nicheLabel}</strong> — pillars, post ideas, hooks, and hashtags tailored to your niche.
+                </div>
+              </div>
+              <button
+                onClick={generateNicheTemplate}
+                style={{
+                  background: "linear-gradient(135deg, #7c3aed 0%, #2c6bed 100%)",
+                  border: "none",
+                  borderRadius: 12,
+                  padding: "14px 28px",
+                  color: "#fff",
+                  fontWeight: 800,
+                  fontSize: 15,
+                  cursor: "pointer",
+                  boxShadow: "0 4px 14px rgba(124,58,237,0.4)",
+                  transition: "all 0.15s ease",
+                }}
+                className="hover-btn"
+              >
+                Generate template for {MONTHS[currentMonth]}
+              </button>
+            </div>
+          )}
+
+          {isGeneratingTemplate && (
+            <div style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "48px 24px",
+              background: "rgba(124,58,237,0.05)",
+              border: "1px solid rgba(124,58,237,0.2)",
+              borderRadius: 16,
+              marginBottom: 20,
+              gap: 12,
+              textAlign: "center",
+            }}>
+              <div style={{ fontSize: 32, animation: "spin 1.5s linear infinite" }}>⚙️</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#a78bfa" }}>
+                Building your {nicheLabel} content strategy…
+              </div>
+              <div style={{ fontSize: 13, opacity: 0.6, color: "#e6edf7" }}>
+                AI is crafting 5 content pillars, post ideas, hooks, and hashtags
+              </div>
+            </div>
+          )}
+
           <div
             style={styles.calendarGrid}
             className="ath-cal-grid desktop-calendar"
@@ -1416,6 +1579,71 @@ function CalendarPageInner() {
 
           {/* Mobile List View */}
           <div style={styles.mobileListContainer} className="mobile-calendar">
+
+          {/* Generate template CTA — mobile */}
+          {showGenerateTemplateBtn && (
+            <div style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              padding: "36px 20px",
+              background: "linear-gradient(135deg, rgba(124,58,237,0.08) 0%, rgba(44,107,237,0.08) 100%)",
+              border: "1px dashed rgba(124,58,237,0.3)",
+              borderRadius: 16,
+              marginBottom: 16,
+              gap: 14,
+              textAlign: "center",
+            }}>
+              <div style={{ fontSize: 36 }}>✨</div>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#e6edf7", marginBottom: 6 }}>
+                  Set up your content calendar
+                </div>
+                <div style={{ fontSize: 13, opacity: 0.7, color: "#e6edf7" }}>
+                  AI will build a custom strategy for <strong style={{ color: "#a78bfa" }}>{nicheLabel}</strong>
+                </div>
+              </div>
+              <button
+                onClick={generateNicheTemplate}
+                style={{
+                  background: "linear-gradient(135deg, #7c3aed 0%, #2c6bed 100%)",
+                  border: "none",
+                  borderRadius: 12,
+                  padding: "12px 24px",
+                  color: "#fff",
+                  fontWeight: 800,
+                  fontSize: 14,
+                  cursor: "pointer",
+                  boxShadow: "0 4px 14px rgba(124,58,237,0.4)",
+                }}
+              >
+                Generate template for {MONTHS[currentMonth]}
+              </button>
+            </div>
+          )}
+
+          {isGeneratingTemplate && (
+            <div style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              padding: "36px 20px",
+              background: "rgba(124,58,237,0.05)",
+              border: "1px solid rgba(124,58,237,0.2)",
+              borderRadius: 16,
+              marginBottom: 16,
+              gap: 12,
+              textAlign: "center",
+            }}>
+              <div style={{ fontSize: 28 }}>⚙️</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#a78bfa" }}>
+                Building your {nicheLabel} strategy…
+              </div>
+              <div style={{ fontSize: 12, opacity: 0.6, color: "#e6edf7" }}>
+                Crafting 5 content pillars for your niche
+              </div>
+            </div>
+          )}
             {plan.map((dayPlan) => {
               const dayOfWeek = WEEKDAYS[dayPlan.date.getDay()];
               const monthName = MONTHS[dayPlan.date.getMonth()];

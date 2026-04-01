@@ -1269,14 +1269,16 @@ export function getRandomPillarScene(pillar: ContentPillar): string {
 /*  Niche routing helpers                                               */
 /* ------------------------------------------------------------------ */
 
-// Maps a stored niche label (from the brand profile dropdown) to a template key.
-export function nicheKeyFromLabel(label: string): string {
+// Maps a stored niche label to a hardcoded template key.
+// Returns undefined for custom niches (e.g. "egg salesman") — callers use a
+// generated template for those instead of falling back to a hardcoded one.
+export function nicheKeyFromLabel(label: string): string | undefined {
   const map: Record<string, string> = {
     "Real Estate Agent": "realtor",
     "Fitness Coach": "fitness",
     "Restaurant Owner": "restaurant",
   };
-  return map[label] ?? "realtor";
+  return map[label];
 }
 
 // Maps a stored niche label to its niche-specific calendar URL path.

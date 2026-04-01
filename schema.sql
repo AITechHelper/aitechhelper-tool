@@ -122,6 +122,11 @@ CREATE INDEX IF NOT EXISTS idx_media_assets_user_id ON media_assets(user_id);
 -- ALTER TABLE brand_profiles ADD COLUMN IF NOT EXISTS website TEXT NOT NULL DEFAULT '';
 -- ALTER TABLE brand_profiles ADD COLUMN IF NOT EXISTS phone TEXT NOT NULL DEFAULT '';
 
+-- Migration: add generated_template to brand profiles (stores AI-generated niche content template)
+-- Run this ALTER TABLE statement in your Neon console to upgrade an existing database:
+--
+-- ALTER TABLE brand_profiles ADD COLUMN IF NOT EXISTS generated_template JSONB DEFAULT NULL;
+
 -- Migration: add video support to media_assets
 -- Run these ALTER TABLE statements in your Neon console to upgrade an existing database:
 --
