@@ -1811,12 +1811,8 @@ export default function DashboardPage() {
                   ))}
                 </div>
 
-                {/* Divider */}
-                <div className="calendar-card-divider" style={{ width: 1, alignSelf: "stretch", background: "rgba(255,255,255,0.15)", flexShrink: 0 }} />
-
-                {/* CTA */}
-                <div className="calendar-card-cta" style={{ flexShrink: 0, background: "rgba(255,255,255,0.15)", borderRadius: 10, padding: "12px 20px", fontWeight: 700, fontSize: 14, whiteSpace: "nowrap" as const, transition: "all 0.15s ease" }}>
-                  {navLoading === "calendar" ? "Loading…" : <><span className="calendar-card-cta-full">Open Content Calendar </span>→</>}
+                <div style={{ marginLeft: "auto", flexShrink: 0, fontSize: 22, opacity: 0.6 }}>
+                  {navLoading === "calendar" ? "…" : "→"}
                 </div>
               </div>
             </div>
