@@ -1810,10 +1810,11 @@ export default function DashboardPage() {
                     </div>
                   ))}
                 </div>
+              </div>
 
-                <div style={{ marginLeft: "auto", flexShrink: 0, fontSize: 22, opacity: 0.6 }}>
-                  {navLoading === "calendar" ? "…" : "→"}
-                </div>
+              {/* Full-width button — matches New Post / New Video style */}
+              <div className="calendar-card-btn" style={{ margin: "0 20px 20px", background: "rgba(255,255,255,0.18)", borderRadius: 12, padding: "14px", fontWeight: 700, fontSize: 15, textAlign: "center" as const, letterSpacing: 0.2 }}>
+                {navLoading === "calendar" ? "Loading…" : "Open Content Calendar →"}
               </div>
             </div>
 
