@@ -1806,7 +1806,7 @@ export default function DashboardPage() {
                   {["Whole month, planned automatically", "Every weekday has its own post type", "Click any day — generate that post"].map((line) => (
                     <div key={line} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#a78bfa", flexShrink: 0 }} />
-                      <span style={{ fontSize: 13, fontWeight: 600 }}>{line}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" as const }}>{line}</span>
                     </div>
                   ))}
                 </div>
