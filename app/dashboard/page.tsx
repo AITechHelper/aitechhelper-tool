@@ -2601,6 +2601,8 @@ export default function DashboardPage() {
         }
         @media (max-width: 900px) {
           .profile-benefits-pill-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+          .calendar-card-divider { display: none !important; }
+          .calendar-card-bullets { display: none !important; }
         }
         @media (max-width: 768px) {
           /* 2-col action grid compacted on mobile */
