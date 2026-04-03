@@ -83,6 +83,7 @@ html, body {
   .calendar-card-bullets { display: none !important; }
   .calendar-card-divider { display: none !important; }
   .calendar-card-subtitle { display: none !important; }
+  .calendar-card-btn { display: none !important; }
   .calendar-card-inner {
     flex-direction: column !important;
     align-items: center !important;
