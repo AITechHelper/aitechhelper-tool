@@ -1789,7 +1789,7 @@ export default function DashboardPage() {
                   <div className="ath-card-icon" style={{ fontSize: 36 }}>📅</div>
                   <div>
                     <div className="ath-card-title" style={{ fontSize: 18, fontWeight: 700, marginBottom: 2 }}>Content Calendar</div>
-                    <div className="ath-card-subtitle" style={{ fontSize: 12, opacity: 0.75, whiteSpace: "nowrap" as const }}>Your full month, planned for you</div>
+                    <div className="ath-card-subtitle calendar-card-subtitle" style={{ fontSize: 12, opacity: 0.75, whiteSpace: "nowrap" as const }}>Your full month, planned for you</div>
                   </div>
                 </div>
 

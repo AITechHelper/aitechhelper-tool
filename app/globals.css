@@ -76,3 +76,25 @@ html, body {
 
 /* Tooltip max-width clamp — prevent off-screen overflow on narrow phones */
 .ath-tooltip { max-width: min(200px, 90vw) !important; }
+
+/* ===== Content Calendar Card — tablet/phone breakpoint ===== */
+/* On tablet and phone, show only icon + title, centered — hide bullets, subtitle, divider */
+@media (max-width: 1024px) {
+  .calendar-card-bullets { display: none !important; }
+  .calendar-card-divider { display: none !important; }
+  .calendar-card-subtitle { display: none !important; }
+  .calendar-card-inner {
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding: 20px 24px !important;
+    gap: 0 !important;
+  }
+  .calendar-card-inner > div:first-child {
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+  }
+}
