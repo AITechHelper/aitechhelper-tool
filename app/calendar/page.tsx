@@ -1452,6 +1452,8 @@ function CalendarPageInner() {
             </div>
           )}
 
+          {/* Hide the day-cell grid until a template has been generated for custom niches */}
+          {(needsGeneratedTemplate && !generatedTemplate) ? null : (
           <div
             style={styles.calendarGrid}
             className="ath-cal-grid desktop-calendar"
@@ -1576,6 +1578,7 @@ function CalendarPageInner() {
               );
             })}
           </div>
+          )}{/* end needsGeneratedTemplate guard */}
 
           {/* Mobile List View */}
           <div style={styles.mobileListContainer} className="mobile-calendar">
@@ -1644,7 +1647,7 @@ function CalendarPageInner() {
               </div>
             </div>
           )}
-            {plan.map((dayPlan) => {
+          {(needsGeneratedTemplate && !generatedTemplate) ? null : plan.map((dayPlan) => {
               const dayOfWeek = WEEKDAYS[dayPlan.date.getDay()];
               const monthName = MONTHS[dayPlan.date.getMonth()];
               const dayNum = dayPlan.day;
@@ -1751,6 +1754,7 @@ function CalendarPageInner() {
             })}
           </div>
 
+          {(needsGeneratedTemplate && !generatedTemplate) ? null : (
           <div style={styles.legend} className="ath-legend">
             <div style={styles.legendTitle}>Content Rotation</div>
             <div style={styles.legendGrid}>
@@ -1776,6 +1780,7 @@ function CalendarPageInner() {
               </div>
             </div>
           </div>
+          )}{/* end legend needsGeneratedTemplate guard */}
         </div>
 
         <div style={styles.helpText}>

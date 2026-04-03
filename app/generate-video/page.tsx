@@ -39,8 +39,6 @@ const CAPTION_LENGTH_OPTIONS: { value: CaptionLen; label: string; sub: string }[
   { value: "Long",   label: "Long",   sub: "~360 chars" },
 ];
 
-const HASHTAG_COUNTS = [0, 5, 10, 15, 20, 30];
-
 const G1 = "#10b981";
 const G2 = "#059669";
 const TOTAL_STEPS = 4;
@@ -92,6 +90,8 @@ export default function GenerateVideoPage() {
   const pollIntervalRef  = useRef<ReturnType<typeof setInterval> | null>(null);
   const generationIdRef  = useRef<string | null>(null);
   const tempBlobUrlRef   = useRef<string | null>(null);
+  const captionRef       = useRef<string | null>(null);
+  const hashtagsRef      = useRef<string | null>(null);
 
   useEffect(() => {
     return () => { if (pollIntervalRef.current) clearInterval(pollIntervalRef.current); };
@@ -161,8 +161,8 @@ export default function GenerateVideoPage() {
       generationIdRef.current = data.generationId;
       tempBlobUrlRef.current  = data.tempBlobUrl ?? null;
       if (data.enrichedPrompt) setEnrichedPrompt(data.enrichedPrompt);
-      if (data.caption)        setCaption(data.caption);
-      if (data.hashtags)       setHashtags(data.hashtags);
+      if (data.caption)        { setCaption(data.caption); captionRef.current = data.caption; }
+      if (data.hashtags)       { setHashtags(data.hashtags); hashtagsRef.current = data.hashtags; }
 
       pollIntervalRef.current = setInterval(pollStatus, 5000);
     } catch (err: any) {
@@ -182,6 +182,8 @@ export default function GenerateVideoPage() {
         if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
         setVideoUrl(data.videoUrl);
         setVideoState("completed");
+        // Auto-save to Recent Posts (fire-and-forget)
+        autoSaveToRecentPosts(data.videoUrl);
       } else if (data.status === "failed") {
         if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
         setVideoState("failed");
@@ -205,18 +207,27 @@ export default function GenerateVideoPage() {
     } catch { addToast("Could not copy to clipboard", "error"); }
   }
 
-  async function handleSaveToLibrary() {
-    if (!videoUrl) return;
+  async function autoSaveToRecentPosts(videoUrl: string) {
     try {
-      const res = await fetch("/api/media-assets", {
+      const res = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ assetType: "video", videoUrl, aspectRatio, name: topic.slice(0, 60) || "AI Video" }),
+        body: JSON.stringify({
+          postType: "AI Video",
+          caption: captionRef.current ?? (topic.slice(0, 200) || "AI Video"),
+          hashtags: hashtagsRef.current ?? "",
+          imageStyle: "video",
+          tone: tone,
+          niche: niche,
+          audience: audience,
+          videoUrl,
+          hasImage: false,
+        }),
       });
-      if (!res.ok) throw new Error("Failed to save");
+      if (!res.ok) throw new Error("Failed to save post");
       setSavedToLibrary(true);
-      addToast("Video saved to your library!", "success");
-    } catch { addToast("Could not save to library", "error"); }
+      addToast("Video saved to Recent Posts!", "success");
+    } catch { addToast("Could not auto-save video", "error"); }
   }
 
   async function handlePostInstagram() {
@@ -265,6 +276,8 @@ export default function GenerateVideoPage() {
     setFbPublished(false);
     generationIdRef.current = null;
     tempBlobUrlRef.current  = null;
+    captionRef.current      = null;
+    hashtagsRef.current     = null;
     setCurrentStep(0);
   }
 
@@ -553,16 +566,23 @@ export default function GenerateVideoPage() {
                       </div>
                     </div>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, opacity: 0.6, textTransform: "uppercase" as const, letterSpacing: "0.07em" }}>Hashtag Count</div>
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" as const }}>
-                        {HASHTAG_COUNTS.map((n) => {
-                          const sel = hashtagCount === n;
-                          return (
-                            <button key={n} onClick={() => setHashtagCount(n)} style={{ background: sel ? `rgba(16,185,129,0.18)` : "rgba(255,255,255,0.04)", border: sel ? `1.5px solid ${G1}` : "1px solid rgba(255,255,255,0.1)", borderRadius: 999, padding: "7px 14px", fontSize: 13, fontWeight: sel ? 700 : 500, color: sel ? "#34d399" : "#b0bec5", cursor: "pointer", minWidth: 40, transition: "all 0.15s ease" }}>
-                              {n === 0 ? "None" : n}
-                            </button>
-                          );
-                        })}
+                      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, opacity: 0.6, textTransform: "uppercase" as const, letterSpacing: "0.07em" }}>
+                        Hashtag Count
+                        <span style={{ marginLeft: 10, fontWeight: 700, color: "#34d399", opacity: 1 }}>
+                          {hashtagCount === 0 ? "None" : `${hashtagCount} hashtags`}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={0}
+                        max={30}
+                        step={5}
+                        value={hashtagCount}
+                        onChange={(e) => setHashtagCount(Number(e.target.value))}
+                        style={{ width: "100%", accentColor: G1, cursor: "pointer", height: 4 }}
+                      />
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, opacity: 0.45, marginTop: 4 }}>
+                        <span>None</span><span>5</span><span>10</span><span>15</span><span>20</span><span>30</span>
                       </div>
                     </div>
                   </div>
@@ -681,10 +701,7 @@ export default function GenerateVideoPage() {
                   </button>
                 )}
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <button onClick={handleSaveToLibrary} disabled={savedToLibrary} style={{ background: savedToLibrary ? "rgba(16,185,129,0.15)" : "rgba(255,255,255,0.06)", border: savedToLibrary ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: savedToLibrary ? "#6ee7b7" : "#e6edf7", padding: "13px 16px", fontSize: 13, fontWeight: 600, cursor: savedToLibrary ? "default" : "pointer", transition: "all 0.15s ease" }}>
-                  {savedToLibrary ? "✓ Saved to Library" : "Save to Library"}
-                </button>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
                 <button onClick={async () => {
                   if (!videoUrl) return;
                   await saveToDevice(videoUrl, `video-${Date.now()}.mp4`);

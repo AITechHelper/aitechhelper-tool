@@ -55,7 +55,6 @@ export default function DashboardPage() {
     useState("#ffffff");
   const [newProfileLogo, setNewProfileLogo] = useState("");
   const [newProfileWebsite, setNewProfileWebsite] = useState("");
-  const [newProfilePhone, setNewProfilePhone] = useState("");
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [postImages, setPostImages] = useState<Record<string, string>>({});
@@ -204,7 +203,6 @@ export default function DashboardPage() {
     setNewProfileSecondaryColor(profile.secondaryColor);
     setNewProfileLogo(profile.logoBase64 || "");
     setNewProfileWebsite(profile.website || "");
-    setNewProfilePhone(profile.phone || "");
     setProfileStep(2);
     setShowNewProfile(true);
   };
@@ -223,7 +221,6 @@ export default function DashboardPage() {
         secondaryColor: newProfileSecondaryColor,
         logoBase64: newProfileLogo || "",
         website: newProfileWebsite.trim(),
-        phone: newProfilePhone.trim(),
       };
 
       const updated = await brandProfiles.updateProfile(
@@ -259,7 +256,6 @@ export default function DashboardPage() {
         secondaryColor: newProfileSecondaryColor,
         logoBase64: newProfileLogo || undefined,
         website: newProfileWebsite.trim(),
-        phone: newProfilePhone.trim(),
       });
 
       if (created) {
@@ -280,7 +276,6 @@ export default function DashboardPage() {
     setNewProfileSecondaryColor("#ffffff");
     setNewProfileLogo("");
     setNewProfileWebsite("");
-    setNewProfilePhone("");
     setEditingProfile(null);
     setProfileStep(1);
     setShowNewProfile(false);
@@ -1676,10 +1671,10 @@ export default function DashboardPage() {
                   flexDirection: "column" as const,
                 }}
               >
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, flex: 1, marginBottom: 20, textAlign: "left" as const }}>
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, flex: 1, marginBottom: 20, textAlign: "center" as const, alignItems: "center" }}>
                   {["One topic. One post. Ready in seconds.", "Use your own photo or generate a fresh one.", "Caption and hashtags in your brand voice."].map((line) => (
-                    <div key={line} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#4f8ef7", flexShrink: 0, marginTop: 5 }} />
+                    <div key={line} style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "center" }}>
+                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#4f8ef7", flexShrink: 0 }} />
                       <span style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5 }}>{line}</span>
                     </div>
                   ))}
@@ -1744,10 +1739,10 @@ export default function DashboardPage() {
                   flexDirection: "column" as const,
                 }}
               >
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, flex: 1, marginBottom: 20, textAlign: "left" as const }}>
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, flex: 1, marginBottom: 20, textAlign: "center" as const, alignItems: "center" }}>
                   {["5 seconds, AI-generated.", "Post to Instagram Reels & Facebook.", "Pick your format (9:16, 1:1, 16:9)."].map((line) => (
-                    <div key={line} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#6ee7b7", flexShrink: 0, marginTop: 5 }} />
+                    <div key={line} style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "center" }}>
+                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#6ee7b7", flexShrink: 0 }} />
                       <span style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5 }}>{line}</span>
                     </div>
                   ))}
@@ -1802,10 +1797,10 @@ export default function DashboardPage() {
                 <div className="calendar-card-divider" style={{ width: 1, alignSelf: "stretch", background: "rgba(255,255,255,0.15)", flexShrink: 0 }} />
 
                 {/* Bullets */}
-                <div className="calendar-card-bullets ath-card-body" style={{ flex: 2, minWidth: 0, display: "flex", flexDirection: "column" as const, gap: 6, justifyContent: "center" }}>
+                <div className="calendar-card-bullets ath-card-body" style={{ flex: 2, minWidth: 0, display: "flex", flexDirection: "column" as const, gap: 6, justifyContent: "center", alignItems: "center", textAlign: "center" as const }}>
                   {["Whole month, planned automatically", "Every weekday has its own post type", "Click any day — generate that post"].map((line) => (
-                    <div key={line} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#a78bfa", flexShrink: 0, marginTop: 4 }} />
+                    <div key={line} style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center" }}>
+                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#a78bfa", flexShrink: 0 }} />
                       <span style={{ fontSize: 13, fontWeight: 600 }}>{line}</span>
                     </div>
                   ))}
@@ -2209,7 +2204,6 @@ export default function DashboardPage() {
                         setNewProfileSecondaryColor("#ffffff");
                         setNewProfileLogo("");
                         setNewProfileWebsite("");
-                        setNewProfilePhone("");
                         setEditingProfile(null);
                       }}
                     >
@@ -2490,32 +2484,16 @@ export default function DashboardPage() {
                     <div style={{ fontSize: 12, color: "#8fa3bf", marginBottom: 12 }}>
                       Optional. Shown on promotional and announcement posts where it makes sense.
                     </div>
-                    <div
-                      style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 14 }}
-                      className="profile-colors-grid"
-                    >
-                      <div>
-                        <label style={{ fontSize: 12, opacity: 0.7, marginBottom: 6, display: "block" }}>
-                          Website
-                        </label>
-                        <input
-                          style={{ ...styles.input, marginBottom: 0 }}
-                          placeholder="e.g., www.yourbusiness.com"
-                          value={newProfileWebsite}
-                          onChange={(e) => setNewProfileWebsite(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label style={{ fontSize: 12, opacity: 0.7, marginBottom: 6, display: "block" }}>
-                          Phone
-                        </label>
-                        <input
-                          style={{ ...styles.input, marginBottom: 0 }}
-                          placeholder="e.g., (555) 123-4567"
-                          value={newProfilePhone}
-                          onChange={(e) => setNewProfilePhone(e.target.value)}
-                        />
-                      </div>
+                    <div>
+                      <label style={{ fontSize: 12, opacity: 0.7, marginBottom: 6, display: "block" }}>
+                        Website
+                      </label>
+                      <input
+                        style={{ ...styles.input, marginBottom: 0 }}
+                        placeholder="e.g., www.yourbusiness.com"
+                        value={newProfileWebsite}
+                        onChange={(e) => setNewProfileWebsite(e.target.value)}
+                      />
                     </div>
                   </div>
 
@@ -2536,7 +2514,6 @@ export default function DashboardPage() {
                           setNewProfileSecondaryColor("#ffffff");
                           setNewProfileLogo("");
                           setNewProfileWebsite("");
-                          setNewProfilePhone("");
                           setEditingProfile(null);
                           setProfileStep(1);
                         } else {

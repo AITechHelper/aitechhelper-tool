@@ -3,7 +3,7 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { imageStyles, GENERATOR_STYLE_VALUES } from "../lib/imageStyleOptions";
-import { getTemplate } from "../lib/nicheTemplates";
+import { getTemplate, nicheKeyFromLabel } from "../lib/nicheTemplates";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
@@ -418,7 +418,9 @@ export default function Page() {
     generatePost();
   }, [autogenRequested, dayContext, form.niche, form.audience]);
 
-  const nicheTemplateKey = { "Real Estate Agent": "realtor", "Fitness Coach": "fitness", "Restaurant Owner": "restaurant" }[form.niche];
+  // Resolve niche template: use nicheKeyFromLabel for the 3 hardcoded niches,
+  // fall back to null for custom niches (generic list shown instead).
+  const nicheTemplateKey = nicheKeyFromLabel(form.niche);
   const activeTemplate = nicheTemplateKey ? getTemplate(nicheTemplateKey) : null;
   const activePillars = activeTemplate ? activeTemplate.pillars : null;
   const activeWeeklyStructure = activeTemplate ? activeTemplate.weeklyStructure : null;
@@ -1563,34 +1565,48 @@ export default function Page() {
             <div style={styles.card} className="hover-card">
               <h2 style={styles.cardTitle}>Caption Settings</h2>
               <p style={styles.cardHint}>Customize your caption, hashtags, and brand colors</p>
-              <div style={styles.row2} className="ath-row2">
-                <div style={styles.field}>
-                  <div style={styles.label}>
-                    Tone
-                    <Tooltip text="The voice and personality of your caption. Match it to your brand.">
-                      <svg style={styles.tooltipIcon} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </Tooltip>
-                  </div>
-                  <select style={styles.select} value={form.tone} onChange={(e) => updateForm("tone", e.target.value)}>
-                    {toneOptions.map((v) => <option key={v} value={v}>{v}</option>)}
-                  </select>
+              {/* Caption Tone — horizontal scrollable pill chips */}
+              <div style={styles.field}>
+                <div style={styles.label}>
+                  Tone
+                  <Tooltip text="The voice and personality of your caption. Match it to your brand.">
+                    <svg style={styles.tooltipIcon} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </Tooltip>
                 </div>
-                <div style={styles.field}>
-                  <div style={styles.label}>
-                    Caption Length
-                    <Tooltip text="Short for quick hits, Long for storytelling or detailed info.">
-                      <svg style={styles.tooltipIcon} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </Tooltip>
-                  </div>
-                  <select style={styles.select} value={form.captionLength} onChange={(e) => updateForm("captionLength", e.target.value as FormState["captionLength"])}>
-                    <option value="Short">Short (1-2 sentences)</option>
-                    <option value="Medium">Medium (3-4 sentences)</option>
-                    <option value="Long">Long (5+ sentences)</option>
-                  </select>
+                <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 8 }}>
+                  {toneOptions.map((t) => {
+                    const sel = form.tone === t;
+                    return (
+                      <button key={t} onClick={() => updateForm("tone", t)} style={{ background: sel ? "rgba(44,107,237,0.18)" : "rgba(255,255,255,0.04)", border: sel ? "1.5px solid #2c6bed" : "1px solid rgba(255,255,255,0.1)", borderRadius: 999, padding: "7px 16px", fontSize: 13, fontWeight: sel ? 700 : 500, color: sel ? "#7eb3ff" : "#b0bec5", cursor: "pointer", transition: "all 0.15s ease" }}>
+                        {t}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Caption Length — 3-option pill/box selector */}
+              <div style={styles.field}>
+                <div style={styles.label}>
+                  Caption Length
+                  <Tooltip text="Short for quick hits, Long for storytelling or detailed info.">
+                    <svg style={styles.tooltipIcon} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </Tooltip>
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {([{ value: "Short" as const, label: "Short", sub: "~160 chars" }, { value: "Medium" as const, label: "Medium", sub: "~240 chars" }, { value: "Long" as const, label: "Long", sub: "~360 chars" }]).map((opt) => {
+                    const sel = form.captionLength === opt.value;
+                    return (
+                      <button key={opt.value} onClick={() => updateForm("captionLength", opt.value)} style={{ flex: 1, background: sel ? "rgba(44,107,237,0.15)" : "rgba(255,255,255,0.03)", border: sel ? "2px solid #2c6bed" : "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "12px 8px", cursor: "pointer", textAlign: "center" as const, color: "#e6edf7", transition: "all 0.15s ease" }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 3 }}>{opt.label}</div>
+                        <div style={{ fontSize: 10, opacity: 0.55 }}>{opt.sub}</div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               <div style={styles.field}>
