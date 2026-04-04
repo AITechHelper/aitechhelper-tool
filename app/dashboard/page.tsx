@@ -2268,6 +2268,7 @@ export default function DashboardPage() {
                           fontSize: 12,
                           opacity: 0.75,
                           whiteSpace: "nowrap" as const,
+                          marginBottom: 10,
                         }}
                       >
                         Your full month, planned for you
