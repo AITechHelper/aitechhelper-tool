@@ -6,10 +6,7 @@ import { SignOutButton, useUser } from "@clerk/nextjs";
 import { getImage, deleteImage } from "../lib/imageStorage";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
-import {
-  useBrandProfiles,
-  type BrandProfile,
-} from "../lib/useBrandProfiles";
+import { useBrandProfiles, type BrandProfile } from "../lib/useBrandProfiles";
 import { useInstagram } from "../lib/useInstagram";
 import { useFacebook } from "../lib/useFacebook";
 import { getNicheCalendarPath } from "../lib/nicheTemplates";
@@ -40,7 +37,9 @@ export default function DashboardPage() {
   const brandProfiles = useBrandProfiles();
   const { profiles, activeProfileId } = brandProfiles;
   const [recentPosts, setRecentPosts] = useState<SavedPost[]>([]);
-  const [recentMedia, setRecentMedia] = useState<{ id: string; name: string; imageBase64: string }[]>([]);
+  const [recentMedia, setRecentMedia] = useState<
+    { id: string; name: string; imageBase64: string }[]
+  >([]);
   const [showNewProfile, setShowNewProfile] = useState(false);
   const [editingProfile, setEditingProfile] = useState<BrandProfile | null>(
     null
@@ -97,7 +96,10 @@ export default function DashboardPage() {
           // Use imageBase64 from DB directly; fall back to IndexedDB for older posts
           for (const post of posts) {
             if (post.imageBase64) {
-              setPostImages((prev) => ({ ...prev, [post.id]: post.imageBase64! }));
+              setPostImages((prev) => ({
+                ...prev,
+                [post.id]: post.imageBase64!,
+              }));
             } else if (post.hasImage) {
               const img = await getImage(post.id);
               if (img) setPostImages((prev) => ({ ...prev, [post.id]: img }));
@@ -156,7 +158,10 @@ export default function DashboardPage() {
         window.location.href = data.url;
       } else if (res.status === 404) {
         // No subscription found — redirect to subscribe page
-        addToast("No active subscription found. Redirecting to plans...", "info");
+        addToast(
+          "No active subscription found. Redirecting to plans...",
+          "info"
+        );
         window.location.href = "/subscribe";
       } else if (data.error) {
         addToast("Failed to open billing portal.", "error");
@@ -285,7 +290,14 @@ export default function DashboardPage() {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
     setTimeout(() => setCopiedField(null), 2000);
-    addToast(field === "caption" ? "Caption copied!" : field === "hashtags" ? "Hashtags copied!" : "Copied!", "success");
+    addToast(
+      field === "caption"
+        ? "Caption copied!"
+        : field === "hashtags"
+          ? "Hashtags copied!"
+          : "Copied!",
+      "success"
+    );
   };
 
   const handleDeletePost = async (id: string) => {
@@ -755,21 +767,29 @@ export default function DashboardPage() {
           }}
         >
           {/* Realtor badge */}
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
-            <span style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              background: "rgba(44, 107, 237, 0.12)",
-              border: "1px solid rgba(44, 107, 237, 0.3)",
-              borderRadius: 999,
-              padding: "4px 14px",
-              fontSize: 11,
-              fontWeight: 700,
-              color: "#7eb3ff",
-              letterSpacing: 1.2,
-              textTransform: "uppercase" as const,
-            }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginBottom: 12,
+            }}
+          >
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                background: "rgba(44, 107, 237, 0.12)",
+                border: "1px solid rgba(44, 107, 237, 0.3)",
+                borderRadius: 999,
+                padding: "4px 14px",
+                fontSize: 11,
+                fontWeight: 700,
+                color: "#7eb3ff",
+                letterSpacing: 1.2,
+                textTransform: "uppercase" as const,
+              }}
+            >
               ✦ Built for Your Niche
             </span>
           </div>
@@ -790,7 +810,14 @@ export default function DashboardPage() {
             AI Social Helper
           </h1>
 
-          <p style={{ margin: "8px 0 0 0", fontSize: 14, opacity: 0.55, fontWeight: 500 }}>
+          <p
+            style={{
+              margin: "8px 0 0 0",
+              fontSize: 14,
+              opacity: 0.55,
+              fontWeight: 500,
+            }}
+          >
             AI-generated content for your business — in seconds.
           </p>
 
@@ -809,18 +836,27 @@ export default function DashboardPage() {
               >
                 <div
                   style={{
-                    background: !tokenBalance.isLoading && !tokenBalance.error && tokenBalance.tokensRemaining <= 0
-                      ? "rgba(239, 68, 68, 0.1)"
-                      : "rgba(34, 197, 94, 0.1)",
-                    border: !tokenBalance.isLoading && !tokenBalance.error && tokenBalance.tokensRemaining <= 0
-                      ? "1px solid rgba(239, 68, 68, 0.2)"
-                      : "1px solid rgba(34, 197, 94, 0.2)",
+                    background:
+                      !tokenBalance.isLoading &&
+                      !tokenBalance.error &&
+                      tokenBalance.tokensRemaining <= 0
+                        ? "rgba(239, 68, 68, 0.1)"
+                        : "rgba(34, 197, 94, 0.1)",
+                    border:
+                      !tokenBalance.isLoading &&
+                      !tokenBalance.error &&
+                      tokenBalance.tokensRemaining <= 0
+                        ? "1px solid rgba(239, 68, 68, 0.2)"
+                        : "1px solid rgba(34, 197, 94, 0.2)",
                     borderRadius: 20,
                     padding: "6px 14px",
                     fontSize: 12,
-                    color: !tokenBalance.isLoading && !tokenBalance.error && tokenBalance.tokensRemaining <= 0
-                      ? "#ef4444"
-                      : "#22c55e",
+                    color:
+                      !tokenBalance.isLoading &&
+                      !tokenBalance.error &&
+                      tokenBalance.tokensRemaining <= 0
+                        ? "#ef4444"
+                        : "#22c55e",
                     fontWeight: 600,
                     fontFamily: "Verdana, Geneva, sans-serif",
                     whiteSpace: "nowrap",
@@ -901,7 +937,10 @@ export default function DashboardPage() {
                     }}
                   >
                     <button
-                      onClick={() => { setMenuOpen(false); router.push("/media"); }}
+                      onClick={() => {
+                        setMenuOpen(false);
+                        router.push("/media");
+                      }}
                       style={{
                         width: "100%",
                         background: "transparent",
@@ -915,8 +954,13 @@ export default function DashboardPage() {
                         textAlign: "left" as const,
                         transition: "background 0.2s ease",
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background =
+                          "rgba(255,255,255,0.05)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background = "transparent")
+                      }
                     >
                       📁 My Library
                     </button>
@@ -1007,816 +1051,1310 @@ export default function DashboardPage() {
 
         {/* Flex column wrapper — action cards render first via order:0, 3-col section second via order:1 */}
         <div style={{ display: "flex", flexDirection: "column" as const }}>
+          {/* 3-col section: Brand Profile | Social Medias | Recent Posts */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+              gap: 16,
+              order: 1,
+              marginTop: 40,
+            }}
+            className="dash-side-by-side"
+          >
+            {/* Brand Profiles section - always show */}
+            <div
+              style={{ ...styles.heroSection, minWidth: 0, marginBottom: 0 }}
+              className="primary-section"
+            >
+              <div style={styles.sectionHeader}>
+                <div>
+                  <h2 style={styles.sectionTitle}>
+                    Your Brand Profile
+                    <span style={styles.stepPill}>Step 1</span>
+                  </h2>
+                  <p style={styles.instructionText}>
+                    {profiles.length === 0
+                      ? "Set up your brand profile so every post sounds like you."
+                      : "Manage your brand profiles — switch between businesses or audiences."}
+                  </p>
+                </div>
+              </div>
 
-        {/* 3-col section: Brand Profile | Social Medias | Recent Posts */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 16, order: 1, marginTop: 40 }} className="dash-side-by-side">
+              {profiles.length === 0 ? (
+                <div style={styles.emptyState}>
+                  {/* Centered Content Container */}
+                  <div
+                    style={{
+                      maxWidth: 820,
+                      margin: "0 auto",
+                      width: "100%",
+                    }}
+                  >
+                    {/* Title */}
+                    <div
+                      style={{
+                        ...styles.emptyText,
+                        textAlign: "center" as const,
+                      }}
+                    >
+                      Set up your brand profile in 30 seconds:
+                    </div>
 
-        {/* Brand Profiles section - always show */}
-        <div style={{ ...styles.heroSection, minWidth: 0, marginBottom: 0 }} className="primary-section">
-          <div style={styles.sectionHeader}>
-            <div>
-              <h2 style={styles.sectionTitle}>
-                Your Brand Profile
-                <span style={styles.stepPill}>Step 1</span>
-              </h2>
-              <p style={styles.instructionText}>
-                {profiles.length === 0
-                  ? "Set up your brand profile so every post sounds like you."
-                  : "Manage your brand profiles — switch between businesses or audiences."}
-              </p>
-            </div>
-          </div>
+                    {/* What you'll save - vertical bullet list */}
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column" as const,
+                        gap: 10,
+                        marginBottom: 24,
+                      }}
+                    >
+                      {[
+                        "Brand colors",
+                        "Niche + audience",
+                        "Tone of voice",
+                      ].map((item) => (
+                        <div
+                          key={item}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                            padding: "10px 14px",
+                            borderRadius: 12,
+                            border: "1px solid rgba(126,179,255,0.18)",
+                            background: "rgba(16,26,51,0.35)",
+                            color: "#cbd6ea",
+                            fontWeight: 600,
+                            fontSize: 14,
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: 7,
+                              height: 7,
+                              borderRadius: 999,
+                              background: "#7eb3ff",
+                              opacity: 0.9,
+                              flexShrink: 0,
+                            }}
+                          />
+                          {item}
+                        </div>
+                      ))}
+                    </div>
 
-          {profiles.length === 0 ? (
-            <div style={styles.emptyState}>
-              {/* Centered Content Container */}
-              <div
-                style={{
-                  maxWidth: 820,
-                  margin: "0 auto",
-                  width: "100%",
-                }}
-              >
-                {/* Title */}
+                    {/* Benefit line */}
+                    <div
+                      style={{
+                        fontSize: 13,
+                        opacity: 0.7,
+                        marginBottom: 24,
+                        fontStyle: "italic" as const,
+                        textAlign: "center" as const,
+                      }}
+                    >
+                      One setup. Every post sounds like you.
+                    </div>
+
+                    {/* Enhanced CTA */}
+                    <button
+                      style={{
+                        ...styles.primaryCta,
+                        height: 56,
+                        fontSize: 15,
+                        fontWeight: 700,
+                        boxShadow:
+                          "0 8px 20px rgba(44,107,237,0.35), 0 2px 8px rgba(44,107,237,0.2)",
+                        transition: "all 0.2s ease",
+                      }}
+                      onClick={() => setShowNewProfile(true)}
+                      className="hover-btn-primary enhanced-cta"
+                    >
+                      Create Your Brand Profile
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Show profiles list when profiles exist */
                 <div
                   style={{
-                    ...styles.emptyText,
-                    textAlign: "center" as const,
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(auto-fill, minmax(min(280px, 100%), 1fr))",
+                    gap: 20,
+                    marginTop: 20,
                   }}
                 >
-                  Set up your brand profile in 30 seconds:
-                </div>
+                  {profiles.map((profile) => (
+                    <div
+                      key={profile.id}
+                      style={{
+                        background:
+                          "linear-gradient(135deg, #15233d 0%, #1a1a2e 100%)",
+                        border:
+                          profile.id === activeProfileId
+                            ? "2px solid #22c55e"
+                            : "1px solid rgba(255,255,255,0.1)",
+                        borderRadius: 16,
+                        padding: 20,
+                        position: "relative",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                          marginBottom: 12,
+                        }}
+                      >
+                        <h3
+                          style={{
+                            margin: 0,
+                            fontSize: 16,
+                            fontWeight: 700,
+                            color: "#e6edf7",
+                          }}
+                        >
+                          {profile.name}
+                        </h3>
+                        {profile.id === activeProfileId && (
+                          <span
+                            style={{
+                              background:
+                                "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                              padding: "2px 8px",
+                              borderRadius: 12,
+                              fontSize: 9,
+                              fontWeight: 700,
+                              color: "#fff",
+                              textTransform: "uppercase",
+                              letterSpacing: 0.5,
+                            }}
+                          >
+                            Active
+                          </span>
+                        )}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          opacity: 0.7,
+                          marginBottom: 16,
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        {profile.niche} • {profile.audience} • {profile.tone}
+                      </div>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button
+                          onClick={() => handleActivateProfile(profile)}
+                          style={{
+                            background:
+                              profile.id === activeProfileId
+                                ? "rgba(34, 197, 94, 0.2)"
+                                : "rgba(126, 179, 255, 0.1)",
+                            border:
+                              profile.id === activeProfileId
+                                ? "1px solid #22c55e"
+                                : "1px solid rgba(126, 179, 255, 0.2)",
+                            borderRadius: 8,
+                            padding: "8px 12px",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color:
+                              profile.id === activeProfileId
+                                ? "#22c55e"
+                                : "#7eb3ff",
+                            cursor: "pointer",
+                            flex: 1,
+                            transition: "all 0.2s ease",
+                          }}
+                        >
+                          {profile.id === activeProfileId
+                            ? "Active"
+                            : "Activate"}
+                        </button>
+                        <button
+                          onClick={() => handleEditProfile(profile)}
+                          style={{
+                            background: "rgba(236, 72, 153, 0.1)",
+                            border: "1px solid rgba(236, 72, 153, 0.2)",
+                            borderRadius: 8,
+                            padding: "8px 12px",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: "#ec4899",
+                            cursor: "pointer",
+                            transition: "all 0.2s ease",
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteProfile(profile.id)}
+                          style={{
+                            background: "rgba(239, 68, 68, 0.1)",
+                            border: "1px solid rgba(239, 68, 68, 0.2)",
+                            borderRadius: 8,
+                            padding: "8px 12px",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: "#ef4444",
+                            cursor: "pointer",
+                            transition: "all 0.2s ease",
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
 
-                {/* What you'll save - vertical bullet list */}
+                  {/* Add New Profile Card */}
+                  <div
+                    onClick={() => setShowNewProfile(true)}
+                    style={{
+                      background:
+                        "linear-gradient(135deg, rgba(126, 179, 255, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%)",
+                      border: "2px dashed rgba(126, 179, 255, 0.3)",
+                      borderRadius: 16,
+                      padding: 20,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      minHeight: 120,
+                    }}
+                  >
+                    <div style={{ fontSize: 24, marginBottom: 8 }}>+</div>
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: "#7eb3ff",
+                      }}
+                    >
+                      Add Brand Profile
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Social Medias column: Instagram + Facebook */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column" as const,
+                gap: 12,
+              }}
+              className="dash-social-col"
+            >
+              {/* Instagram Connection */}
+              <div
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(131,58,180,0.1) 0%, rgba(253,29,29,0.08) 50%, rgba(252,176,69,0.06) 100%)",
+                  border: "1px solid rgba(253,29,29,0.2)",
+                  borderRadius: 16,
+                  padding: "20px 24px",
+                  marginTop: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap" as const,
+                  gap: 12,
+                  boxShadow: "0 0 30px rgba(44, 107, 237, 0.15)",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ fontSize: 28 }}>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                      <linearGradient id="igGrad" x1="0" y1="24" x2="24" y2="0">
+                        <stop offset="0%" stopColor="#feda75" />
+                        <stop offset="25%" stopColor="#fa7e1e" />
+                        <stop offset="50%" stopColor="#d62976" />
+                        <stop offset="75%" stopColor="#962fbf" />
+                        <stop offset="100%" stopColor="#4f5bd5" />
+                      </linearGradient>
+                      <rect
+                        x="2"
+                        y="2"
+                        width="20"
+                        height="20"
+                        rx="5"
+                        stroke="url(#igGrad)"
+                        strokeWidth="2"
+                        fill="none"
+                      />
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="4.5"
+                        stroke="url(#igGrad)"
+                        strokeWidth="2"
+                        fill="none"
+                      />
+                      <circle cx="17.5" cy="6.5" r="1.2" fill="url(#igGrad)" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 700 }}>
+                      {instagram.connected
+                        ? `Connected to @${instagram.username}`
+                        : "Connect Instagram"}
+                    </div>
+                    <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
+                      {instagram.connected
+                        ? "Post directly to Instagram from your generated posts"
+                        : "Share your posts and updates directly to Instagram"}
+                    </div>
+                  </div>
+                </div>
+                {instagram.connected ? (
+                  <button
+                    onClick={() => {
+                      if (confirm("Disconnect your Instagram account?")) {
+                        instagram.disconnect();
+                        addToast("Instagram disconnected", "success");
+                      }
+                    }}
+                    style={{
+                      background: "rgba(255,255,255,0.06)",
+                      border: "1px solid rgba(255,255,255,0.15)",
+                      borderRadius: 10,
+                      color: "#e6edf7",
+                      padding: "8px 16px",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                    className="hover-btn"
+                  >
+                    Disconnect
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => instagram.connect()}
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)",
+                      border: "none",
+                      borderRadius: 10,
+                      color: "#ffffff",
+                      padding: "10px 20px",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                    className="hover-btn"
+                  >
+                    Connect Instagram
+                  </button>
+                )}
+              </div>
+
+              {/* Facebook Connection */}
+              <div
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(24,119,242,0.1) 0%, rgba(66,103,178,0.08) 100%)",
+                  border: "1px solid rgba(24,119,242,0.2)",
+                  borderRadius: 16,
+                  padding: "20px 24px",
+                  marginTop: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap" as const,
+                  gap: 12,
+                  boxShadow: "0 0 30px rgba(44, 107, 237, 0.15)",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ fontSize: 28 }}>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"
+                        stroke="#1877F2"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        fill="none"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 700 }}>
+                      {facebook.connected
+                        ? `Connected to ${facebook.pageName}`
+                        : "Connect Facebook"}
+                    </div>
+                    <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
+                      {facebook.connected
+                        ? "Post directly to your Facebook Page from generated posts"
+                        : "Share your posts and updates directly to Facebook"}
+                    </div>
+                  </div>
+                </div>
+                {facebook.connected ? (
+                  <button
+                    onClick={() => {
+                      if (confirm("Disconnect your Facebook page?")) {
+                        facebook.disconnect();
+                        addToast("Facebook disconnected", "success");
+                      }
+                    }}
+                    style={{
+                      background: "rgba(255,255,255,0.06)",
+                      border: "1px solid rgba(255,255,255,0.15)",
+                      borderRadius: 10,
+                      color: "#e6edf7",
+                      padding: "8px 16px",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                    className="hover-btn"
+                  >
+                    Disconnect
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => facebook.connect()}
+                    style={{
+                      background: "#1877F2",
+                      border: "none",
+                      borderRadius: 10,
+                      color: "#ffffff",
+                      padding: "10px 20px",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                    className="hover-btn"
+                  >
+                    Connect Facebook
+                  </button>
+                )}
+              </div>
+
+              {/* My Photo Library — bottom of social column */}
+              <div
+                onClick={() => router.push("/media")}
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 16,
+                  padding: 20,
+                  cursor: "pointer",
+                  display: "flex",
+                  flexDirection: "column" as const,
+                  transition: "all 0.15s ease",
+                }}
+                className="my-library-link hover-card"
+              >
                 <div
                   style={{
                     display: "flex",
-                    flexDirection: "column" as const,
-                    gap: 10,
-                    marginBottom: 24,
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 14,
                   }}
                 >
-                  {["Brand colors", "Niche + audience", "Tone of voice"].map((item) => (
+                  <svg
+                    width="16"
+                    height="16"
+                    fill="none"
+                    stroke="#a78bfa"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <path d="M21 15l-5-5L5 21" />
+                  </svg>
+                  <span
+                    style={{ fontWeight: 700, fontSize: 14, color: "#e6edf7" }}
+                  >
+                    My Photos
+                  </span>
+                </div>
+                {recentMedia.length > 0 ? (
+                  <div>
                     <div
-                      key={item}
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        padding: "10px 14px",
-                        borderRadius: 12,
-                        border: "1px solid rgba(126,179,255,0.18)",
-                        background: "rgba(16,26,51,0.35)",
-                        color: "#cbd6ea",
-                        fontWeight: 600,
-                        fontSize: 14,
+                        display: "grid",
+                        gridTemplateColumns: "repeat(4, 1fr)",
+                        gap: 8,
+                        marginBottom: 12,
                       }}
                     >
-                      <div style={{ width: 7, height: 7, borderRadius: 999, background: "#7eb3ff", opacity: 0.9, flexShrink: 0 }} />
-                      {item}
+                      {recentMedia.map((asset) => (
+                        <div
+                          key={asset.id}
+                          style={{
+                            aspectRatio: "1",
+                            borderRadius: 8,
+                            overflow: "hidden",
+                            border: "1px solid rgba(255,255,255,0.08)",
+                          }}
+                        >
+                          <img
+                            src={asset.imageBase64}
+                            alt={asset.name}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              display: "block",
+                            }}
+                          />
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                    <div
+                      style={{
+                        background: "rgba(124,58,237,0.2)",
+                        border: "1px solid rgba(124,58,237,0.3)",
+                        borderRadius: 8,
+                        padding: "8px 14px",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: "#a78bfa",
+                        textAlign: "center" as const,
+                      }}
+                    >
+                      Open Library →
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column" as const,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "rgba(124, 58, 237, 0.06)",
+                      border: "1px dashed rgba(124, 58, 237, 0.25)",
+                      borderRadius: 12,
+                      padding: "20px 16px",
+                      textAlign: "center" as const,
+                      gap: 10,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 10,
+                        background: "rgba(124, 58, 237, 0.15)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        fill="none"
+                        stroke="#a78bfa"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 4v16m8-8H4"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: "#e6edf7",
+                          marginBottom: 3,
+                        }}
+                      >
+                        Upload Your Photos
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          color: "rgba(255,255,255,0.4)",
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        Add your own photos to use in posts
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        background: "rgba(124,58,237,0.2)",
+                        border: "1px solid rgba(124,58,237,0.3)",
+                        borderRadius: 8,
+                        padding: "7px 14px",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: "#a78bfa",
+                      }}
+                    >
+                      Open Library →
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            {/* end dash-social-col */}
 
-                {/* Benefit line */}
+            {/* Recent Posts column */}
+            <div>
+              <div
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%)",
+                  border: "1px solid rgba(124, 58, 237, 0.2)",
+                  borderRadius: 16,
+                  boxShadow: "0 0 30px rgba(44, 107, 237, 0.15)",
+                  padding: 24,
+                }}
+              >
                 <div
                   style={{
-                    fontSize: 13,
-                    opacity: 0.7,
-                    marginBottom: 24,
-                    fontStyle: "italic" as const,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    marginBottom: 8,
+                  }}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    fill="none"
+                    stroke="#a78bfa"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                  </svg>
+                  <span
+                    style={{ fontWeight: 700, fontSize: 16, color: "#e6edf7" }}
+                  >
+                    Recent Posts
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      color: "rgba(255,255,255,0.35)",
+                      fontWeight: 400,
+                    }}
+                  >
+                    last 3 saved
+                  </span>
+                </div>
+
+                {/* Save reminder */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 8,
+                    background: "rgba(251, 191, 36, 0.08)",
+                    border: "1px solid rgba(251, 191, 36, 0.2)",
+                    borderRadius: 8,
+                    padding: "9px 12px",
+                    marginBottom: 16,
+                  }}
+                >
+                  <span style={{ fontSize: 13, flexShrink: 0 }}>💡</span>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      color: "rgba(251,191,36,0.85)",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Only your 3 most recent posts show here. Make sure to save
+                    posts you want to keep before generating new ones.
+                  </span>
+                </div>
+
+                {recentPosts.length > 0 ? (
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fill, minmax(160px, 1fr))",
+                      gap: 16,
+                    }}
+                  >
+                    {recentPosts.map((post) => (
+                      <div
+                        key={post.id}
+                        onClick={() => setSelectedPost(post)}
+                        style={{
+                          background: "#0b1220",
+                          borderRadius: 12,
+                          overflow: "hidden",
+                          cursor: "pointer",
+                          border: "1px solid rgba(255,255,255,0.08)",
+                          transition: "all 0.2s ease",
+                        }}
+                        className="hover-card"
+                      >
+                        <div
+                          style={{
+                            width: "100%",
+                            aspectRatio: "1",
+                            backgroundImage: postImages[post.id]
+                              ? `url(${postImages[post.id]})`
+                              : "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          {!postImages[post.id] && (
+                            <svg
+                              width="32"
+                              height="32"
+                              fill="none"
+                              stroke="rgba(255,255,255,0.2)"
+                              strokeWidth="1.5"
+                              viewBox="0 0 24 24"
+                            >
+                              <rect x="3" y="3" width="18" height="18" rx="2" />
+                              <circle cx="8.5" cy="8.5" r="1.5" />
+                              <path d="M21 15l-5-5L5 21" />
+                            </svg>
+                          )}
+                        </div>
+                        <div style={{ padding: 10 }}>
+                          <div
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 600,
+                              color: "#a78bfa",
+                              marginBottom: 4,
+                            }}
+                          >
+                            {post.postType}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 11,
+                              color: "rgba(255,255,255,0.5)",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              marginBottom: 8,
+                            }}
+                          >
+                            {post.caption.slice(0, 40)}...
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPost(post);
+                            }}
+                            style={{
+                              width: "100%",
+                              background:
+                                "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(124, 58, 237, 0.2) 100%)",
+                              border: "1px solid rgba(44, 107, 237, 0.3)",
+                              borderRadius: 6,
+                              color: "#7eb3ff",
+                              padding: "7px 8px",
+                              fontSize: 11,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              transition: "all 0.15s ease",
+                            }}
+                            className="hover-btn"
+                          >
+                            Manage Post
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "40px 20px",
+                      color: "rgba(255,255,255,0.5)",
+                    }}
+                  >
+                    <svg
+                      width="48"
+                      height="48"
+                      fill="none"
+                      stroke="rgba(255,255,255,0.2)"
+                      strokeWidth="1.5"
+                      viewBox="0 0 24 24"
+                      style={{ margin: "0 auto 12px" }}
+                    >
+                      <rect x="3" y="3" width="18" height="18" rx="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <path d="M21 15l-5-5L5 21" />
+                    </svg>
+                    <div style={{ fontSize: 14, marginBottom: 8 }}>
+                      No posts yet
+                    </div>
+                    <div
+                      style={{ fontSize: 12, opacity: 0.7, marginBottom: 16 }}
+                    >
+                      Generate your first post to see it here
+                    </div>
+                    <button
+                      style={{
+                        background: "#2c6bed",
+                        border: "none",
+                        borderRadius: 10,
+                        padding: "12px 24px",
+                        color: "#fff",
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                      }}
+                      onClick={() => router.push("/generator")}
+                      className="hover-btn-primary"
+                    >
+                      Generate Your First Post
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+            {/* end Recent Posts column */}
+          </div>
+          {/* end dash-side-by-side */}
+
+          {/* Main Actions - Enhanced Cards */}
+          <div style={{ ...styles.section, order: 0, marginBottom: 0 }}>
+            <div style={styles.actionGrid} className="ath-actionGrid">
+              {/* Generate a Post Card */}
+              <div
+                style={{
+                  ...styles.actionCard,
+                  background:
+                    "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
+                  padding: 0,
+                  overflow: "hidden",
+                  display: "flex",
+                  flexDirection: "column" as const,
+                }}
+                className="primary-action-card hover-card"
+                onClick={() => {
+                  if (
+                    !tokenBalance.isLoading &&
+                    tokenBalance.tokensRemaining === 0
+                  ) {
+                    router.push("/subscribe");
+                    return;
+                  }
+                  setNavLoading("generator");
+                  router.push("/generator");
+                }}
+              >
+                {/* Card Header */}
+                <div
+                  className="ath-card-header"
+                  style={{
+                    padding: "24px 24px 20px",
                     textAlign: "center" as const,
                   }}
                 >
-                  One setup. Every post sounds like you.
+                  <img
+                    className="ath-card-icon"
+                    src="/logo-icon.png"
+                    alt="AI Social Helper"
+                    style={{
+                      width: 64,
+                      height: 64,
+                      marginBottom: 8,
+                      objectFit: "contain",
+                      display: "block",
+                      margin: "0 auto 8px",
+                    }}
+                  />
+                  <div
+                    className="ath-card-title"
+                    style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}
+                  >
+                    New Post
+                  </div>
+                  <div
+                    className="ath-card-subtitle"
+                    style={{ fontSize: 13, opacity: 0.85 }}
+                  >
+                    One post, done in seconds
+                  </div>
                 </div>
 
-                {/* Enhanced CTA */}
-                <button
-                  style={{
-                    ...styles.primaryCta,
-                    height: 56,
-                    fontSize: 15,
-                    fontWeight: 700,
-                    boxShadow:
-                      "0 8px 20px rgba(44,107,237,0.35), 0 2px 8px rgba(44,107,237,0.2)",
-                    transition: "all 0.2s ease",
-                  }}
-                  onClick={() => setShowNewProfile(true)}
-                  className="hover-btn-primary enhanced-cta"
-                >
-                  Create Your Brand Profile
-                </button>
-              </div>
-            </div>
-          ) : (
-            /* Show profiles list when profiles exist */
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(min(280px, 100%), 1fr))",
-                gap: 20,
-                marginTop: 20,
-              }}
-            >
-              {profiles.map((profile) => (
+                {/* Card Body */}
                 <div
-                  key={profile.id}
+                  className="ath-card-body"
                   style={{
-                    background:
-                      "linear-gradient(135deg, #15233d 0%, #1a1a2e 100%)",
-                    border:
-                      profile.id === activeProfileId
-                        ? "2px solid #22c55e"
-                        : "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: 16,
-                    padding: 20,
-                    position: "relative",
-                    transition: "all 0.2s ease",
+                    padding: "20px 24px 24px",
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column" as const,
                   }}
                 >
                   <div
                     style={{
                       display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      marginBottom: 12,
+                      flexDirection: "column" as const,
+                      gap: 10,
+                      flex: 1,
+                      marginBottom: 20,
+                      textAlign: "center" as const,
+                      alignItems: "center",
                     }}
                   >
-                    <h3
-                      style={{
-                        margin: 0,
-                        fontSize: 16,
-                        fontWeight: 700,
-                        color: "#e6edf7",
-                      }}
-                    >
-                      {profile.name}
-                    </h3>
-                    {profile.id === activeProfileId && (
-                      <span
+                    {[
+                      "One topic. One post. Ready in seconds.",
+                      "Use your own photo or generate a fresh one.",
+                      "Caption and hashtags in your brand voice.",
+                    ].map((line) => (
+                      <div
+                        key={line}
                         style={{
-                          background:
-                            "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
-                          padding: "2px 8px",
-                          borderRadius: 12,
-                          fontSize: 9,
-                          fontWeight: 700,
-                          color: "#fff",
-                          textTransform: "uppercase",
-                          letterSpacing: 0.5,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          justifyContent: "center",
                         }}
                       >
-                        Active
-                      </span>
-                    )}
+                        <span
+                          style={{
+                            width: 7,
+                            height: 7,
+                            borderRadius: "50%",
+                            background: "#4f8ef7",
+                            flexShrink: 0,
+                          }}
+                        />
+                        <span
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 600,
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {line}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                   <div
                     style={{
-                      fontSize: 12,
-                      opacity: 0.7,
-                      marginBottom: 16,
-                      lineHeight: 1.5,
+                      marginTop: "auto",
+                      background: "#2c6bed",
+                      borderRadius: 10,
+                      padding: "14px 20px",
+                      textAlign: "center" as const,
+                      fontWeight: 700,
+                      fontSize: 14,
+                      transition: "all 0.15s ease",
                     }}
                   >
-                    {profile.niche} • {profile.audience} • {profile.tone}
-                  </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button
-                      onClick={() => handleActivateProfile(profile)}
-                      style={{
-                        background:
-                          profile.id === activeProfileId
-                            ? "rgba(34, 197, 94, 0.2)"
-                            : "rgba(126, 179, 255, 0.1)",
-                        border:
-                          profile.id === activeProfileId
-                            ? "1px solid #22c55e"
-                            : "1px solid rgba(126, 179, 255, 0.2)",
-                        borderRadius: 8,
-                        padding: "8px 12px",
-                        fontSize: 11,
-                        fontWeight: 600,
-                        color:
-                          profile.id === activeProfileId
-                            ? "#22c55e"
-                            : "#7eb3ff",
-                        cursor: "pointer",
-                        flex: 1,
-                        transition: "all 0.2s ease",
-                      }}
-                    >
-                      {profile.id === activeProfileId ? "Active" : "Activate"}
-                    </button>
-                    <button
-                      onClick={() => handleEditProfile(profile)}
-                      style={{
-                        background: "rgba(236, 72, 153, 0.1)",
-                        border: "1px solid rgba(236, 72, 153, 0.2)",
-                        borderRadius: 8,
-                        padding: "8px 12px",
-                        fontSize: 11,
-                        fontWeight: 600,
-                        color: "#ec4899",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                      }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteProfile(profile.id)}
-                      style={{
-                        background: "rgba(239, 68, 68, 0.1)",
-                        border: "1px solid rgba(239, 68, 68, 0.2)",
-                        borderRadius: 8,
-                        padding: "8px 12px",
-                        fontSize: 11,
-                        fontWeight: 600,
-                        color: "#ef4444",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                      }}
-                    >
-                      Delete
-                    </button>
+                    {navLoading === "generator" ? "Loading…" : "New Post →"}
                   </div>
                 </div>
-              ))}
+              </div>
 
-              {/* Add New Profile Card */}
+              {/* Generate a Branded Video Card */}
               <div
-                onClick={() => setShowNewProfile(true)}
                 style={{
+                  ...styles.actionCard,
                   background:
-                    "linear-gradient(135deg, rgba(126, 179, 255, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%)",
-                  border: "2px dashed rgba(126, 179, 255, 0.3)",
-                  borderRadius: 16,
-                  padding: 20,
+                    "linear-gradient(135deg, #065f46 0%, #047857 50%, #059669 100%)",
+                  padding: 0,
+                  overflow: "hidden",
                   display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  minHeight: 120,
+                  flexDirection: "column" as const,
+                }}
+                className="primary-action-card hover-card"
+                onClick={() => {
+                  setNavLoading("video");
+                  router.push("/generate-video");
                 }}
               >
-                <div style={{ fontSize: 24, marginBottom: 8 }}>+</div>
+                {/* Card Header */}
                 <div
-                  style={{ fontSize: 14, fontWeight: 600, color: "#7eb3ff" }}
+                  className="ath-card-header"
+                  style={{
+                    padding: "24px 24px 20px",
+                    textAlign: "center" as const,
+                  }}
                 >
-                  Add Brand Profile
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Social Medias column: Instagram + Facebook */}
-        <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }} className="dash-social-col">
-
-        {/* Instagram Connection */}
-        <div
-          style={{
-            background: "linear-gradient(135deg, rgba(131,58,180,0.1) 0%, rgba(253,29,29,0.08) 50%, rgba(252,176,69,0.06) 100%)",
-            border: "1px solid rgba(253,29,29,0.2)",
-            borderRadius: 16,
-            padding: "20px 24px",
-            marginTop: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap" as const,
-            gap: 12,
-            boxShadow: "0 0 30px rgba(44, 107, 237, 0.15)",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ fontSize: 28 }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                <linearGradient id="igGrad" x1="0" y1="24" x2="24" y2="0">
-                  <stop offset="0%" stopColor="#feda75"/>
-                  <stop offset="25%" stopColor="#fa7e1e"/>
-                  <stop offset="50%" stopColor="#d62976"/>
-                  <stop offset="75%" stopColor="#962fbf"/>
-                  <stop offset="100%" stopColor="#4f5bd5"/>
-                </linearGradient>
-                <rect x="2" y="2" width="20" height="20" rx="5" stroke="url(#igGrad)" strokeWidth="2" fill="none"/>
-                <circle cx="12" cy="12" r="4.5" stroke="url(#igGrad)" strokeWidth="2" fill="none"/>
-                <circle cx="17.5" cy="6.5" r="1.2" fill="url(#igGrad)"/>
-              </svg>
-            </div>
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 700 }}>
-                {instagram.connected
-                  ? `Connected to @${instagram.username}`
-                  : "Connect Instagram"}
-              </div>
-              <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
-                {instagram.connected
-                  ? "Post directly to Instagram from your generated posts"
-                  : "Share your posts and updates directly to Instagram"}
-              </div>
-            </div>
-          </div>
-          {instagram.connected ? (
-            <button
-              onClick={() => {
-                if (confirm("Disconnect your Instagram account?")) {
-                  instagram.disconnect();
-                  addToast("Instagram disconnected", "success");
-                }
-              }}
-              style={{
-                background: "rgba(255,255,255,0.06)",
-                border: "1px solid rgba(255,255,255,0.15)",
-                borderRadius: 10,
-                color: "#e6edf7",
-                padding: "8px 16px",
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-              }}
-              className="hover-btn"
-            >
-              Disconnect
-            </button>
-          ) : (
-            <button
-              onClick={() => instagram.connect()}
-              style={{
-                background: "linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)",
-                border: "none",
-                borderRadius: 10,
-                color: "#ffffff",
-                padding: "10px 20px",
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-              }}
-              className="hover-btn"
-            >
-              Connect Instagram
-            </button>
-          )}
-        </div>
-
-        {/* Facebook Connection */}
-        <div
-          style={{
-            background: "linear-gradient(135deg, rgba(24,119,242,0.1) 0%, rgba(66,103,178,0.08) 100%)",
-            border: "1px solid rgba(24,119,242,0.2)",
-            borderRadius: 16,
-            padding: "20px 24px",
-            marginTop: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap" as const,
-            gap: 12,
-            boxShadow: "0 0 30px rgba(44, 107, 237, 0.15)",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ fontSize: 28 }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" stroke="#1877F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              </svg>
-            </div>
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 700 }}>
-                {facebook.connected
-                  ? `Connected to ${facebook.pageName}`
-                  : "Connect Facebook"}
-              </div>
-              <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
-                {facebook.connected
-                  ? "Post directly to your Facebook Page from generated posts"
-                  : "Share your posts and updates directly to Facebook"}
-              </div>
-            </div>
-          </div>
-          {facebook.connected ? (
-            <button
-              onClick={() => {
-                if (confirm("Disconnect your Facebook page?")) {
-                  facebook.disconnect();
-                  addToast("Facebook disconnected", "success");
-                }
-              }}
-              style={{
-                background: "rgba(255,255,255,0.06)",
-                border: "1px solid rgba(255,255,255,0.15)",
-                borderRadius: 10,
-                color: "#e6edf7",
-                padding: "8px 16px",
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-              }}
-              className="hover-btn"
-            >
-              Disconnect
-            </button>
-          ) : (
-            <button
-              onClick={() => facebook.connect()}
-              style={{
-                background: "#1877F2",
-                border: "none",
-                borderRadius: 10,
-                color: "#ffffff",
-                padding: "10px 20px",
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-              }}
-              className="hover-btn"
-            >
-              Connect Facebook
-            </button>
-          )}
-        </div>
-
-          {/* My Photo Library — bottom of social column */}
-          <div
-            onClick={() => router.push("/media")}
-            style={{
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 16,
-              padding: 20,
-              cursor: "pointer",
-              display: "flex",
-              flexDirection: "column" as const,
-              transition: "all 0.15s ease",
-            }}
-            className="my-library-link hover-card"
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-              <svg width="16" height="16" fill="none" stroke="#a78bfa" strokeWidth="2" viewBox="0 0 24 24">
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <circle cx="8.5" cy="8.5" r="1.5" />
-                <path d="M21 15l-5-5L5 21" />
-              </svg>
-              <span style={{ fontWeight: 700, fontSize: 14, color: "#e6edf7" }}>My Photos</span>
-            </div>
-            {recentMedia.length > 0 ? (
-              <div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 12 }}>
-                  {recentMedia.map((asset) => (
-                    <div
-                      key={asset.id}
-                      style={{
-                        aspectRatio: "1",
-                        borderRadius: 8,
-                        overflow: "hidden",
-                        border: "1px solid rgba(255,255,255,0.08)",
-                      }}
-                    >
-                      <img
-                        src={asset.imageBase64}
-                        alt={asset.name}
-                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                      />
-                    </div>
-                  ))}
-                </div>
-                <div style={{ background: "rgba(124,58,237,0.2)", border: "1px solid rgba(124,58,237,0.3)", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 700, color: "#a78bfa", textAlign: "center" as const }}>
-                  Open Library →
-                </div>
-              </div>
-            ) : (
-              <div style={{
-                display: "flex",
-                flexDirection: "column" as const,
-                alignItems: "center",
-                justifyContent: "center",
-                background: "rgba(124, 58, 237, 0.06)",
-                border: "1px dashed rgba(124, 58, 237, 0.25)",
-                borderRadius: 12,
-                padding: "20px 16px",
-                textAlign: "center" as const,
-                gap: 10,
-              }}>
-                <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(124, 58, 237, 0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <svg width="18" height="18" fill="none" stroke="#a78bfa" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                  </svg>
-                </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#e6edf7", marginBottom: 3 }}>Upload Your Photos</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>Add your own photos to use in posts</div>
-                </div>
-                <div style={{ background: "rgba(124,58,237,0.2)", border: "1px solid rgba(124,58,237,0.3)", borderRadius: 8, padding: "7px 14px", fontSize: 11, fontWeight: 700, color: "#a78bfa" }}>
-                  Open Library →
-                </div>
-              </div>
-            )}
-          </div>
-
-        </div>{/* end dash-social-col */}
-
-        {/* Recent Posts column */}
-        <div>
-          <div
-            style={{
-              background: "linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%)",
-              border: "1px solid rgba(124, 58, 237, 0.2)",
-              borderRadius: 16,
-              boxShadow: "0 0 30px rgba(44, 107, 237, 0.15)",
-              padding: 24,
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <svg width="20" height="20" fill="none" stroke="#a78bfa" strokeWidth="2" viewBox="0 0 24 24">
-                <rect x="3" y="3" width="7" height="7" rx="1" />
-                <rect x="14" y="3" width="7" height="7" rx="1" />
-                <rect x="3" y="14" width="7" height="7" rx="1" />
-                <rect x="14" y="14" width="7" height="7" rx="1" />
-              </svg>
-              <span style={{ fontWeight: 700, fontSize: 16, color: "#e6edf7" }}>Recent Posts</span>
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 400 }}>last 3 saved</span>
-            </div>
-
-            {/* Save reminder */}
-            <div style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 8,
-              background: "rgba(251, 191, 36, 0.08)",
-              border: "1px solid rgba(251, 191, 36, 0.2)",
-              borderRadius: 8,
-              padding: "9px 12px",
-              marginBottom: 16,
-            }}>
-              <span style={{ fontSize: 13, flexShrink: 0 }}>💡</span>
-              <span style={{ fontSize: 11, color: "rgba(251,191,36,0.85)", lineHeight: 1.5 }}>
-                Only your 3 most recent posts show here. Make sure to save posts you want to keep before generating new ones.
-              </span>
-            </div>
-
-            {recentPosts.length > 0 ? (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 16 }}>
-                {recentPosts.map((post) => (
                   <div
-                    key={post.id}
-                    onClick={() => setSelectedPost(post)}
-                    style={{ background: "#0b1220", borderRadius: 12, overflow: "hidden", cursor: "pointer", border: "1px solid rgba(255,255,255,0.08)", transition: "all 0.2s ease" }}
-                    className="hover-card"
+                    className="ath-card-icon"
+                    style={{ fontSize: 48, marginBottom: 8 }}
                   >
-                    <div
-                      style={{
-                        width: "100%", aspectRatio: "1",
-                        backgroundImage: postImages[post.id] ? `url(${postImages[post.id]})` : "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
-                        backgroundSize: "cover", backgroundPosition: "center",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                      }}
-                    >
-                      {!postImages[post.id] && (
-                        <svg width="32" height="32" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" viewBox="0 0 24 24">
-                          <rect x="3" y="3" width="18" height="18" rx="2" />
-                          <circle cx="8.5" cy="8.5" r="1.5" />
-                          <path d="M21 15l-5-5L5 21" />
-                        </svg>
-                      )}
-                    </div>
-                    <div style={{ padding: 10 }}>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: "#a78bfa", marginBottom: 4 }}>{post.postType}</div>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 8 }}>
-                        {post.caption.slice(0, 40)}...
-                      </div>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setSelectedPost(post); }}
-                        style={{ width: "100%", background: "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(124, 58, 237, 0.2) 100%)", border: "1px solid rgba(44, 107, 237, 0.3)", borderRadius: 6, color: "#7eb3ff", padding: "7px 8px", fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "all 0.15s ease" }}
-                        className="hover-btn"
+                    🎬
+                  </div>
+                  <div
+                    className="ath-card-title"
+                    style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}
+                  >
+                    New Video
+                  </div>
+                  <div
+                    className="ath-card-subtitle"
+                    style={{ fontSize: 13, opacity: 0.85 }}
+                  >
+                    A short branded clip, ready to post
+                  </div>
+                </div>
+
+                {/* Card Body */}
+                <div
+                  className="ath-card-body"
+                  style={{
+                    padding: "20px 24px 24px",
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column" as const,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column" as const,
+                      gap: 10,
+                      flex: 1,
+                      marginBottom: 20,
+                      textAlign: "center" as const,
+                      alignItems: "center",
+                    }}
+                  >
+                    {[
+                      "5 seconds, AI-generated.",
+                      "Post to Instagram Reels & Facebook.",
+                      "Pick your format (9:16, 1:1, 16:9).",
+                    ].map((line) => (
+                      <div
+                        key={line}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          justifyContent: "center",
+                        }}
                       >
-                        Manage Post
-                      </button>
+                        <span
+                          style={{
+                            width: 7,
+                            height: 7,
+                            borderRadius: "50%",
+                            background: "#6ee7b7",
+                            flexShrink: 0,
+                          }}
+                        />
+                        <span
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 600,
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {line}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div
+                    style={{
+                      marginTop: "auto",
+                      background: "#10b981",
+                      borderRadius: 10,
+                      padding: "14px 20px",
+                      textAlign: "center" as const,
+                      fontWeight: 700,
+                      fontSize: 14,
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {navLoading === "video" ? "Loading…" : "New Video →"}
+                  </div>
+                </div>
+              </div>
+
+              {/* Plan Your Month Card — full width at the bottom */}
+              <div
+                style={{
+                  ...styles.actionCard,
+                  background:
+                    "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
+                  padding: 0,
+                  overflow: "hidden",
+                  display: "flex",
+                  flexDirection: "column" as const,
+                  gridColumn: "1 / -1",
+                }}
+                className="primary-action-card hover-card"
+                onClick={() => {
+                  if (
+                    !tokenBalance.isLoading &&
+                    tokenBalance.tokensRemaining === 0
+                  ) {
+                    router.push("/subscribe");
+                    return;
+                  }
+                  setNavLoading("calendar");
+                  const activeProfile = profiles.find(
+                    (p) => p.id === activeProfileId
+                  );
+                  router.push(getNicheCalendarPath(activeProfile?.niche ?? ""));
+                }}
+              >
+                <div
+                  className="calendar-card-inner"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "20px 28px",
+                    gap: 28,
+                  }}
+                >
+                  {/* Icon + Title */}
+                  <div
+                    style={{
+                      flexShrink: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 14,
+                    }}
+                  >
+                    <div className="ath-card-icon" style={{ fontSize: 36 }}>
+                      📅
+                    </div>
+                    <div>
+                      <div
+                        className="ath-card-title"
+                        style={{
+                          fontSize: 18,
+                          fontWeight: 700,
+                          marginBottom: 2,
+                        }}
+                      >
+                        Content Calendar
+                      </div>
+                      <div
+                        className="ath-card-subtitle calendar-card-subtitle"
+                        style={{
+                          fontSize: 12,
+                          opacity: 0.75,
+                          whiteSpace: "nowrap" as const,
+                        }}
+                      >
+                        Your full month, planned for you
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ textAlign: "center", padding: "40px 20px", color: "rgba(255,255,255,0.5)" }}>
-                <svg width="48" height="48" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" viewBox="0 0 24 24" style={{ margin: "0 auto 12px" }}>
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <circle cx="8.5" cy="8.5" r="1.5" />
-                  <path d="M21 15l-5-5L5 21" />
-                </svg>
-                <div style={{ fontSize: 14, marginBottom: 8 }}>No posts yet</div>
-                <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 16 }}>Generate your first post to see it here</div>
-                <button
-                  style={{ background: "#2c6bed", border: "none", borderRadius: 10, padding: "12px 24px", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", transition: "all 0.15s ease" }}
-                  onClick={() => router.push("/generator")}
-                  className="hover-btn-primary"
-                >
-                  Generate Your First Post
-                </button>
-              </div>
-            )}
-          </div>
-        </div>{/* end Recent Posts column */}
 
-        </div>{/* end dash-side-by-side */}
+                  {/* Divider */}
+                  <div
+                    className="calendar-card-divider"
+                    style={{
+                      width: 1,
+                      alignSelf: "stretch",
+                      background: "rgba(255,255,255,0.15)",
+                      flexShrink: 0,
+                    }}
+                  />
 
-        {/* Main Actions - Enhanced Cards */}
-        <div style={{ ...styles.section, order: 0, marginBottom: 0 }}>
-          <div style={styles.actionGrid} className="ath-actionGrid">
-            {/* Generate a Post Card */}
-            <div
-              style={{
-                ...styles.actionCard,
-                background: "linear-gradient(135deg, #2c6bed 0%, #1e4fc2 100%)",
-                padding: 0,
-                overflow: "hidden",
-                display: "flex",
-                flexDirection: "column" as const,
-              }}
-              className="primary-action-card hover-card"
-              onClick={() => {
-                if (!tokenBalance.isLoading && tokenBalance.tokensRemaining === 0) { router.push("/subscribe"); return; }
-                setNavLoading("generator"); router.push("/generator");
-              }}
-            >
-              {/* Card Header */}
-              <div
-                className="ath-card-header"
-                style={{
-                  padding: "24px 24px 20px",
-                  textAlign: "center" as const,
-                }}
-              >
-                <img className="ath-card-icon" src="/logo-icon.png" alt="AI Social Helper" style={{ width: 64, height: 64, marginBottom: 8, objectFit: "contain", display: "block", margin: "0 auto 8px" }} />
-                <div className="ath-card-title" style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
-                  New Post
-                </div>
-                <div className="ath-card-subtitle" style={{ fontSize: 13, opacity: 0.85 }}>
-                  One post, done in seconds
-                </div>
-              </div>
-
-              {/* Card Body */}
-              <div
-                className="ath-card-body"
-                style={{
-                  padding: "20px 24px 24px",
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column" as const,
-                }}
-              >
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, flex: 1, marginBottom: 20, textAlign: "center" as const, alignItems: "center" }}>
-                  {["One topic. One post. Ready in seconds.", "Use your own photo or generate a fresh one.", "Caption and hashtags in your brand voice."].map((line) => (
-                    <div key={line} style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "center" }}>
-                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#4f8ef7", flexShrink: 0 }} />
-                      <span style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5 }}>{line}</span>
-                    </div>
-                  ))}
-                </div>
-                <div
-                  style={{
-                    marginTop: "auto",
-                    background: "#2c6bed",
-                    borderRadius: 10,
-                    padding: "14px 20px",
-                    textAlign: "center" as const,
-                    fontWeight: 700,
-                    fontSize: 14,
-                    transition: "all 0.15s ease",
-                  }}
-                >
-                  {navLoading === "generator" ? "Loading…" : "New Post →"}
-                </div>
-              </div>
-            </div>
-
-            {/* Generate a Branded Video Card */}
-            <div
-              style={{
-                ...styles.actionCard,
-                background: "linear-gradient(135deg, #065f46 0%, #047857 50%, #059669 100%)",
-                padding: 0,
-                overflow: "hidden",
-                display: "flex",
-                flexDirection: "column" as const,
-              }}
-              className="primary-action-card hover-card"
-              onClick={() => {
-                setNavLoading("video");
-                router.push("/generate-video");
-              }}
-            >
-              {/* Card Header */}
-              <div
-                className="ath-card-header"
-                style={{
-                  padding: "24px 24px 20px",
-                  textAlign: "center" as const,
-                }}
-              >
-                <div className="ath-card-icon" style={{ fontSize: 48, marginBottom: 8 }}>🎬</div>
-                <div className="ath-card-title" style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
-                  New Video
-                </div>
-                <div className="ath-card-subtitle" style={{ fontSize: 13, opacity: 0.85 }}>
-                  A short branded clip, ready to post
-                </div>
-              </div>
-
-              {/* Card Body */}
-              <div
-                className="ath-card-body"
-                style={{
-                  padding: "20px 24px 24px",
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column" as const,
-                }}
-              >
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, flex: 1, marginBottom: 20, textAlign: "center" as const, alignItems: "center" }}>
-                  {["5 seconds, AI-generated.", "Post to Instagram Reels & Facebook.", "Pick your format (9:16, 1:1, 16:9)."].map((line) => (
-                    <div key={line} style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "center" }}>
-                      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#6ee7b7", flexShrink: 0 }} />
-                      <span style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.5 }}>{line}</span>
-                    </div>
-                  ))}
-                </div>
-                <div
-                  style={{
-                    marginTop: "auto",
-                    background: "#10b981",
-                    borderRadius: 10,
-                    padding: "14px 20px",
-                    textAlign: "center" as const,
-                    fontWeight: 700,
-                    fontSize: 14,
-                    transition: "all 0.15s ease",
-                  }}
-                >
-                  {navLoading === "video" ? "Loading…" : "New Video →"}
-                </div>
-              </div>
-            </div>
-
-            {/* Plan Your Month Card — full width at the bottom */}
-            <div
-              style={{
-                ...styles.actionCard,
-                background: "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
-                padding: 0,
-                overflow: "hidden",
-                display: "flex",
-                flexDirection: "column" as const,
-                gridColumn: "1 / -1",
-              }}
-              className="primary-action-card hover-card"
-              onClick={() => {
-                if (!tokenBalance.isLoading && tokenBalance.tokensRemaining === 0) { router.push("/subscribe"); return; }
-                setNavLoading("calendar");
-                const activeProfile = profiles.find(p => p.id === activeProfileId);
-                router.push(getNicheCalendarPath(activeProfile?.niche ?? ""));
-              }}
-            >
-              <div className="calendar-card-inner" style={{ display: "flex", alignItems: "center", padding: "20px 28px", gap: 28 }}>
-                {/* Icon + Title */}
-                <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 14 }}>
-                  <div className="ath-card-icon" style={{ fontSize: 36 }}>📅</div>
-                  <div>
-                    <div className="ath-card-title" style={{ fontSize: 18, fontWeight: 700, marginBottom: 2 }}>Content Calendar</div>
-                    <div className="ath-card-subtitle calendar-card-subtitle" style={{ fontSize: 12, opacity: 0.75, whiteSpace: "nowrap" as const }}>Your full month, planned for you</div>
+                  {/* Bullets */}
+                  <div
+                    className="calendar-card-bullets ath-card-body"
+                    style={{
+                      flex: 2,
+                      minWidth: 0,
+                      display: "flex",
+                      flexDirection: "row" as const,
+                      flexWrap: "wrap" as const,
+                      gap: 16,
+                      justifyContent: "center",
+                      alignItems: "center",
+                      textAlign: "center" as const,
+                    }}
+                  >
+                    {[
+                      "Whole month, planned automatically",
+                      "Every weekday has its own post type",
+                      "Click any day — generate that post",
+                    ].map((line) => (
+                      <div
+                        key={line}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          justifyContent: "center",
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: "50%",
+                            background: "#a78bfa",
+                            flexShrink: 0,
+                          }}
+                        />
+                        <span style={{ fontSize: 13, fontWeight: 600 }}>
+                          {line}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                {/* Divider */}
-                <div className="calendar-card-divider" style={{ width: 1, alignSelf: "stretch", background: "rgba(255,255,255,0.15)", flexShrink: 0 }} />
-
-                {/* Bullets */}
-                <div className="calendar-card-bullets ath-card-body" style={{ flex: 2, minWidth: 0, display: "flex", flexDirection: "column" as const, gap: 6, justifyContent: "center", alignItems: "center", textAlign: "center" as const }}>
-                  {["Whole month, planned automatically", "Every weekday has its own post type", "Click any day — generate that post"].map((line) => (
-                    <div key={line} style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center" }}>
-                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#a78bfa", flexShrink: 0 }} />
-                      <span style={{ fontSize: 13, fontWeight: 600 }}>{line}</span>
-                    </div>
-                  ))}
+                {/* Full-width button — matches New Post / New Video style */}
+                <div
+                  className="calendar-card-btn"
+                  style={{
+                    margin: "0 20px 20px",
+                    background: "rgba(255,255,255,0.18)",
+                    borderRadius: 12,
+                    padding: "14px",
+                    fontWeight: 700,
+                    fontSize: 15,
+                    textAlign: "center" as const,
+                    letterSpacing: 0.2,
+                  }}
+                >
+                  {navLoading === "calendar"
+                    ? "Loading…"
+                    : "Open Content Calendar →"}
                 </div>
               </div>
-
-              {/* Full-width button — matches New Post / New Video style */}
-              <div className="calendar-card-btn" style={{ margin: "0 20px 20px", background: "rgba(255,255,255,0.18)", borderRadius: 12, padding: "14px", fontWeight: 700, fontSize: 15, textAlign: "center" as const, letterSpacing: 0.2 }}>
-                {navLoading === "calendar" ? "Loading…" : "Open Content Calendar →"}
-              </div>
             </div>
-
           </div>
         </div>
-
-        </div>{/* end flex-column wrapper */}
+        {/* end flex-column wrapper */}
 
         {/* Post Detail Modal */}
         {selectedPost && (
@@ -1846,16 +2384,34 @@ export default function DashboardPage() {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  marginBottom: 20,
+                }}
+              >
                 <div>
-                  <div style={{ fontSize: 18, fontWeight: 700 }}>{selectedPost.postType}</div>
+                  <div style={{ fontSize: 18, fontWeight: 700 }}>
+                    {selectedPost.postType}
+                  </div>
                   <div style={{ fontSize: 12, opacity: 0.5, marginTop: 4 }}>
                     {formatDate(selectedPost.createdAt)}
-                    {selectedPost.calendarDay && ` • Day ${selectedPost.calendarDay}`}
+                    {selectedPost.calendarDay &&
+                      ` • Day ${selectedPost.calendarDay}`}
                   </div>
                 </div>
                 <button
-                  style={{ background: "none", border: "none", color: "#e6edf7", fontSize: 24, cursor: "pointer", padding: 0, lineHeight: 1 }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#e6edf7",
+                    fontSize: 24,
+                    cursor: "pointer",
+                    padding: 0,
+                    lineHeight: 1,
+                  }}
                   onClick={() => setSelectedPost(null)}
                 >
                   ×
@@ -1863,16 +2419,37 @@ export default function DashboardPage() {
               </div>
 
               {/* Two-column layout */}
-              <div className="post-modal-two-col" style={{ display: "flex", gap: 24, flexDirection: "row" as const }}>
+              <div
+                className="post-modal-two-col"
+                style={{
+                  display: "flex",
+                  gap: 24,
+                  flexDirection: "row" as const,
+                }}
+              >
                 {/* Left column - Image */}
-                <div className="post-modal-left-col" style={{ flex: "0 0 45%", minWidth: 0 }}>
+                <div
+                  className="post-modal-left-col"
+                  style={{ flex: "0 0 45%", minWidth: 0 }}
+                >
                   {postImages[selectedPost.id] && (
                     <div>
-                      <div style={{ borderRadius: 12, overflow: "hidden", background: "#0b1220", marginBottom: 12 }}>
+                      <div
+                        style={{
+                          borderRadius: 12,
+                          overflow: "hidden",
+                          background: "#0b1220",
+                          marginBottom: 12,
+                        }}
+                      >
                         <img
                           src={postImages[selectedPost.id]}
                           alt="Generated post"
-                          style={{ width: "100%", height: "auto", display: "block" }}
+                          style={{
+                            width: "100%",
+                            height: "auto",
+                            display: "block",
+                          }}
                         />
                       </div>
                       <button
@@ -1880,7 +2457,8 @@ export default function DashboardPage() {
                           display: "flex",
                           alignItems: "center",
                           gap: 6,
-                          background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                          background:
+                            "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
                           border: "none",
                           borderRadius: 6,
                           padding: "8px 12px",
@@ -1894,8 +2472,19 @@ export default function DashboardPage() {
                         onClick={handleDownloadImage}
                         className="hover-btn"
                       >
-                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        <svg
+                          width="14"
+                          height="14"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                          />
                         </svg>
                         Download Image
                       </button>
@@ -1904,19 +2493,39 @@ export default function DashboardPage() {
                       {instagram.connected && (
                         <button
                           onClick={() => {
-                            if (igPublishingId === selectedPost.id || igPublishedIds.has(selectedPost.id)) return;
+                            if (
+                              igPublishingId === selectedPost.id ||
+                              igPublishedIds.has(selectedPost.id)
+                            )
+                              return;
                             setIgPublishingId(selectedPost.id);
-                            instagram.publish(postImages[selectedPost.id], selectedPost.caption, selectedPost.hashtags)
+                            instagram
+                              .publish(
+                                postImages[selectedPost.id],
+                                selectedPost.caption,
+                                selectedPost.hashtags
+                              )
                               .then(() => {
-                                setIgPublishedIds(prev => new Set(prev).add(selectedPost.id));
-                                addToast(`Posted to @${instagram.username}!`, "success");
+                                setIgPublishedIds((prev) =>
+                                  new Set(prev).add(selectedPost.id)
+                                );
+                                addToast(
+                                  `Posted to @${instagram.username}!`,
+                                  "success"
+                                );
                               })
                               .catch((err: any) => {
-                                addToast(err?.message || "Failed to post", "error");
+                                addToast(
+                                  err?.message || "Failed to post",
+                                  "error"
+                                );
                               })
                               .finally(() => setIgPublishingId(null));
                           }}
-                          disabled={igPublishingId === selectedPost.id || igPublishedIds.has(selectedPost.id)}
+                          disabled={
+                            igPublishingId === selectedPost.id ||
+                            igPublishedIds.has(selectedPost.id)
+                          }
                           style={{
                             width: "100%",
                             marginTop: 8,
@@ -1931,34 +2540,62 @@ export default function DashboardPage() {
                             padding: "8px 12px",
                             fontSize: 12,
                             fontWeight: 700,
-                            cursor: igPublishingId === selectedPost.id || igPublishedIds.has(selectedPost.id) ? "not-allowed" : "pointer",
-                            opacity: igPublishingId === selectedPost.id || igPublishedIds.has(selectedPost.id) ? 0.7 : 1,
+                            cursor:
+                              igPublishingId === selectedPost.id ||
+                              igPublishedIds.has(selectedPost.id)
+                                ? "not-allowed"
+                                : "pointer",
+                            opacity:
+                              igPublishingId === selectedPost.id ||
+                              igPublishedIds.has(selectedPost.id)
+                                ? 0.7
+                                : 1,
                             transition: "all 0.15s ease",
                           }}
                         >
                           {igPublishingId === selectedPost.id
                             ? "Posting..."
                             : igPublishedIds.has(selectedPost.id)
-                            ? "✓ Posted to Instagram"
-                            : "Post to Instagram"}
+                              ? "✓ Posted to Instagram"
+                              : "Post to Instagram"}
                         </button>
                       )}
                       {facebook.connected && (
                         <button
                           onClick={() => {
-                            if (fbPublishingId === selectedPost.id || fbPublishedIds.has(selectedPost.id)) return;
+                            if (
+                              fbPublishingId === selectedPost.id ||
+                              fbPublishedIds.has(selectedPost.id)
+                            )
+                              return;
                             setFbPublishingId(selectedPost.id);
-                            facebook.publish(postImages[selectedPost.id], selectedPost.caption, selectedPost.hashtags)
+                            facebook
+                              .publish(
+                                postImages[selectedPost.id],
+                                selectedPost.caption,
+                                selectedPost.hashtags
+                              )
                               .then(() => {
-                                setFbPublishedIds(prev => new Set(prev).add(selectedPost.id));
-                                addToast(`Posted to ${facebook.pageName}!`, "success");
+                                setFbPublishedIds((prev) =>
+                                  new Set(prev).add(selectedPost.id)
+                                );
+                                addToast(
+                                  `Posted to ${facebook.pageName}!`,
+                                  "success"
+                                );
                               })
                               .catch((err: any) => {
-                                addToast(err?.message || "Failed to post to Facebook", "error");
+                                addToast(
+                                  err?.message || "Failed to post to Facebook",
+                                  "error"
+                                );
                               })
                               .finally(() => setFbPublishingId(null));
                           }}
-                          disabled={fbPublishingId === selectedPost.id || fbPublishedIds.has(selectedPost.id)}
+                          disabled={
+                            fbPublishingId === selectedPost.id ||
+                            fbPublishedIds.has(selectedPost.id)
+                          }
                           style={{
                             width: "100%",
                             marginTop: 8,
@@ -1973,16 +2610,24 @@ export default function DashboardPage() {
                             padding: "8px 12px",
                             fontSize: 12,
                             fontWeight: 700,
-                            cursor: fbPublishingId === selectedPost.id || fbPublishedIds.has(selectedPost.id) ? "not-allowed" : "pointer",
-                            opacity: fbPublishingId === selectedPost.id || fbPublishedIds.has(selectedPost.id) ? 0.7 : 1,
+                            cursor:
+                              fbPublishingId === selectedPost.id ||
+                              fbPublishedIds.has(selectedPost.id)
+                                ? "not-allowed"
+                                : "pointer",
+                            opacity:
+                              fbPublishingId === selectedPost.id ||
+                              fbPublishedIds.has(selectedPost.id)
+                                ? 0.7
+                                : 1,
                             transition: "all 0.15s ease",
                           }}
                         >
                           {fbPublishingId === selectedPost.id
                             ? "Posting..."
                             : fbPublishedIds.has(selectedPost.id)
-                            ? "✓ Posted to Facebook"
-                            : "Post to Facebook"}
+                              ? "✓ Posted to Facebook"
+                              : "Post to Facebook"}
                         </button>
                       )}
                     </div>
@@ -1990,14 +2635,53 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Right column - Content */}
-                <div className="post-modal-right-col" style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  className="post-modal-right-col"
+                  style={{ flex: 1, minWidth: 0 }}
+                >
                   {/* Caption */}
                   <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 0.5, opacity: 0.6, marginBottom: 8 }}>Caption</div>
-                    <div style={{ background: "#0b1220", borderRadius: 10, padding: 14, fontSize: 14, lineHeight: 1.6 }}>{selectedPost.caption}</div>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        textTransform: "uppercase" as const,
+                        letterSpacing: 0.5,
+                        opacity: 0.6,
+                        marginBottom: 8,
+                      }}
+                    >
+                      Caption
+                    </div>
+                    <div
+                      style={{
+                        background: "#0b1220",
+                        borderRadius: 10,
+                        padding: 14,
+                        fontSize: 14,
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      {selectedPost.caption}
+                    </div>
                     <button
-                      style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, padding: "6px 12px", color: "#e6edf7", cursor: "pointer", fontSize: 12, fontWeight: 600, marginTop: 8 }}
-                      onClick={() => handleCopyField(selectedPost.caption, "caption")}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        background: "rgba(255,255,255,0.08)",
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        borderRadius: 6,
+                        padding: "6px 12px",
+                        color: "#e6edf7",
+                        cursor: "pointer",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        marginTop: 8,
+                      }}
+                      onClick={() =>
+                        handleCopyField(selectedPost.caption, "caption")
+                      }
                       className="hover-btn"
                     >
                       {copiedField === "caption" ? "✓ Copied!" : "Copy Caption"}
@@ -2006,44 +2690,181 @@ export default function DashboardPage() {
 
                   {/* Hashtags */}
                   <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 0.5, opacity: 0.6, marginBottom: 8 }}>Hashtags</div>
-                    <div style={{ background: "#0b1220", borderRadius: 10, padding: 14, fontSize: 14, lineHeight: 1.6 }}>{selectedPost.hashtags}</div>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        textTransform: "uppercase" as const,
+                        letterSpacing: 0.5,
+                        opacity: 0.6,
+                        marginBottom: 8,
+                      }}
+                    >
+                      Hashtags
+                    </div>
+                    <div
+                      style={{
+                        background: "#0b1220",
+                        borderRadius: 10,
+                        padding: 14,
+                        fontSize: 14,
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      {selectedPost.hashtags}
+                    </div>
                     <button
-                      style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, padding: "6px 12px", color: "#e6edf7", cursor: "pointer", fontSize: 12, fontWeight: 600, marginTop: 8 }}
-                      onClick={() => handleCopyField(selectedPost.hashtags, "hashtags")}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        background: "rgba(255,255,255,0.08)",
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        borderRadius: 6,
+                        padding: "6px 12px",
+                        color: "#e6edf7",
+                        cursor: "pointer",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        marginTop: 8,
+                      }}
+                      onClick={() =>
+                        handleCopyField(selectedPost.hashtags, "hashtags")
+                      }
                       className="hover-btn"
                     >
-                      {copiedField === "hashtags" ? "✓ Copied!" : "Copy Hashtags"}
+                      {copiedField === "hashtags"
+                        ? "✓ Copied!"
+                        : "Copy Hashtags"}
                     </button>
                   </div>
 
                   {/* Metadata */}
                   <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 0.5, opacity: 0.6, marginBottom: 8 }}>Post Details</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
-                      <div style={{ background: "#0b1220", borderRadius: 8, padding: 12 }}>
-                        <div style={{ fontSize: 10, opacity: 0.5, marginBottom: 4 }}>Niche</div>
-                        <div style={{ fontSize: 13, fontWeight: 600 }}>{selectedPost.niche || "—"}</div>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        textTransform: "uppercase" as const,
+                        letterSpacing: 0.5,
+                        opacity: 0.6,
+                        marginBottom: 8,
+                      }}
+                    >
+                      Post Details
+                    </div>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(2, 1fr)",
+                        gap: 12,
+                      }}
+                    >
+                      <div
+                        style={{
+                          background: "#0b1220",
+                          borderRadius: 8,
+                          padding: 12,
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: 10,
+                            opacity: 0.5,
+                            marginBottom: 4,
+                          }}
+                        >
+                          Niche
+                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>
+                          {selectedPost.niche || "—"}
+                        </div>
                       </div>
-                      <div style={{ background: "#0b1220", borderRadius: 8, padding: 12 }}>
-                        <div style={{ fontSize: 10, opacity: 0.5, marginBottom: 4 }}>Audience</div>
-                        <div style={{ fontSize: 13, fontWeight: 600 }}>{selectedPost.audience || "—"}</div>
+                      <div
+                        style={{
+                          background: "#0b1220",
+                          borderRadius: 8,
+                          padding: 12,
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: 10,
+                            opacity: 0.5,
+                            marginBottom: 4,
+                          }}
+                        >
+                          Audience
+                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>
+                          {selectedPost.audience || "—"}
+                        </div>
                       </div>
-                      <div style={{ background: "#0b1220", borderRadius: 8, padding: 12 }}>
-                        <div style={{ fontSize: 10, opacity: 0.5, marginBottom: 4 }}>Tone</div>
-                        <div style={{ fontSize: 13, fontWeight: 600 }}>{selectedPost.tone}</div>
+                      <div
+                        style={{
+                          background: "#0b1220",
+                          borderRadius: 8,
+                          padding: 12,
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: 10,
+                            opacity: 0.5,
+                            marginBottom: 4,
+                          }}
+                        >
+                          Tone
+                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>
+                          {selectedPost.tone}
+                        </div>
                       </div>
-                      <div style={{ background: "#0b1220", borderRadius: 8, padding: 12 }}>
-                        <div style={{ fontSize: 10, opacity: 0.5, marginBottom: 4 }}>Image Style</div>
-                        <div style={{ fontSize: 13, fontWeight: 600 }}>{selectedPost.imageStyle}</div>
+                      <div
+                        style={{
+                          background: "#0b1220",
+                          borderRadius: 8,
+                          padding: 12,
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: 10,
+                            opacity: 0.5,
+                            marginBottom: 4,
+                          }}
+                        >
+                          Image Style
+                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>
+                          {selectedPost.imageStyle}
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Actions */}
-                  <div style={{ display: "flex", gap: 12, marginTop: 20, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 12,
+                      marginTop: 20,
+                      paddingTop: 20,
+                      borderTop: "1px solid rgba(255,255,255,0.08)",
+                    }}
+                  >
                     <button
-                      style={{ background: "rgba(255, 99, 99, 0.15)", border: "1px solid rgba(255, 99, 99, 0.3)", borderRadius: 8, padding: "10px 16px", color: "#ff9999", cursor: "pointer", fontSize: 13, fontWeight: 600, transition: "all 0.15s ease" }}
+                      style={{
+                        background: "rgba(255, 99, 99, 0.15)",
+                        border: "1px solid rgba(255, 99, 99, 0.3)",
+                        borderRadius: 8,
+                        padding: "10px 16px",
+                        color: "#ff9999",
+                        cursor: "pointer",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        transition: "all 0.15s ease",
+                      }}
                       onClick={() => handleDeletePost(selectedPost.id)}
                       className="hover-btn"
                     >
@@ -2051,8 +2872,23 @@ export default function DashboardPage() {
                     </button>
                     <div style={{ flex: 1 }} />
                     <button
-                      style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "10px 16px", color: "#e6edf7", cursor: "pointer", fontSize: 13, fontWeight: 600, transition: "all 0.15s ease" }}
-                      onClick={() => handleCopyField(`${selectedPost.caption}\n\n${selectedPost.hashtags}`, "all")}
+                      style={{
+                        background: "rgba(255,255,255,0.08)",
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        borderRadius: 8,
+                        padding: "10px 16px",
+                        color: "#e6edf7",
+                        cursor: "pointer",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        transition: "all 0.15s ease",
+                      }}
+                      onClick={() =>
+                        handleCopyField(
+                          `${selectedPost.caption}\n\n${selectedPost.hashtags}`,
+                          "all"
+                        )
+                      }
                       className="hover-btn"
                     >
                       {copiedField === "all" ? "✓ Copied!" : "Copy All"}
@@ -2066,32 +2902,45 @@ export default function DashboardPage() {
 
         {/* New Profile Modal */}
         {showNewProfile && (
-          <div style={styles.modal} onClick={() => { setShowNewProfile(false); setProfileStep(1); }}>
+          <div
+            style={styles.modal}
+            onClick={() => {
+              setShowNewProfile(false);
+              setProfileStep(1);
+            }}
+          >
             <div
               style={{
                 ...styles.modalContent,
-                ...(!editingProfile ? {
-                  background: "linear-gradient(180deg, #141f38 0%, #101a33 100%)",
-                  border: "1px solid rgba(44, 107, 237, 0.2)",
-                  boxShadow: "0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(44,107,237,0.08)",
-                } : {}),
+                ...(!editingProfile
+                  ? {
+                      background:
+                        "linear-gradient(180deg, #141f38 0%, #101a33 100%)",
+                      border: "1px solid rgba(44, 107, 237, 0.2)",
+                      boxShadow:
+                        "0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(44,107,237,0.08)",
+                    }
+                  : {}),
               }}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
               {!editingProfile && (
                 <div style={{ textAlign: "center" as const, marginBottom: 8 }}>
-                  <div style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 14,
-                    background: "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(124, 58, 237, 0.15) 100%)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 24,
-                    margin: "0 auto 12px",
-                  }}>
+                  <div
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 14,
+                      background:
+                        "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(124, 58, 237, 0.15) 100%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 24,
+                      margin: "0 auto 12px",
+                    }}
+                  >
                     ✨
                   </div>
                 </div>
@@ -2101,7 +2950,9 @@ export default function DashboardPage() {
                   display: "flex",
                   alignItems: "center",
                   marginBottom: 16,
-                  justifyContent: !editingProfile ? "center" as const : "flex-start" as const,
+                  justifyContent: !editingProfile
+                    ? ("center" as const)
+                    : ("flex-start" as const),
                 }}
               >
                 <div style={styles.modalTitle}>
@@ -2135,7 +2986,9 @@ export default function DashboardPage() {
                   lineHeight: 1.5,
                   paddingBottom: 16,
                   borderBottom: "1px solid rgba(255,255,255,0.08)",
-                  textAlign: !editingProfile ? "center" as const : "left" as const,
+                  textAlign: !editingProfile
+                    ? ("center" as const)
+                    : ("left" as const),
                 }}
               >
                 {editingProfile
@@ -2146,19 +2999,42 @@ export default function DashboardPage() {
               {/* Step 1: Name only */}
               {profileStep === 1 && !editingProfile ? (
                 <div>
-                  <label style={{ fontSize: 14, fontWeight: 700, color: "#e6edf7", marginBottom: 6, display: "block" }}>
+                  <label
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: "#e6edf7",
+                      marginBottom: 6,
+                      display: "block",
+                    }}
+                  >
                     What should we call you?
                   </label>
-                  <div style={{ fontSize: 13, color: "#8fa3bf", marginBottom: 14, lineHeight: 1.5 }}>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: "#8fa3bf",
+                      marginBottom: 14,
+                      lineHeight: 1.5,
+                    }}
+                  >
                     Your name, business name, or brand — whatever you go by.
                   </div>
                   <input
-                    style={{ ...styles.input, fontSize: 15, padding: "14px 16px", marginBottom: 16 }}
+                    style={{
+                      ...styles.input,
+                      fontSize: 15,
+                      padding: "14px 16px",
+                      marginBottom: 16,
+                    }}
                     placeholder="e.g., The Martinez Group"
                     value={newProfileName}
                     onChange={(e) => setNewProfileName(e.target.value)}
                     autoFocus
-                    onKeyDown={(e) => { if (e.key === "Enter" && newProfileName.trim()) setProfileStep(2); }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newProfileName.trim())
+                        setProfileStep(2);
+                    }}
                   />
                   <button
                     style={{
@@ -2178,7 +3054,9 @@ export default function DashboardPage() {
                       marginBottom: 20,
                       fontFamily: "Verdana, Geneva, sans-serif",
                     }}
-                    onClick={() => { if (newProfileName.trim()) setProfileStep(2); }}
+                    onClick={() => {
+                      if (newProfileName.trim()) setProfileStep(2);
+                    }}
                   >
                     Let&apos;s go →
                   </button>
@@ -2209,8 +3087,11 @@ export default function DashboardPage() {
                     >
                       I&apos;ll do this later
                     </button>
-                    <div style={{ fontSize: 11, color: "#5a6a80", marginTop: 4 }}>
-                      You can always set up your brand profile from the dashboard.
+                    <div
+                      style={{ fontSize: 11, color: "#5a6a80", marginTop: 4 }}
+                    >
+                      You can always set up your brand profile from the
+                      dashboard.
                     </div>
                   </div>
                 </div>
@@ -2230,7 +3111,15 @@ export default function DashboardPage() {
                     {/* Brand name — editing only (new profiles got it in step 1) */}
                     {editingProfile && (
                       <div style={{ gridColumn: "1 / -1" }}>
-                        <label style={{ fontSize: 13, fontWeight: 600, color: "#e6edf7", marginBottom: 4, display: "block" }}>
+                        <label
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: "#e6edf7",
+                            marginBottom: 4,
+                            display: "block",
+                          }}
+                        >
                           Brand name
                         </label>
                         <input
@@ -2240,15 +3129,31 @@ export default function DashboardPage() {
                           onChange={(e) => setNewProfileName(e.target.value)}
                           autoFocus
                         />
-                        <div style={{ fontSize: 12, color: "#8fa3bf", marginTop: 4, lineHeight: 1.4 }}>
-                          The name of your business or brand. This helps personalize your posts.
+                        <div
+                          style={{
+                            fontSize: 12,
+                            color: "#8fa3bf",
+                            marginTop: 4,
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          The name of your business or brand. This helps
+                          personalize your posts.
                         </div>
                       </div>
                     )}
 
                     {/* Market / City */}
                     <div>
-                      <label style={{ fontSize: 13, fontWeight: 600, color: "#e6edf7", marginBottom: 4, display: "block" }}>
+                      <label
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: "#e6edf7",
+                          marginBottom: 4,
+                          display: "block",
+                        }}
+                      >
                         Your niche
                       </label>
                       <input
@@ -2257,14 +3162,30 @@ export default function DashboardPage() {
                         onChange={(e) => setNewProfileNiche(e.target.value)}
                         placeholder='e.g. "Fitness Coach", "Egg Salesman", "Plumber"'
                       />
-                      <div style={{ fontSize: 12, color: "#8fa3bf", marginTop: 4, lineHeight: 1.4 }}>
-                        Your industry or specialty. Type anything — AI will build your calendar around it.
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: "#8fa3bf",
+                          marginTop: 4,
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        Your industry or specialty. Type anything — AI will
+                        build your calendar around it.
                       </div>
                     </div>
 
                     {/* Who they help */}
                     <div>
-                      <label style={{ fontSize: 13, fontWeight: 600, color: "#e6edf7", marginBottom: 4, display: "block" }}>
+                      <label
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: "#e6edf7",
+                          marginBottom: 4,
+                          display: "block",
+                        }}
+                      >
                         Who you help most
                       </label>
                       <input
@@ -2273,19 +3194,42 @@ export default function DashboardPage() {
                         value={newProfileAudience}
                         onChange={(e) => setNewProfileAudience(e.target.value)}
                       />
-                      <div style={{ fontSize: 12, color: "#8fa3bf", marginTop: 4, lineHeight: 1.4 }}>
-                        Your typical clients. Shapes the tone and focus of every post.
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: "#8fa3bf",
+                          marginTop: 4,
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        Your typical clients. Shapes the tone and focus of every
+                        post.
                       </div>
                     </div>
                   </div>
 
                   {/* Tone of Voice */}
                   <div style={{ marginBottom: 24 }}>
-                    <label style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, display: "block", opacity: 0.9 }}>
+                    <label
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 600,
+                        marginBottom: 4,
+                        display: "block",
+                        opacity: 0.9,
+                      }}
+                    >
                       Tone of voice
                     </label>
-                    <div style={{ fontSize: 12, color: "#8fa3bf", marginBottom: 10 }}>
-                      Sets the default voice for all your posts. You can override it per post anytime.
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: "#8fa3bf",
+                        marginBottom: 10,
+                      }}
+                    >
+                      Sets the default voice for all your posts. You can
+                      override it per post anytime.
                     </div>
                     <select
                       value={newProfileTone}
@@ -2299,63 +3243,160 @@ export default function DashboardPage() {
                       }}
                     >
                       {[
-                        "Confident", "Friendly", "Playful", "Professional",
-                        "Luxury", "Minimal", "Bold", "Witty", "Inspirational",
-                        "Educational", "Direct", "Warm", "Premium", "Cozy",
-                        "Energetic", "Modern", "Rustic", "Casual", "Hype (but not cringe)",
+                        "Confident",
+                        "Friendly",
+                        "Playful",
+                        "Professional",
+                        "Luxury",
+                        "Minimal",
+                        "Bold",
+                        "Witty",
+                        "Inspirational",
+                        "Educational",
+                        "Direct",
+                        "Warm",
+                        "Premium",
+                        "Cozy",
+                        "Energetic",
+                        "Modern",
+                        "Rustic",
+                        "Casual",
+                        "Hype (but not cringe)",
                       ].map((t) => (
-                        <option key={t} value={t}>{t}</option>
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
                       ))}
                     </select>
                   </div>
 
                   {/* Brand Colors */}
                   <div style={{ marginBottom: 24 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, opacity: 0.9 }}>
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 600,
+                        marginBottom: 4,
+                        opacity: 0.9,
+                      }}
+                    >
                       Brand Colors
                     </div>
-                    <div style={{ fontSize: 12, color: "#8fa3bf", marginBottom: 12 }}>
-                      Optional. These colors will be used in your generated image backgrounds and overlays.
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: "#8fa3bf",
+                        marginBottom: 12,
+                      }}
+                    >
+                      Optional. These colors will be used in your generated
+                      image backgrounds and overlays.
                     </div>
                     <div
-                      style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 14 }}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                        gap: 14,
+                      }}
                       className="profile-colors-grid"
                     >
                       <div>
-                        <label style={{ fontSize: 12, opacity: 0.7, marginBottom: 6, display: "block" }}>
-                          Primary Color <span style={{ fontSize: 11, color: "#8fa3bf" }}>(main brand color)</span>
+                        <label
+                          style={{
+                            fontSize: 12,
+                            opacity: 0.7,
+                            marginBottom: 6,
+                            display: "block",
+                          }}
+                        >
+                          Primary Color{" "}
+                          <span style={{ fontSize: 11, color: "#8fa3bf" }}>
+                            (main brand color)
+                          </span>
                         </label>
-                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: 8,
+                            alignItems: "center",
+                          }}
+                        >
                           <input
                             type="color"
                             value={newProfilePrimaryColor}
-                            onChange={(e) => setNewProfilePrimaryColor(e.target.value)}
-                            style={{ width: 40, height: 40, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, background: "transparent", cursor: "pointer" }}
+                            onChange={(e) =>
+                              setNewProfilePrimaryColor(e.target.value)
+                            }
+                            style={{
+                              width: 40,
+                              height: 40,
+                              border: "1px solid rgba(255,255,255,0.12)",
+                              borderRadius: 6,
+                              background: "transparent",
+                              cursor: "pointer",
+                            }}
                           />
                           <input
-                            style={{ ...styles.input, marginBottom: 0, flex: 1 }}
+                            style={{
+                              ...styles.input,
+                              marginBottom: 0,
+                              flex: 1,
+                            }}
                             placeholder="#000000"
                             value={newProfilePrimaryColor}
-                            onChange={(e) => setNewProfilePrimaryColor(e.target.value)}
+                            onChange={(e) =>
+                              setNewProfilePrimaryColor(e.target.value)
+                            }
                           />
                         </div>
                       </div>
                       <div>
-                        <label style={{ fontSize: 12, opacity: 0.7, marginBottom: 6, display: "block" }}>
-                          Secondary Color <span style={{ fontSize: 11, color: "#8fa3bf" }}>(accent or background)</span>
+                        <label
+                          style={{
+                            fontSize: 12,
+                            opacity: 0.7,
+                            marginBottom: 6,
+                            display: "block",
+                          }}
+                        >
+                          Secondary Color{" "}
+                          <span style={{ fontSize: 11, color: "#8fa3bf" }}>
+                            (accent or background)
+                          </span>
                         </label>
-                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: 8,
+                            alignItems: "center",
+                          }}
+                        >
                           <input
                             type="color"
                             value={newProfileSecondaryColor}
-                            onChange={(e) => setNewProfileSecondaryColor(e.target.value)}
-                            style={{ width: 40, height: 40, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, background: "transparent", cursor: "pointer" }}
+                            onChange={(e) =>
+                              setNewProfileSecondaryColor(e.target.value)
+                            }
+                            style={{
+                              width: 40,
+                              height: 40,
+                              border: "1px solid rgba(255,255,255,0.12)",
+                              borderRadius: 6,
+                              background: "transparent",
+                              cursor: "pointer",
+                            }}
                           />
                           <input
-                            style={{ ...styles.input, marginBottom: 0, flex: 1 }}
+                            style={{
+                              ...styles.input,
+                              marginBottom: 0,
+                              flex: 1,
+                            }}
                             placeholder="#ffffff"
                             value={newProfileSecondaryColor}
-                            onChange={(e) => setNewProfileSecondaryColor(e.target.value)}
+                            onChange={(e) =>
+                              setNewProfileSecondaryColor(e.target.value)
+                            }
                           />
                         </div>
                       </div>
@@ -2364,13 +3405,33 @@ export default function DashboardPage() {
 
                   {/* Brand Logo */}
                   <div style={{ marginBottom: 24 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, opacity: 0.9 }}>
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 600,
+                        marginBottom: 4,
+                        opacity: 0.9,
+                      }}
+                    >
                       Brand Logo
                     </div>
-                    <div style={{ fontSize: 12, color: "#8fa3bf", marginBottom: 12 }}>
-                      Optional. Your logo will appear in the corner of every generated post image.
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: "#8fa3bf",
+                        marginBottom: 12,
+                      }}
+                    >
+                      Optional. Your logo will appear in the corner of every
+                      generated post image.
                     </div>
-                    <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 12,
+                        alignItems: "flex-start",
+                      }}
+                    >
                       {newProfileLogo ? (
                         <div style={{ position: "relative" as const }}>
                           <img
@@ -2447,7 +3508,13 @@ export default function DashboardPage() {
                         >
                           {newProfileLogo ? "Replace logo" : "Upload logo"}
                         </button>
-                        <div style={{ fontSize: 11, color: "#8fa3bf", lineHeight: 1.4 }}>
+                        <div
+                          style={{
+                            fontSize: 11,
+                            color: "#8fa3bf",
+                            lineHeight: 1.4,
+                          }}
+                        >
                           PNG, JPG, or SVG. Square logos work best. Max 2MB.
                         </div>
                       </div>
@@ -2478,14 +3545,35 @@ export default function DashboardPage() {
 
                   {/* Contact Info */}
                   <div style={{ marginBottom: 24 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, opacity: 0.9 }}>
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 600,
+                        marginBottom: 4,
+                        opacity: 0.9,
+                      }}
+                    >
                       Contact Info
                     </div>
-                    <div style={{ fontSize: 12, color: "#8fa3bf", marginBottom: 12 }}>
-                      Optional. Shown on promotional and announcement posts where it makes sense.
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: "#8fa3bf",
+                        marginBottom: 12,
+                      }}
+                    >
+                      Optional. Shown on promotional and announcement posts
+                      where it makes sense.
                     </div>
                     <div>
-                      <label style={{ fontSize: 12, opacity: 0.7, marginBottom: 6, display: "block" }}>
+                      <label
+                        style={{
+                          fontSize: 12,
+                          opacity: 0.7,
+                          marginBottom: 6,
+                          display: "block",
+                        }}
+                      >
                         Website
                       </label>
                       <input
@@ -2497,11 +3585,25 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  <p style={{ fontSize: 12, opacity: 0.6, marginBottom: 20, textAlign: "center" as const, fontStyle: "italic" as const }}>
+                  <p
+                    style={{
+                      fontSize: 12,
+                      opacity: 0.6,
+                      marginBottom: 20,
+                      textAlign: "center" as const,
+                      fontStyle: "italic" as const,
+                    }}
+                  >
                     You can edit or update your brand profile anytime.
                   </p>
 
-                  <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 12,
+                      justifyContent: "flex-end",
+                    }}
+                  >
                     <button
                       style={styles.btn}
                       onClick={() => {
@@ -2527,7 +3629,8 @@ export default function DashboardPage() {
                     <button
                       style={{
                         ...styles.btn,
-                        background: "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)",
+                        background:
+                          "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)",
                         border: "none",
                         color: "#fff",
                         padding: "10px 24px",
@@ -2575,8 +3678,6 @@ export default function DashboardPage() {
         }
         @media (max-width: 900px) {
           .profile-benefits-pill-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-          .calendar-card-divider { display: none !important; }
-          .calendar-card-bullets { display: none !important; }
         }
         @media (max-width: 768px) {
           /* 2-col action grid compacted on mobile */
@@ -2626,7 +3727,6 @@ export default function DashboardPage() {
           /* Calendar card: collapse to icon+title+arrow only on mobile */
           .calendar-card-inner { padding: 16px !important; gap: 12px !important; }
           .calendar-card-divider { display: none !important; }
-          .calendar-card-bullets { display: none !important; }
           .calendar-card-cta { padding: 10px 14px !important; font-size: 13px !important; }
           .calendar-card-cta-text::after { content: "→"; }
           .calendar-card-cta-full { display: none !important; }
