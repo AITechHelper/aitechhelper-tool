@@ -1075,7 +1075,7 @@ export default function DashboardPage() {
                   </h2>
                   <p style={styles.instructionText}>
                     {profiles.length === 0
-                      ? "Set up your brand profile so every post sounds like you."
+                      ? "Complete your first time configuration so every post sounds like you."
                       : "Manage your brand profiles — switch between businesses or audiences."}
                   </p>
                 </div>
@@ -1098,7 +1098,7 @@ export default function DashboardPage() {
                         textAlign: "center" as const,
                       }}
                     >
-                      Set up your brand profile in 30 seconds:
+                      First time configuration takes about 30 seconds:
                     </div>
 
                     {/* What you'll save - vertical bullet list */}
@@ -1172,7 +1172,7 @@ export default function DashboardPage() {
                       onClick={() => setShowNewProfile(true)}
                       className="hover-btn-primary enhanced-cta"
                     >
-                      Create Your Brand Profile
+                      Start First Time Configuration
                     </button>
                   </div>
                 </div>
@@ -2959,7 +2959,7 @@ export default function DashboardPage() {
                 <div style={styles.modalTitle}>
                   {editingProfile
                     ? "Edit Brand Profile"
-                    : "Welcome! Let\u2019s set up your brand"}
+                    : "Welcome! Let\u2019s do your first time configuration"}
                 </div>
                 <span
                   style={{
@@ -3091,7 +3091,7 @@ export default function DashboardPage() {
                     <div
                       style={{ fontSize: 11, color: "#5a6a80", marginTop: 4 }}
                     >
-                      You can always set up your brand profile from the
+                      You can always run first time configuration from the
                       dashboard.
                     </div>
                   </div>
@@ -3443,7 +3443,7 @@ export default function DashboardPage() {
                               height: 72,
                               objectFit: "contain",
                               borderRadius: 8,
-                              background: newProfilePrimaryColor,
+                              background: "transparent",
                               border: `2px solid ${newProfileSecondaryColor}`,
                               padding: 6,
                               flexShrink: 0,

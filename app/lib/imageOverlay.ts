@@ -25,27 +25,6 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-function drawRoundRect(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  r: number
-) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}
-
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -59,7 +38,14 @@ export async function applyBrandOverlay(
   imageBase64: string,
   options: OverlayOptions
 ): Promise<string> {
-  const { logoBase64, primaryColor, secondaryColor, website, phone, includeContact } = options;
+  const {
+    logoBase64,
+    primaryColor,
+    secondaryColor,
+    website,
+    phone,
+    includeContact,
+  } = options;
 
   const hasLogo = !!logoBase64;
   const hasContact = !!(includeContact && (website || phone));
@@ -104,7 +90,7 @@ export async function applyBrandOverlay(
       }
     }
 
-    // — Logo badge (bottom-right corner) —
+    // — Logo (bottom-right corner) —
     if (hasLogo) {
       try {
         const logoImg = await loadImage(logoBase64!);
@@ -113,21 +99,9 @@ export async function applyBrandOverlay(
         const margin = Math.round(w * 0.028);
         const bx = w - badgeSize - margin;
         const by = h - badgeSize - margin - contactStripH;
-        const radius = Math.round(badgeSize * 0.12);
 
-        // Badge background
-        ctx.fillStyle = hexToRgba(primaryColor, 0.92);
-        drawRoundRect(ctx, bx, by, badgeSize, badgeSize, radius);
-        ctx.fill();
-
-        // Badge border with secondary color
-        ctx.strokeStyle = secondaryColor;
-        ctx.lineWidth = Math.round(w * 0.003);
-        drawRoundRect(ctx, bx, by, badgeSize, badgeSize, radius);
-        ctx.stroke();
-
-        // Draw logo inside badge, maintaining aspect ratio
-        const padding = badgeSize * 0.14;
+        // Draw logo with transparent background, maintaining aspect ratio
+        const padding = badgeSize * 0.08;
         const maxLogoSize = badgeSize - padding * 2;
         const ar = logoImg.width / logoImg.height;
         let lw = maxLogoSize;
