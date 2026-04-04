@@ -2312,7 +2312,7 @@ export default function DashboardPage() {
                           display: "flex",
                           alignItems: "center",
                           gap: 8,
-                          justifyContent: "center",
+                          justifyContent: "flex-start",
                         }}
                       >
                         <span
@@ -3683,6 +3683,8 @@ export default function DashboardPage() {
           /* 2-col action grid compacted on mobile */
           .ath-actionGrid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
           .ath-card-body { display: none !important; }
+          .calendar-card-subtitle { display: none !important; }
+          .calendar-card-btn { display: none !important; }
           .ath-card-header { padding: 16px 8px 14px !important; }
           .ath-card-icon { font-size: 30px !important; margin: 0 auto 6px !important; width: 40px !important; height: 40px !important; display: block !important; }
           .ath-card-title { font-size: 12px !important; margin-bottom: 0 !important; }

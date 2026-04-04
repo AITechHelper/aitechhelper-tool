@@ -174,14 +174,10 @@ body {
 @media (max-width: 1024px) {
   .calendar-card-bullets {
     flex-direction: column !important;
+    align-items: flex-start !important;
+    text-align: left !important;
   }
   .calendar-card-divider {
-    display: none !important;
-  }
-  .calendar-card-subtitle {
-    display: none !important;
-  }
-  .calendar-card-btn {
     display: none !important;
   }
   .calendar-card-inner {
