@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { Capacitor } from "@capacitor/core";
 
 type PlanId = "free" | "basic" | "pro" | "premium";
 
@@ -84,7 +85,12 @@ function SubscribeContent() {
   const canceled = searchParams.get("canceled");
   const subSuccess = searchParams.get("sub") === "success";
   const [loadingPlan, setLoadingPlan] = useState<PlanId | null>(null);
+  const [isNative, setIsNative] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setIsNative(Capacitor.isNativePlatform());
+  }, []);
 
   // null = loading, false = never selected a plan (show Start Free), true = already has a plan
   const [hasPlan, setHasPlan] = useState<boolean | null>(null);
@@ -317,6 +323,49 @@ function SubscribeContent() {
       lineHeight: 1.6,
     },
   };
+
+  // On iOS, show a web redirect screen instead of payment options
+  if (isNative) {
+    return (
+      <div style={{
+        minHeight: "100vh",
+        background: "linear-gradient(180deg, #0b1220 0%, #111827 100%)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "#e6edf7",
+        fontFamily: "Verdana, Geneva, sans-serif",
+        padding: "40px 24px",
+        textAlign: "center",
+      }}>
+        <div style={{ fontSize: 56, marginBottom: 24 }}>🌐</div>
+        <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 16px" }}>Upgrade Your Plan</h1>
+        <p style={{ fontSize: 16, color: "#8fa3bf", lineHeight: 1.6, margin: "0 0 12px", maxWidth: 320 }}>
+          To subscribe or manage your plan, visit us on the web:
+        </p>
+        <p style={{ fontSize: 20, fontWeight: 700, color: "#7eb3ff", margin: "0 0 40px" }}>
+          aisocialhelper.com
+        </p>
+        <button
+          onClick={() => router.push("/dashboard")}
+          style={{
+            padding: "13px 32px",
+            borderRadius: 12,
+            fontSize: 15,
+            fontWeight: 700,
+            cursor: "pointer",
+            fontFamily: "Verdana, Geneva, sans-serif",
+            background: "rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.14)",
+            color: "#e6edf7",
+          }}
+        >
+          Back to Dashboard
+        </button>
+      </div>
+    );
+  }
 
   // Show success screen while Clerk re-establishes session
   if (subSuccess) {

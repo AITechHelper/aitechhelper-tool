@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Capacitor } from "@capacitor/core";
 
 type OutOfTokensModalProps = {
   isOpen: boolean;
@@ -47,6 +48,11 @@ export default function OutOfTokensModal({
   totalTokens,
 }: OutOfTokensModalProps) {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [isNative, setIsNative] = useState(false);
+
+  useEffect(() => {
+    setIsNative(Capacitor.isNativePlatform());
+  }, []);
 
   if (!isOpen) return null;
 
@@ -152,7 +158,34 @@ export default function OutOfTokensModal({
           />
         </div>
 
-        {isAtMax ? (
+        {isNative ? (
+          /* On iOS — direct to website for payments */
+          <>
+            <p style={{ fontSize: 14, opacity: 0.8, margin: "0 0 8px", lineHeight: 1.6 }}>
+              To upgrade your plan, visit us on the web:
+            </p>
+            <p style={{ fontSize: 16, fontWeight: 700, color: "#7eb3ff", margin: "0 0 24px" }}>
+              aisocialhelper.com
+            </p>
+            <button
+              onClick={onClose}
+              style={{
+                width: "100%",
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.14)",
+                borderRadius: 12,
+                padding: "13px 24px",
+                color: "#e6edf7",
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: "pointer",
+                fontFamily: "Verdana, Geneva, sans-serif",
+              }}
+            >
+              Got it
+            </button>
+          </>
+        ) : isAtMax ? (
           /* Premium users — no upgrade available */
           <>
             <p style={{ fontSize: 14, opacity: 0.7, margin: "0 0 24px", lineHeight: 1.6 }}>
@@ -321,3 +354,4 @@ export default function OutOfTokensModal({
     </div>
   );
 }
+

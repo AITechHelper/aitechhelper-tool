@@ -61,5 +61,11 @@
 	<!-- Required to save images/videos to Camera Roll -->
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>AI Social Helper saves generated images and videos to your photo library.</string>
+	<!-- Required to access photos when uploading content -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>AI Social Helper needs access to your photo library so you can upload photos for your posts.</string>
+	<!-- Required when user taps "Take Photo" in the file picker -->
+	<key>NSCameraUsageDescription</key>
+	<string>AI Social Helper needs camera access so you can take a photo directly for your posts.</string>
 </dict>
 </plist>

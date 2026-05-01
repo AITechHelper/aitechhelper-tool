@@ -1,7 +1,8 @@
 "use client";
 import { useSignIn } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Capacitor } from "@capacitor/core";
 
 type Step = "sign_in" | "verify_code";
 
@@ -15,6 +16,41 @@ export default function SignInPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
+  const [isNative, setIsNative] = useState(false);
+
+  useEffect(() => {
+    setIsNative(Capacitor.isNativePlatform());
+  }, []);
+
+  const handleAppleSignIn = async () => {
+    if (!isLoaded) return;
+    setAppleLoading(true);
+    setError("");
+    try {
+      const { SignInWithApple } = await import("@capacitor-community/apple-sign-in");
+      const result = await SignInWithApple.authorize({
+        clientId: "com.aitechhelper.aisocialhelper",
+        redirectURI: "https://www.aisocialhelper.com/sign-in/sso-callback",
+        scopes: "email name",
+      });
+      const { identityToken } = result.response;
+      const signInResult = await signIn.authenticateWithIdToken({
+        provider: "apple",
+        token: identityToken,
+      });
+      if (signInResult.status === "complete") {
+        await setActive({ session: signInResult.createdSessionId });
+        router.push("/dashboard");
+      }
+    } catch (err: any) {
+      if (err?.message !== "The operation couldn't be completed. (com.apple.AuthenticationServices.AuthorizationError error 1001.)") {
+        setError("Apple sign in failed. Please try again.");
+      }
+    } finally {
+      setAppleLoading(false);
+    }
+  };
 
   const handleGoogleSignIn = async () => {
     if (!isLoaded) return;
@@ -210,6 +246,35 @@ export default function SignInPage() {
         {/* Sign in step */}
         {step === "sign_in" && (
           <>
+            {/* Sign in with Apple - only shown on iOS */}
+            {isNative && (
+              <button
+                onClick={handleAppleSignIn}
+                disabled={appleLoading || !isLoaded}
+                style={{
+                  width: "100%",
+                  padding: "11px",
+                  background: "#fff",
+                  border: "1px solid rgba(255,255,255,0.14)",
+                  borderRadius: 8,
+                  color: "#000",
+                  fontSize: 15,
+                  fontWeight: 600,
+                  cursor: appleLoading ? "not-allowed" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 10,
+                  marginBottom: 12,
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <path d="M12.3 0c.1 1.4-.4 2.7-1.2 3.7-.8.9-2 1.6-3.2 1.5-.1-1.3.5-2.7 1.3-3.6C10 .6 11.3 0 12.3 0zM16.5 12.4c-.5 1.1-1 2-1.7 2.8-.7.9-1.5 1.8-2.6 1.8-1 0-1.4-.6-2.6-.6-1.2 0-1.7.6-2.7.6-1.1 0-1.9-.9-2.7-1.9C2.9 13.5 1.5 11 1.5 8.6c0-3.6 2.3-5.5 4.6-5.5 1.2 0 2.2.7 3 .7.7 0 2-.8 3.4-.7.6 0 2.2.2 3.3 1.7-.1.1-2 1.1-2 3.4 0 2.6 2.3 3.5 2.7 3.5-.1.3-.2.5-.3.7z" fill="#000"/>
+                </svg>
+                {appleLoading ? "Signing in…" : "Sign in with Apple"}
+              </button>
+            )}
+
             {/* Google Sign In */}
             <button
               onClick={handleGoogleSignIn}

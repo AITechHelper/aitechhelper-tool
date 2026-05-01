@@ -14,6 +14,8 @@ const config: CapacitorConfig = {
       "*.clerk.accounts.dev",
       "*.clerk.dev",
       "clerk.com",
+      "accounts.google.com",
+      "*.google.com",
       "billing.stripe.com",
       "checkout.stripe.com",
       "*.stripe.com",

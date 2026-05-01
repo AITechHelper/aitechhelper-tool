@@ -1018,6 +1018,44 @@ export default function DashboardPage() {
                         Sign Out
                       </button>
                     </SignOutButton>
+
+                    <button
+                      onClick={async () => {
+                        if (!confirm("Permanently delete your account and all data? This cannot be undone.")) return;
+                        if (!confirm("Are you sure? This will delete everything immediately.")) return;
+                        try {
+                          const res = await fetch("/api/delete-account", { method: "DELETE" });
+                          if (res.ok) {
+                            router.push("/");
+                          } else {
+                            alert("Failed to delete account. Please try again.");
+                          }
+                        } catch {
+                          alert("Something went wrong. Please try again.");
+                        }
+                      }}
+                      style={{
+                        width: "100%",
+                        background: "transparent",
+                        border: "none",
+                        color: "#ef4444",
+                        padding: "10px 12px",
+                        borderRadius: 8,
+                        fontSize: 14,
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        textAlign: "left" as const,
+                        transition: "background 0.2s ease",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background = "rgba(239,68,68,0.08)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background = "transparent")
+                      }
+                    >
+                      Delete Account
+                    </button>
                   </div>
                 )}
               </div>
