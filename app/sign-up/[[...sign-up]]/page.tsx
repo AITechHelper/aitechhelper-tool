@@ -72,10 +72,9 @@ export default function SignUpPage() {
 
       const { ticket } = await res.json();
 
-      // Exchange the ticket for a session using signIn (works for both new and existing users)
-      const result = await signIn!.create({ strategy: "ticket", ticket });
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
+      const signInResult = await signIn!.create({ strategy: "ticket", ticket });
+      if (signInResult.status === "complete") {
+        await setActive({ session: signInResult.createdSessionId });
         router.push("/dashboard");
       } else {
         throw new Error("Sign in incomplete. Please try again.");
