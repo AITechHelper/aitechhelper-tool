@@ -81,7 +81,7 @@ export async function POST(req: Request) {
           emailAddress: [appleEmail],
           firstName: givenName,
           lastName: familyName,
-          skipPasswordRequirement: true,
+          skipPasswordChecks: true,
         });
         clerkUserId = newUser.id;
       }
@@ -91,7 +91,7 @@ export async function POST(req: Request) {
         externalId: appleUserId,
         firstName: givenName,
         lastName: familyName,
-        skipPasswordRequirement: true,
+        skipPasswordChecks: true,
       });
       clerkUserId = newUser.id;
     }
@@ -104,9 +104,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ticket: signInToken.token });
   } catch (err: any) {
-    console.error("Apple native auth error:", err);
+    const detail = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || err?.message || "Authentication failed";
+    console.error("Apple native auth error:", JSON.stringify(err?.errors || err));
     return NextResponse.json(
-      { error: err?.message || "Authentication failed" },
+      { error: detail },
       { status: 500 }
     );
   }
