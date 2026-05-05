@@ -43,18 +43,13 @@ export default function SignInPage() {
       return;
     }
 
-    // Native iOS: use the native Apple Sign In sheet (no external browser)
+    // Native iOS: use the native Apple Sign In sheet (no external browser).
+    // SignInWithApplePlugin is registered directly in the Xcode project (Swift).
     try {
-      // Dynamically import to avoid bundling issues on web
-      const { SignInWithApple } = await import(
-        "@capacitor-community/apple-sign-in" as any
-      ) as any;
+      const plugin = (window as any)?.Capacitor?.Plugins?.SignInWithApple;
+      if (!plugin) throw new Error("Native Sign In with Apple not available.");
 
-      const result = await SignInWithApple.authorize({
-        clientId: "com.aitechhelper.aisocialhelper",
-        redirectURI: "https://www.aisocialhelper.com",
-        scopes: "email name",
-      });
+      const result = await plugin.authorize();
 
       // Exchange the native Apple token for a Clerk sign-in ticket
       const res = await fetch("/api/auth/apple-native", {
