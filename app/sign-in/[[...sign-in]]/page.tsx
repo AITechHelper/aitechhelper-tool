@@ -380,8 +380,8 @@ export default function SignInPage() {
               </button>
             )}
 
-            {/* Sign in with Google */}
-            <button
+            {/* Sign in with Google — web only (Google blocks OAuth in WKWebView) */}
+            {!isNative && <button
               onClick={handleGoogleSignIn}
               disabled={googleLoading || !isLoaded}
               style={{
@@ -412,7 +412,7 @@ export default function SignInPage() {
                 </svg>
               )}
               {googleLoading ? "Redirecting…" : "Continue with Google"}
-            </button>
+            </button>}
 
             {/* Divider */}
             <div

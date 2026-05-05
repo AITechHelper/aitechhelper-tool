@@ -294,8 +294,8 @@ export default function SignUpPage() {
               </button>
             )}
 
-            {/* Google */}
-            <button
+            {/* Google — web only (Google blocks OAuth in WKWebView) */}
+            {!isNative && <button
               onClick={handleGoogleSignUp}
               disabled={googleLoading || !isLoaded}
               style={{ ...socialBtnStyle, opacity: googleLoading ? 0.6 : 1, cursor: googleLoading ? "not-allowed" : "pointer", marginBottom: 20 }}
@@ -309,7 +309,7 @@ export default function SignUpPage() {
                 </svg>
               )}
               {googleLoading ? "Redirecting…" : "Continue with Google"}
-            </button>
+            </button>}
 
             {/* Divider */}
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
