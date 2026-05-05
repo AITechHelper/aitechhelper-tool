@@ -85,12 +85,18 @@ function SubscribeContent() {
   const canceled = searchParams.get("canceled");
   const subSuccess = searchParams.get("sub") === "success";
   const [loadingPlan, setLoadingPlan] = useState<PlanId | null>(null);
-  const [isNative, setIsNative] = useState(false);
+  // null = not yet determined — prevents Stripe pricing from flashing before we
+  // know if we're on native iOS (where no purchase UI is shown at all).
+  const [isNative, setIsNative] = useState<boolean | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    setIsNative(Capacitor.isNativePlatform());
-  }, []);
+    const native = Capacitor.isNativePlatform();
+    setIsNative(native);
+    // On iOS the app has no purchase UI — silently redirect to dashboard.
+    // Subscriptions are handled on the web (same model as Netflix).
+    if (native) router.replace("/dashboard");
+  }, [router]);
 
   // null = loading, false = never selected a plan (show Start Free), true = already has a plan
   const [hasPlan, setHasPlan] = useState<boolean | null>(null);
@@ -102,12 +108,11 @@ function SubscribeContent() {
         if (data) setHasPlan(data.plan !== null);
       })
       .catch(() => {
-        // If we can't determine, default to showing the free option
         setHasPlan(false);
       });
   }, []);
 
-  // After successful checkout, give Clerk time to re-establish session then redirect to dashboard
+  // After successful web checkout, give Clerk time to re-establish session
   useEffect(() => {
     if (subSuccess) {
       const timer = setTimeout(() => {
@@ -217,7 +222,8 @@ function SubscribeContent() {
     cardHighlighted: {
       border: "2px solid #2c6bed",
       background: "linear-gradient(135deg, #192a4a 0%, #101a33 100%)",
-      boxShadow: "0 0 40px rgba(44, 107, 237, 0.15), 0 8px 32px rgba(0,0,0,0.3)",
+      boxShadow:
+        "0 0 40px rgba(44, 107, 237, 0.15), 0 8px 32px rgba(0,0,0,0.3)",
       transform: "scale(1.04)",
     },
     badge: {
@@ -234,27 +240,15 @@ function SubscribeContent() {
       whiteSpace: "nowrap" as const,
       letterSpacing: 0.5,
     },
-    planName: {
-      fontSize: 20,
-      fontWeight: 700,
-      marginBottom: 8,
-    },
+    planName: { fontSize: 20, fontWeight: 700, marginBottom: 8 },
     priceRow: {
       display: "flex",
       alignItems: "baseline",
       gap: 4,
       marginBottom: 4,
     },
-    price: {
-      fontSize: 44,
-      fontWeight: 800,
-      lineHeight: 1,
-    },
-    pricePeriod: {
-      fontSize: 16,
-      color: "#8fa3bf",
-      fontWeight: 500,
-    },
+    price: { fontSize: 44, fontWeight: 800, lineHeight: 1 },
+    pricePeriod: { fontSize: 16, color: "#8fa3bf", fontWeight: 500 },
     tokens: {
       fontSize: 14,
       color: "#8fa3bf",
@@ -308,106 +302,67 @@ function SubscribeContent() {
       border: "1px solid rgba(255,255,255,0.15)",
       color: "#e6edf7",
     },
-    btnDisabled: {
-      opacity: 0.6,
-      cursor: "not-allowed",
-    },
-    footer: {
-      textAlign: "center" as const,
-      marginTop: 40,
-      maxWidth: 500,
-    },
-    footerText: {
-      fontSize: 13,
-      color: "#5a6a80",
-      lineHeight: 1.6,
-    },
+    btnDisabled: { opacity: 0.6, cursor: "not-allowed" },
+    footer: { textAlign: "center" as const, marginTop: 40, maxWidth: 500 },
+    footerText: { fontSize: 13, color: "#5a6a80", lineHeight: 1.6 },
   };
 
-  // On iOS, show a web redirect screen instead of payment options
-  if (isNative) {
+  // Blank screen while we detect platform (prevents Stripe pricing from flashing on iOS)
+  if (isNative === null) {
     return (
-      <div style={{
-        minHeight: "100vh",
-        background: "linear-gradient(180deg, #0b1220 0%, #111827 100%)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "#e6edf7",
-        fontFamily: "Verdana, Geneva, sans-serif",
-        padding: "40px 24px",
-        textAlign: "center",
-      }}>
-        <div style={{ fontSize: 56, marginBottom: 24 }}>🌐</div>
-        <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 16px" }}>Upgrade Your Plan</h1>
-        <p style={{ fontSize: 16, color: "#8fa3bf", lineHeight: 1.6, margin: "0 0 12px", maxWidth: 320 }}>
-          To subscribe or manage your plan, visit us on the web:
-        </p>
-        <p style={{ fontSize: 20, fontWeight: 700, color: "#7eb3ff", margin: "0 0 40px" }}>
-          aisocialhelper.com
-        </p>
-        <button
-          onClick={() => router.push("/dashboard")}
-          style={{
-            padding: "13px 32px",
-            borderRadius: 12,
-            fontSize: 15,
-            fontWeight: 700,
-            cursor: "pointer",
-            fontFamily: "Verdana, Geneva, sans-serif",
-            background: "rgba(255,255,255,0.08)",
-            border: "1px solid rgba(255,255,255,0.14)",
-            color: "#e6edf7",
-          }}
-        >
-          Back to Dashboard
-        </button>
-      </div>
+      <div style={{ minHeight: "100vh", background: "#0b1220" }} />
     );
   }
 
-  // Show success screen while Clerk re-establishes session
+  // Show success screen while Clerk re-establishes session (web only)
   if (subSuccess) {
     return (
-      <div style={{
-        minHeight: "100vh",
-        background: "linear-gradient(180deg, #0b1220 0%, #0d1829 50%, #111827 100%)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "#e6edf7",
-        fontFamily: "Verdana, Geneva, sans-serif",
-        gap: 24,
-        padding: 20,
-        textAlign: "center",
-      }}>
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "linear-gradient(180deg, #0b1220 0%, #0d1829 50%, #111827 100%)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#e6edf7",
+          fontFamily: "Verdana, Geneva, sans-serif",
+          gap: 24,
+          padding: 20,
+          textAlign: "center",
+        }}
+      >
         <div style={{ fontSize: 64 }}>🎉</div>
-        <h1 style={{ fontSize: 32, fontWeight: 800, margin: 0 }}>You&apos;re subscribed!</h1>
+        <h1 style={{ fontSize: 32, fontWeight: 800, margin: 0 }}>
+          You&apos;re subscribed!
+        </h1>
         <p style={{ fontSize: 16, color: "#8fa3bf", margin: 0 }}>
           Taking you to your dashboard...
         </p>
-        <div style={{
-          width: 40,
-          height: 40,
-          border: "3px solid rgba(44,107,237,0.3)",
-          borderTop: "3px solid #2c6bed",
-          borderRadius: "50%",
-          animation: "spin 0.8s linear infinite",
-        }} />
+        <div
+          style={{
+            width: 40,
+            height: 40,
+            border: "3px solid rgba(44,107,237,0.3)",
+            borderTop: "3px solid #2c6bed",
+            borderRadius: "50%",
+            animation: "spin 0.8s linear infinite",
+          }}
+        />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
+  // ─── Web: Stripe checkout ────────────────────────────────────────────────────
+  // (iOS is handled above: it redirects to /dashboard and never reaches here)
   return (
     <div style={styles.page}>
       <div style={styles.header}>
         <h1 style={styles.title}>Choose Your Plan</h1>
         <p style={styles.subtitle}>
-          AI-powered content tailored to your niche — captions, hashtags, images,
-          and a full content calendar — ready in seconds.
+          AI-powered content tailored to your niche — captions, hashtags,
+          images, and a full content calendar — ready in seconds.
         </p>
       </div>
 
@@ -417,7 +372,6 @@ function SubscribeContent() {
         </div>
       )}
 
-      {/* Paid plan cards */}
       <div style={styles.cardsRow} className="tier-cards-row">
         {PLANS.filter((p) => p.id !== "free").map((plan) => {
           const isHighlighted = plan.highlighted;
@@ -431,36 +385,43 @@ function SubscribeContent() {
                 ...styles.card,
                 ...(isHighlighted ? styles.cardHighlighted : {}),
               }}
-              className={isHighlighted ? "tier-card tier-card-highlighted" : "tier-card"}
+              className={
+                isHighlighted ? "tier-card tier-card-highlighted" : "tier-card"
+              }
             >
               {plan.badge && <div style={styles.badge}>{plan.badge}</div>}
-
               <div style={styles.planName}>{plan.name}</div>
-
               <div style={styles.priceRow}>
-                <span style={{
-                  ...styles.price,
-                  color: isHighlighted ? "#2c6bed" : "#e6edf7",
-                }}>
+                <span
+                  style={{
+                    ...styles.price,
+                    color: isHighlighted ? "#2c6bed" : "#e6edf7",
+                  }}
+                >
                   ${plan.price}
                 </span>
                 <span style={styles.pricePeriod}>/mo</span>
               </div>
-
-              <div style={styles.tokens}>
-                {plan.tokens} tokens / month
-              </div>
-
+              <div style={styles.tokens}>{plan.tokens} tokens / month</div>
               <ul style={styles.featureList}>
                 {plan.features.map((feature) => (
                   <li key={feature} style={styles.featureItem}>
-                    <div style={{
-                      ...styles.checkmark,
-                      background: isHighlighted
-                        ? "rgba(44, 107, 237, 0.2)"
-                        : "rgba(34, 197, 94, 0.15)",
-                    }}>
-                      <svg width="10" height="10" fill="none" stroke={isHighlighted ? "#7eb3ff" : "#22c55e"} strokeWidth="3" viewBox="0 0 24 24">
+                    <div
+                      style={{
+                        ...styles.checkmark,
+                        background: isHighlighted
+                          ? "rgba(44, 107, 237, 0.2)"
+                          : "rgba(34, 197, 94, 0.15)",
+                      }}
+                    >
+                      <svg
+                        width="10"
+                        height="10"
+                        fill="none"
+                        stroke={isHighlighted ? "#7eb3ff" : "#22c55e"}
+                        strokeWidth="3"
+                        viewBox="0 0 24 24"
+                      >
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                     </div>
@@ -468,7 +429,6 @@ function SubscribeContent() {
                   </li>
                 ))}
               </ul>
-
               <button
                 style={{
                   ...styles.btn,
@@ -477,7 +437,9 @@ function SubscribeContent() {
                 }}
                 onClick={() => handleSubscribe(plan.id)}
                 disabled={isDisabled}
-                className={isHighlighted ? "subscribe-btn-primary" : "subscribe-btn"}
+                className={
+                  isHighlighted ? "subscribe-btn-primary" : "subscribe-btn"
+                }
               >
                 {isLoading ? "Redirecting to checkout..." : `Get ${plan.name}`}
               </button>
@@ -486,24 +448,32 @@ function SubscribeContent() {
         })}
       </div>
 
-      {/* Free plan — small option at the bottom; only shown if user has never selected any plan */}
       {hasPlan === false && (
-        <div style={{
-          marginTop: 40,
-          padding: "20px 32px",
-          background: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          borderRadius: 16,
-          display: "flex",
-          alignItems: "center",
-          gap: 24,
-          flexWrap: "wrap" as const,
-          justifyContent: "center",
-          maxWidth: 560,
-          width: "100%",
-        }}>
+        <div
+          style={{
+            marginTop: 40,
+            padding: "20px 32px",
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 16,
+            display: "flex",
+            alignItems: "center",
+            gap: 24,
+            flexWrap: "wrap" as const,
+            justifyContent: "center",
+            maxWidth: 560,
+            width: "100%",
+          }}
+        >
           <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#e6edf7", marginBottom: 4 }}>
+            <div
+              style={{
+                fontSize: 15,
+                fontWeight: 700,
+                color: "#e6edf7",
+                marginBottom: 4,
+              }}
+            >
               Not ready to commit? Start free.
             </div>
             <div style={{ fontSize: 13, color: "#5a6a80" }}>
@@ -542,45 +512,17 @@ function SubscribeContent() {
       </div>
 
       <style>{`
-        .tier-card:hover {
-          transform: translateY(-4px);
-          border-color: rgba(255,255,255,0.2) !important;
-        }
-        .tier-card-highlighted:hover {
-          transform: scale(1.04) translateY(-4px) !important;
-        }
-        .subscribe-btn-primary:hover {
-          filter: brightness(1.1);
-          box-shadow: 0 6px 24px rgba(44, 107, 237, 0.5);
-        }
-        .subscribe-btn:hover {
-          background: rgba(255,255,255,0.1) !important;
-          border-color: rgba(255,255,255,0.25) !important;
-        }
-
+        .tier-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.2) !important; }
+        .tier-card-highlighted:hover { transform: scale(1.04) translateY(-4px) !important; }
+        .subscribe-btn-primary:hover { filter: brightness(1.1); box-shadow: 0 6px 24px rgba(44,107,237,0.5); }
+        .subscribe-btn:hover { background: rgba(255,255,255,0.1) !important; border-color: rgba(255,255,255,0.25) !important; }
         @media (max-width: 900px) {
-          .tier-cards-row {
-            flex-direction: column !important;
-            align-items: center !important;
-          }
-          .tier-card {
-            max-width: 400px !important;
-            width: 100% !important;
-          }
-          .tier-card-highlighted {
-            transform: none !important;
-          }
-          .tier-card-highlighted:hover {
-            transform: translateY(-4px) !important;
-          }
+          .tier-cards-row { flex-direction: column !important; align-items: center !important; }
+          .tier-card { max-width: 400px !important; width: 100% !important; }
+          .tier-card-highlighted { transform: none !important; }
+          .tier-card-highlighted:hover { transform: translateY(-4px) !important; }
         }
-
-        @media (max-width: 480px) {
-          .tier-card {
-            min-width: unset !important;
-            padding: 28px 20px 24px !important;
-          }
-        }
+        @media (max-width: 480px) { .tier-card { min-width: unset !important; padding: 28px 20px 24px !important; } }
       `}</style>
     </div>
   );

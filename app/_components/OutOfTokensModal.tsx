@@ -159,13 +159,13 @@ export default function OutOfTokensModal({
         </div>
 
         {isNative ? (
-          /* On iOS — direct to website for payments */
+          /* On iOS — no pricing or external payment links (Netflix model).
+             Simply inform the user their tokens reset monthly. */
           <>
-            <p style={{ fontSize: 14, opacity: 0.8, margin: "0 0 8px", lineHeight: 1.6 }}>
-              To upgrade your plan, visit us on the web:
-            </p>
-            <p style={{ fontSize: 16, fontWeight: 700, color: "#7eb3ff", margin: "0 0 24px" }}>
-              aisocialhelper.com
+            <p style={{ fontSize: 14, opacity: 0.75, margin: "0 0 24px", lineHeight: 1.6 }}>
+              You&apos;ve used all your tokens for this month.
+              They reset automatically on the{" "}
+              <strong style={{ color: "#7eb3ff" }}>1st of each month</strong>.
             </p>
             <button
               onClick={onClose}

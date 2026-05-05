@@ -2393,6 +2393,151 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+        {/* Account Settings — prominently shown so users can find sign-out and
+            account deletion without hunting through menus (required by Apple 5.1.1(v)) */}
+        <div
+          id="account-settings"
+          style={{
+            maxWidth: 680,
+            width: "100%",
+            margin: "0 auto 48px",
+            background: "#0f1b2d",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 16,
+            padding: "28px 32px",
+          }}
+        >
+          <h3
+            style={{
+              fontSize: 16,
+              fontWeight: 700,
+              color: "#e6edf7",
+              margin: "0 0 20px",
+              letterSpacing: 0.3,
+            }}
+          >
+            Account Settings
+          </h3>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column" as const,
+              gap: 12,
+            }}
+          >
+            {/* Manage Billing */}
+            <button
+              onClick={handleBilling}
+              disabled={billingLoading}
+              style={{
+                width: "100%",
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: 10,
+                padding: "12px 16px",
+                color: "#c5d0e0",
+                fontSize: 14,
+                fontWeight: 500,
+                cursor: billingLoading ? "not-allowed" : "pointer",
+                textAlign: "left" as const,
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                fontFamily: "Verdana, Geneva, sans-serif",
+              }}
+            >
+              <span style={{ fontSize: 16 }}>💳</span>
+              {billingLoading ? "Loading…" : "Manage Billing & Subscription"}
+            </button>
+
+            {/* Sign Out */}
+            <SignOutButton redirectUrl="/">
+              <button
+                style={{
+                  width: "100%",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: 10,
+                  padding: "12px 16px",
+                  color: "#c5d0e0",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  textAlign: "left" as const,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  fontFamily: "Verdana, Geneva, sans-serif",
+                }}
+              >
+                <span style={{ fontSize: 16 }}>🚪</span>
+                Sign Out
+              </button>
+            </SignOutButton>
+
+            {/* Delete Account — required by Apple guideline 5.1.1(v) */}
+            <button
+              onClick={async () => {
+                if (
+                  !confirm(
+                    "Permanently delete your account and all data? This cannot be undone."
+                  )
+                )
+                  return;
+                if (
+                  !confirm(
+                    "Are you absolutely sure? Everything will be deleted immediately."
+                  )
+                )
+                  return;
+                try {
+                  const res = await fetch("/api/delete-account", {
+                    method: "DELETE",
+                  });
+                  if (res.ok) {
+                    window.location.href = "/";
+                  } else {
+                    alert("Failed to delete account. Please try again.");
+                  }
+                } catch {
+                  alert("Something went wrong. Please try again.");
+                }
+              }}
+              style={{
+                width: "100%",
+                background: "rgba(239,68,68,0.06)",
+                border: "1px solid rgba(239,68,68,0.2)",
+                borderRadius: 10,
+                padding: "12px 16px",
+                color: "#f87171",
+                fontSize: 14,
+                fontWeight: 500,
+                cursor: "pointer",
+                textAlign: "left" as const,
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                fontFamily: "Verdana, Geneva, sans-serif",
+              }}
+            >
+              <span style={{ fontSize: 16 }}>🗑️</span>
+              Delete Account
+            </button>
+          </div>
+
+          <p
+            style={{
+              fontSize: 12,
+              color: "#5a6a80",
+              margin: "16px 0 0",
+              lineHeight: 1.5,
+            }}
+          >
+            Deleting your account is permanent and immediately removes all your
+            posts, profiles, and data. This action cannot be undone.
+          </p>
+        </div>
         {/* end flex-column wrapper */}
 
         {/* Post Detail Modal */}
