@@ -83,6 +83,7 @@ export async function POST(req: Request) {
           firstName: givenName,
           lastName: familyName,
           skipPasswordChecks: true,
+          skipPasswordRequirement: true,
         });
         console.log("Created user:", newUser.id);
         clerkUserId = newUser.id;
