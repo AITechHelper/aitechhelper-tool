@@ -14,6 +14,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/stripe/webhook",
   "/api/instagram/callback",
   "/api/facebook/callback",
+  "/api/auth/apple-native",
 ]);
 
 // Routes that require subscription (protected app routes)
