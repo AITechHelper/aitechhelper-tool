@@ -2,7 +2,12 @@
 import { useSignUp, useSignIn } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, registerPlugin } from "@capacitor/core";
+
+interface SignInWithApplePlugin {
+  authorize(): Promise<{ response: { user: string; email: string; givenName: string; familyName: string; identityToken: string; authorizationCode: string } }>;
+}
+const SignInWithAppleNative = registerPlugin<SignInWithApplePlugin>("SignInWithApple");
 
 type Step = "sign_up" | "verify_code";
 
@@ -47,10 +52,7 @@ export default function SignUpPage() {
 
     // Native iOS: use the native Apple Sign In sheet (no external browser)
     try {
-      const plugin = (window as any)?.Capacitor?.Plugins?.SignInWithApple;
-      if (!plugin) throw new Error("Native Sign In with Apple not available.");
-
-      const result = await plugin.authorize();
+      const result = await SignInWithAppleNative.authorize();
 
       const res = await fetch("/api/auth/apple-native", {
         method: "POST",
