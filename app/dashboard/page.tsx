@@ -673,7 +673,7 @@ export default function DashboardPage() {
       borderRadius: 10,
       padding: "12px 14px",
       outline: "none",
-      fontSize: 14,
+      fontSize: 16,
       boxSizing: "border-box" as const,
       marginBottom: 16,
     },

@@ -38,6 +38,11 @@ body {
   max-width: 100%;
 }
 
+/* Prevent iOS auto-zoom on input focus (requires font-size >= 16px) */
+input, select, textarea {
+  font-size: max(16px, 1em) !important;
+}
+
 /* ===== Landing Page Responsive ===== */
 @media (max-width: 768px) {
   .landing-nav {
