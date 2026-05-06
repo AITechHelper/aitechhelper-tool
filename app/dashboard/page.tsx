@@ -366,6 +366,9 @@ export default function DashboardPage() {
       margin: "8px 0 0 0",
       opacity: 0.7,
       fontSize: 15,
+      wordBreak: "break-word" as const,
+      overflowWrap: "break-word" as const,
+      maxWidth: "100%",
     },
     section: {
       marginBottom: 40,
@@ -764,8 +767,8 @@ export default function DashboardPage() {
   const activeProfile = profiles.find((p) => p.id === activeProfileId);
 
   return (
-    <div style={styles.page} className="ath-page">
-      <div style={{ ...styles.container, position: "relative" }}>
+    <div style={styles.page} className="ath-page" >
+      <div style={{ ...styles.container, position: "relative", overflowX: "hidden" }}>
         {/* Header - Enhanced */}
         <div
           className="dash-page-header"
