@@ -3139,81 +3139,18 @@ export default function DashboardPage() {
                   </div>
                 </div>
               )}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  marginBottom: 16,
-                  justifyContent: !editingProfile
-                    ? ("center" as const)
-                    : ("flex-start" as const),
-                }}
-              >
+              <div style={{ marginBottom: 20, textAlign: "center" as const }}>
                 <div style={styles.modalTitle}>
-                  {editingProfile
-                    ? "Edit Brand Profile"
-                    : "Welcome! Let\u2019s do your first time configuration"}
+                  {editingProfile ? "Edit Brand Profile" : "First time configuration"}
                 </div>
-                <span
-                  style={{
-                    background: "rgba(44, 107, 237, 0.2)",
-                    border: "1px solid rgba(44, 107, 237, 0.3)",
-                    borderRadius: 12,
-                    padding: "3px 8px",
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: "#7eb3ff",
-                    marginLeft: 12,
-                    textTransform: "uppercase" as const,
-                    letterSpacing: 0.5,
-                  }}
-                >
-                  {editingProfile ? "Editing" : "Takes 30 seconds"}
-                </span>
-              </div>
-
-              <div
-                style={{
-                  fontSize: 14,
-                  opacity: 0.8,
-                  marginBottom: 24,
-                  lineHeight: 1.5,
-                  paddingBottom: 16,
-                  borderBottom: "1px solid rgba(255,255,255,0.08)",
-                  textAlign: !editingProfile
-                    ? ("center" as const)
-                    : ("left" as const),
-                }}
-              >
-                {editingProfile
-                  ? "Update your brand details below."
-                  : `Nice to meet you${newProfileName ? `, ${newProfileName}` : ""}! Two quick questions and you're all set.`}
+                <div style={{ fontSize: 14, color: "#8fa3bf", marginTop: 8 }}>
+                  {editingProfile ? "Update your brand details below." : "What should we call you?"}
+                </div>
               </div>
 
               {/* Step 1: Name only */}
               {profileStep === 1 && !editingProfile ? (
                 <div>
-                  <label
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 700,
-                      color: "#e6edf7",
-                      marginBottom: 6,
-                      display: "block",
-                    }}
-                  >
-                    What should we call you?
-                  </label>
-                  <div
-                    style={{
-                      fontSize: 13,
-                      color: "#8fa3bf",
-                      marginBottom: 14,
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    Your name, business name, or brand — whatever you go by.
-                  </div>
                   <input
                     style={{
                       ...styles.input,

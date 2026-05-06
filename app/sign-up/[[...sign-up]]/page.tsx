@@ -1,9 +1,9 @@
 "use client";
 import { useSignUp, useSignIn, useUser } from "@clerk/nextjs";
-import BackButton from "../../_components/BackButton";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Capacitor, registerPlugin } from "@capacitor/core";
+import BackButton from "../../_components/BackButton";
 
 interface SignInWithApplePlugin {
   authorize(): Promise<{ response: { user: string; email: string; givenName: string; familyName: string; identityToken: string; authorizationCode: string } }>;
@@ -123,35 +123,20 @@ export default function SignUpPage() {
     setLoading(true);
     setError("");
     try {
-      const result = await signUp.create({
+      await signUp.create({
         emailAddress: email,
         password,
         firstName: firstName || undefined,
         lastName: lastName || undefined,
       });
-      if (result.status === "missing_requirements") {
-        await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-        setStep("verify_code");
-      } else if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        router.push("/dashboard");
-      } else {
-        await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-        setStep("verify_code");
-      }
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      setStep("verify_code");
     } catch (err: any) {
-      const code = err.errors?.[0]?.code ?? "";
-      const msg = err.errors?.[0]?.longMessage || err.errors?.[0]?.message || "";
-      if (
-        code === "form_identifier_exists" ||
-        msg.toLowerCase().includes("already") ||
-        msg.toLowerCase().includes("no sign up attempt") ||
-        msg.toLowerCase().includes("get request")
-      ) {
-        setError("An account with this email already exists. Please sign in instead.");
-      } else {
-        setError(msg || "Sign up failed. Please try again.");
-      }
+      setError(
+        err.errors?.[0]?.longMessage ||
+          err.errors?.[0]?.message ||
+          "Sign up failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -222,7 +207,7 @@ export default function SignUpPage() {
         padding: "40px 20px",
       }}
     >
-      <div style={{ width: "100%", maxWidth: 400, marginBottom: 12 }}>
+      <div style={{ width: "100%", maxWidth: "400px", marginBottom: 16 }}>
         <BackButton href="/get-started" />
       </div>
       <div
@@ -240,7 +225,7 @@ export default function SignUpPage() {
           <img
             src="/logo-icon.png"
             alt="AI Social Helper"
-            style={{ width: 48, height: 48, marginBottom: 12 }}
+            style={{ width: 48, height: 48, display: "block", margin: "0 auto 12px" }}
           />
           <h1 style={{ color: "#fff", fontSize: 22, fontWeight: 700, margin: 0 }}>
             {step === "verify_code" ? "Check your email" : "Create account"}
@@ -413,13 +398,6 @@ export default function SignUpPage() {
               {error && (
                 <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 8, padding: "10px 14px", color: "#f87171", fontSize: 14 }}>
                   {error}
-                  {error.includes("already exists") && (
-                    <div style={{ marginTop: 8 }}>
-                      <a href="/sign-in" style={{ color: "#818cf8", fontWeight: 600, textDecoration: "none" }}>
-                        Go to sign in →
-                      </a>
-                    </div>
-                  )}
                 </div>
               )}
 

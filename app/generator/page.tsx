@@ -7,6 +7,7 @@ import { getTemplate, nicheKeyFromLabel, type NicheTemplate } from "../lib/niche
 import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
+import BackButton from "../_components/BackButton";
 
 type FormState = {
   niche: string;
@@ -1149,77 +1150,26 @@ export default function Page() {
             </div>
           )}
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
-          <a
-            href="/dashboard"
-            style={{
-              background:
-                "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(44, 107, 237, 0.1) 100%)",
-              border: "1px solid rgba(44, 107, 237, 0.3)",
-              borderRadius: 10,
-              padding: "10px 16px",
-              color: "#7eb3ff",
-              cursor: "pointer",
-              fontSize: 13,
-              fontWeight: 600,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              transition: "all 0.15s ease",
-              textDecoration: "none",
-            }}
-            className="hover-btn"
-          >
-            <svg
-              width="16"
-              height="16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            Dashboard
-          </a>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <BackButton href="/dashboard" />
           <button
             style={{
-              background:
-                "linear-gradient(135deg, rgba(124, 58, 237, 0.2) 0%, rgba(124, 58, 237, 0.1) 100%)",
-              border: "1px solid rgba(124, 58, 237, 0.3)",
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.12)",
               borderRadius: 10,
-              padding: "10px 16px",
+              padding: "8px 12px",
               color: "#a78bfa",
               cursor: "pointer",
               fontSize: 13,
-              fontWeight: 600,
               display: "flex",
               alignItems: "center",
-              gap: 8,
-              transition: "all 0.15s ease",
             }}
             onClick={() => setShowInstructions(true)}
-            className="hover-btn"
+            title="How it works"
           >
-            <svg
-              width="16"
-              height="16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+            <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            How it works
           </button>
         </div>
       </div>

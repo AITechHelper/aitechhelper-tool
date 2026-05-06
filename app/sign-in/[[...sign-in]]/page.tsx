@@ -1,9 +1,9 @@
 "use client";
 import { useSignIn, useUser } from "@clerk/nextjs";
-import BackButton from "../../_components/BackButton";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Capacitor, registerPlugin } from "@capacitor/core";
+import BackButton from "../../_components/BackButton";
 
 interface SignInWithApplePlugin {
   authorize(): Promise<{ response: { user: string; email: string; givenName: string; familyName: string; identityToken: string; authorizationCode: string } }>;
@@ -239,7 +239,7 @@ export default function SignInPage() {
         padding: "40px 20px",
       }}
     >
-      <div style={{ width: "100%", maxWidth: 400, marginBottom: 12 }}>
+      <div style={{ width: "100%", maxWidth: "400px", marginBottom: 16 }}>
         <BackButton href="/get-started" />
       </div>
       <div
