@@ -814,7 +814,7 @@ export async function POST(req: Request) {
     let activePillar: ContentPillar | null = null;
     if (pillarType) {
       const template = getTemplate(nicheKeyFromLabel(niche));
-      const pillar = template.pillars[pillarType];
+      const pillar = template?.pillars[pillarType];
       if (pillar) {
         activePillar = pillar;
         pillarEnrichment = buildPillarPromptEnrichment(pillar);

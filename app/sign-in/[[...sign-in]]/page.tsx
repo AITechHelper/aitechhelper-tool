@@ -1,5 +1,5 @@
 "use client";
-import { useSignIn } from "@clerk/nextjs";
+import { useSignIn, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Capacitor, registerPlugin } from "@capacitor/core";
@@ -13,6 +13,7 @@ type Step = "sign_in" | "verify_code";
 
 export default function SignInPage() {
   const { isLoaded, signIn, setActive } = useSignIn();
+  const { isSignedIn } = useUser();
   const router = useRouter();
   const [step, setStep] = useState<Step>("sign_in");
   const [email, setEmail] = useState("");
@@ -27,6 +28,10 @@ export default function SignInPage() {
   useEffect(() => {
     setIsNative(Capacitor.isNativePlatform());
   }, []);
+
+  useEffect(() => {
+    if (isSignedIn) router.push("/dashboard");
+  }, [isSignedIn, router]);
 
   const handleAppleSignIn = async () => {
     if (!isLoaded) return;
@@ -86,9 +91,12 @@ export default function SignInPage() {
         throw new Error("Sign in incomplete. Please try again.");
       }
     } catch (err: any) {
-      // Swallow user-cancelled errors
       const msg: string =
         err?.message || err?.errors?.[0]?.message || "Apple sign in failed.";
+      if (msg.toLowerCase().includes("already signed in") || err?.errors?.[0]?.code === "session_exists") {
+        router.push("/dashboard");
+        return;
+      }
       if (
         !msg.toLowerCase().includes("cancel") &&
         !msg.toLowerCase().includes("dismiss")
