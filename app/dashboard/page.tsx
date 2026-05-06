@@ -741,7 +741,7 @@ export default function DashboardPage() {
       border: "1px solid rgba(255,255,255,0.15)",
       borderRadius: 10,
       padding: 8,
-      minWidth: 220,
+      minWidth: "min(220px, calc(100vw - 32px))",
       zIndex: 100,
       boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
     },
@@ -2565,9 +2565,9 @@ export default function DashboardPage() {
               alignItems: "flex-start",
               justifyContent: "center",
               zIndex: 200,
-              padding: 20,
-              paddingTop: 60,
+              padding: "16px",
               overflowY: "auto" as const,
+              overflowX: "hidden" as const,
             }}
             onClick={() => setSelectedPost(null)}
           >
@@ -2575,9 +2575,8 @@ export default function DashboardPage() {
               style={{
                 background: "#101a33",
                 borderRadius: 16,
-                padding: 24,
-                maxWidth: 900,
-                width: "95%",
+                padding: 16,
+                width: "min(900px, calc(100vw - 32px))",
               }}
               onClick={(e) => e.stopPropagation()}
             >

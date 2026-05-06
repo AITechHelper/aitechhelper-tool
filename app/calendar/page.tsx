@@ -1416,7 +1416,7 @@ function CalendarPageInner() {
               borderRadius: 16,
               padding: "40px 28px",
               textAlign: "center" as const,
-              maxWidth: 520,
+              maxWidth: "min(520px, 100%)",
               margin: "0 auto",
             }}
           >
@@ -1927,8 +1927,8 @@ function CalendarPageInner() {
           position: "fixed",
           top: "50%",
           left: "50%",
-          width: 960,
-          maxWidth: "96vw",
+          width: "calc(100vw - 32px)",
+          maxWidth: 960,
           maxHeight: "92vh",
           background: "#101a33",
           border: "1px solid rgba(255,255,255,0.1)",
