@@ -1,5 +1,6 @@
 "use client";
 import { useSignUp, useSignIn, useUser } from "@clerk/nextjs";
+import BackButton from "../../_components/BackButton";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Capacitor, registerPlugin } from "@capacitor/core";
@@ -122,20 +123,35 @@ export default function SignUpPage() {
     setLoading(true);
     setError("");
     try {
-      await signUp.create({
+      const result = await signUp.create({
         emailAddress: email,
         password,
         firstName: firstName || undefined,
         lastName: lastName || undefined,
       });
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      setStep("verify_code");
+      if (result.status === "missing_requirements") {
+        await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+        setStep("verify_code");
+      } else if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        router.push("/dashboard");
+      } else {
+        await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+        setStep("verify_code");
+      }
     } catch (err: any) {
-      setError(
-        err.errors?.[0]?.longMessage ||
-          err.errors?.[0]?.message ||
-          "Sign up failed. Please try again."
-      );
+      const code = err.errors?.[0]?.code ?? "";
+      const msg = err.errors?.[0]?.longMessage || err.errors?.[0]?.message || "";
+      if (
+        code === "form_identifier_exists" ||
+        msg.toLowerCase().includes("already") ||
+        msg.toLowerCase().includes("no sign up attempt") ||
+        msg.toLowerCase().includes("get request")
+      ) {
+        setError("An account with this email already exists. Please sign in instead.");
+      } else {
+        setError(msg || "Sign up failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -200,11 +216,15 @@ export default function SignUpPage() {
         minHeight: "100vh",
         background: "#0b1220",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         padding: "40px 20px",
       }}
     >
+      <div style={{ width: "100%", maxWidth: 400, marginBottom: 12 }}>
+        <BackButton href="/get-started" />
+      </div>
       <div
         style={{
           width: "100%",
@@ -393,6 +413,13 @@ export default function SignUpPage() {
               {error && (
                 <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 8, padding: "10px 14px", color: "#f87171", fontSize: 14 }}>
                   {error}
+                  {error.includes("already exists") && (
+                    <div style={{ marginTop: 8 }}>
+                      <a href="/sign-in" style={{ color: "#818cf8", fontWeight: 600, textDecoration: "none" }}>
+                        Go to sign in →
+                      </a>
+                    </div>
+                  )}
                 </div>
               )}
 

@@ -339,23 +339,28 @@ export default function DashboardPage() {
       minHeight: "100vh",
       background: "#0b1220",
       color: "#e6edf7",
-      padding: 20,
+      padding: 16,
       boxSizing: "border-box",
       fontFamily: "Verdana, Geneva, sans-serif",
+      overflowX: "hidden" as const,
+      width: "100%",
     },
     container: {
       maxWidth: 1280,
       margin: "0 auto",
+      width: "100%",
+      boxSizing: "border-box" as const,
     },
     header: {
       marginBottom: 32,
     },
     title: {
-      fontSize: 32,
+      fontSize: "clamp(20px, 6vw, 32px)",
       fontWeight: 700,
       letterSpacing: 1,
       margin: 0,
       textTransform: "uppercase" as const,
+      wordBreak: "break-word" as const,
     },
     subtitle: {
       margin: "8px 0 0 0",
@@ -435,8 +440,10 @@ export default function DashboardPage() {
     },
     actionGrid: {
       display: "grid",
-      gridTemplateColumns: "repeat(2, 1fr)",
+      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
       gap: 16,
+      width: "100%",
+      boxSizing: "border-box" as const,
     },
     actionCard: {
       background: "linear-gradient(135deg, #15233d 0%, #101a33 100%)",
@@ -447,6 +454,8 @@ export default function DashboardPage() {
       transition: "all 0.15s ease",
       textAlign: "center" as const,
       boxShadow: "0 6px 18px rgba(0,0,0,0.35), 0 0 30px rgba(44,107,237,0.15)",
+      minWidth: 0,
+      overflow: "hidden" as const,
     },
     secondaryActionCard: {
       background: "#101a33",
@@ -628,11 +637,10 @@ export default function DashboardPage() {
       inset: 0,
       background: "rgba(0,0,0,0.7)",
       display: "flex",
-      alignItems: "flex-start",
+      alignItems: "center",
       justifyContent: "center",
       zIndex: 200,
-      padding: 12,
-      paddingTop: 20,
+      padding: "16px",
       overflowY: "auto" as const,
       overflowX: "hidden" as const,
       WebkitOverflowScrolling: "touch" as const,
@@ -640,11 +648,11 @@ export default function DashboardPage() {
     modalContent: {
       background: "#101a33",
       borderRadius: 16,
-      padding: 20,
-      width: "min(920px, calc(100vw - 24px))",
+      padding: 24,
+      width: "min(480px, calc(100vw - 32px))",
       maxWidth: "100%",
       maxHeight: "none",
-      marginBottom: 20,
+      marginBottom: 0,
       flexShrink: 0,
       boxSizing: "border-box" as const,
     },
@@ -796,7 +804,7 @@ export default function DashboardPage() {
 
           <h1
             style={{
-              fontSize: 36,
+              fontSize: "clamp(24px, 8vw, 36px)",
               fontWeight: 800,
               letterSpacing: 1,
               margin: 0,
@@ -805,6 +813,8 @@ export default function DashboardPage() {
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
+              maxWidth: "100%",
+              wordBreak: "break-word",
             }}
           >
             AI Social Helper
@@ -3853,7 +3863,8 @@ export default function DashboardPage() {
         .dash-social-col { align-self: stretch; justify-content: flex-start; }
 
         @media (max-width: 768px) {
-          .ath-page { padding: 10px !important; }
+          .ath-page { padding: 10px !important; overflow-x: hidden !important; }
+          .ath-page * { max-width: 100%; box-sizing: border-box; }
         }
         @media (max-width: 960px) {
           .ath-actionGrid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
