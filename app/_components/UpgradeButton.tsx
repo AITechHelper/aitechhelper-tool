@@ -1,25 +1,35 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Capacitor } from "@capacitor/core";
+
+const HIDE_ON_PATHS = ["/get-started", "/sign-in", "/sign-up", "/landing", "/privacy", "/terms"];
 
 export default function UpgradeButton() {
   const [isNative, setIsNative] = useState(false);
+  const [plan, setPlan] = useState<string | null>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     setIsNative(Capacitor.isNativePlatform());
   }, []);
 
-  if (!isNative) return null;
+  useEffect(() => {
+    if (!isNative) return;
+    fetch("/api/check-subscription")
+      .then((r) => r.json())
+      .then((d) => setPlan(d.plan ?? null))
+      .catch(() => {});
+  }, [isNative]);
 
-  const handleUpgrade = () => {
-    // Open subscribe page in external browser — payments are web-only
-    window.open("https://www.aisocialhelper.com/subscribe", "_system");
-  };
+  const hidden = HIDE_ON_PATHS.some((p) => pathname?.startsWith(p));
+
+  if (!isNative || hidden || plan !== "free") return null;
 
   return (
     <button
-      onClick={handleUpgrade}
+      onClick={() => window.open("https://www.aisocialhelper.com/subscribe", "_system")}
       style={{
         position: "fixed",
         top: 56,
