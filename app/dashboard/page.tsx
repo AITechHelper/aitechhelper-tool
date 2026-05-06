@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { SignOutButton, useUser } from "@clerk/nextjs";
+import { Capacitor } from "@capacitor/core";
 import { getImage, deleteImage } from "../lib/imageStorage";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
@@ -144,24 +145,33 @@ export default function DashboardPage() {
     };
   }, [menuOpen]);
 
+  // Open a URL — in Safari on native iOS, in-app on web
+  const openUrl = (url: string) => {
+    if (Capacitor.isNativePlatform()) {
+      window.open(url, "_system");
+    } else {
+      window.location.href = url;
+    }
+  };
+
   // Handle billing portal
   const handleBilling = async () => {
     setBillingLoading(true);
     setMenuOpen(false);
+    if (Capacitor.isNativePlatform()) {
+      // On native, always open manage page on the website in Safari
+      window.open("https://www.aisocialhelper.com/subscribe", "_system");
+      setBillingLoading(false);
+      return;
+    }
     try {
-      const res = await fetch("/api/stripe/portal", {
-        method: "POST",
-      });
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
       const data = await res.json();
       if (data.url) {
         addToast("Opening billing portal...", "info");
         window.location.href = data.url;
       } else if (res.status === 404) {
-        // No subscription found — redirect to subscribe page
-        addToast(
-          "No active subscription found. Redirecting to plans...",
-          "info"
-        );
+        addToast("No active subscription found. Redirecting to plans...", "info");
         window.location.href = "/subscribe";
       } else if (data.error) {
         addToast("Failed to open billing portal.", "error");
@@ -2021,7 +2031,7 @@ export default function DashboardPage() {
                     !tokenBalance.isLoading &&
                     tokenBalance.tokensRemaining === 0
                   ) {
-                    router.push("/subscribe");
+                    openUrl("https://www.aisocialhelper.com/subscribe");
                     return;
                   }
                   setNavLoading("generator");
@@ -2272,7 +2282,7 @@ export default function DashboardPage() {
                     !tokenBalance.isLoading &&
                     tokenBalance.tokensRemaining === 0
                   ) {
-                    router.push("/subscribe");
+                    openUrl("https://www.aisocialhelper.com/subscribe");
                     return;
                   }
                   setNavLoading("calendar");

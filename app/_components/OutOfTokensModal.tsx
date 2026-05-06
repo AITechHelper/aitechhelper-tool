@@ -62,6 +62,11 @@ export default function OutOfTokensModal({
   const isAtMax = upgradePlans.length === 0;
 
   async function handleUpgrade(planId: string) {
+    // On native iOS, open the subscribe page in Safari
+    if (Capacitor.isNativePlatform()) {
+      window.open("https://www.aisocialhelper.com/subscribe", "_system");
+      return;
+    }
     setLoadingPlan(planId);
     try {
       const res = await fetch("/api/stripe/checkout", {

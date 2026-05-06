@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useUser, SignOutButton } from "@clerk/nextjs";
+import { Capacitor } from "@capacitor/core";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -56,17 +57,21 @@ export default function LandingPage() {
   const handleBilling = async () => {
     setBillingLoading(true);
     setMenuOpen(false);
+    if (Capacitor.isNativePlatform()) {
+      window.open("https://www.aisocialhelper.com/subscribe", "_system");
+      setBillingLoading(false);
+      return;
+    }
     try {
       const res = await fetch("/api/stripe/portal", { method: "POST" });
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
       } else if (res.status === 404) {
-        // No subscription — redirect to subscribe page
         window.location.href = "/subscribe";
       }
     } catch {
-      // silently fail on landing page
+      // silently fail
     } finally {
       setBillingLoading(false);
     }
