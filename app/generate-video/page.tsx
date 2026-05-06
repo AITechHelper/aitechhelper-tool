@@ -9,6 +9,15 @@ import { useToast } from "../_components/ToastProvider";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
 import { saveToDevice } from "../lib/saveToDevice";
+import {
+  getTemplate,
+  nicheKeyFromLabel,
+  getPillarForWorkdayIndex,
+  weekdayToWorkdayIndex,
+  buildPillarPromptEnrichment,
+  getRandomPillarScene,
+  type NicheTemplate,
+} from "../lib/nicheTemplates";
 
 type AspectRatio  = "9:16" | "1:1" | "16:9";
 type Mood         = "cinematic" | "bright-airy" | "high-energy" | "luxury";
@@ -103,6 +112,35 @@ export default function GenerateVideoPage() {
     if (activeProfile?.tone)     setTone(activeProfile.tone);
   }, [activeProfile?.niche, activeProfile?.audience, activeProfile?.tone]);
 
+  // Load AI-generated template for custom niches (same storage key used by calendar + generator)
+  const [generatedTemplate, setGeneratedTemplate] = useState<NicheTemplate | null>(null);
+  useEffect(() => {
+    if (!niche || nicheKeyFromLabel(niche)) {
+      setGeneratedTemplate(null);
+      return;
+    }
+    try {
+      const slug = niche.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+      const stored = localStorage.getItem(`ath_generated_template_${slug}`);
+      if (stored) setGeneratedTemplate(JSON.parse(stored) as NicheTemplate);
+      else setGeneratedTemplate(null);
+    } catch {
+      setGeneratedTemplate(null);
+    }
+  }, [niche]);
+
+  // Resolve today's content pillar from the active niche template
+  const nicheTemplate = (() => {
+    const key = nicheKeyFromLabel(niche);
+    return key ? getTemplate(key) : (generatedTemplate ?? null);
+  })();
+  const todayPillar = (() => {
+    if (!nicheTemplate) return null;
+    const workdayIndex = weekdayToWorkdayIndex(new Date().getDay());
+    if (workdayIndex === null) return null;
+    return getPillarForWorkdayIndex(nicheTemplate, workdayIndex);
+  })();
+
   function goNext() {
     if (currentStep < TOTAL_STEPS - 1) {
       setSlideDirection("right");
@@ -153,6 +191,9 @@ export default function GenerateVideoPage() {
             primaryColor:   (activeProfile as any)?.primaryColor ?? "",
             secondaryColor: (activeProfile as any)?.secondaryColor ?? "",
           },
+          // Inject today's niche pillar rules so the video + caption are niche-specific
+          pillarContext: todayPillar ? buildPillarPromptEnrichment(todayPillar) : undefined,
+          pillarScene:   todayPillar ? getRandomPillarScene(todayPillar) : undefined,
         }),
       });
       const data = await res.json();

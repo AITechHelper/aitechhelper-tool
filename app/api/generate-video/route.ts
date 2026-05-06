@@ -32,6 +32,10 @@ type Body = {
     primaryColor?: string;
     secondaryColor?: string;
   };
+  // Niche content pillar enrichment (built by buildPillarPromptEnrichment on the client)
+  pillarContext?: string;
+  // A niche-specific visual scene suggestion for the video (from imageSceneBank)
+  pillarScene?: string;
 };
 
 // Runway ratio strings
@@ -77,6 +81,7 @@ async function buildVideoPrompt(
   brand: Body["brandContext"] | undefined,
   aspectRatio: AspectRatio,
   mood: Mood,
+  pillarScene?: string,
 ): Promise<string> {
   const moodGuide   = MOOD_INSTRUCTIONS[mood];
   const formatGuide = FORMAT_CONTEXT[aspectRatio];
@@ -117,6 +122,7 @@ ${colorHint}
     `Topic: "${userTopic}"`,
     brand?.niche    ? `Business type: ${brand.niche}`    : "",
     brand?.audience ? `Target audience: ${brand.audience}` : "",
+    pillarScene     ? `Niche visual reference (use as scene inspiration, adapt to the topic): ${pillarScene}` : "",
     `Describe the exact scene that visually represents this topic. Be specific about what objects are on screen, what the person is doing with their hands, and the exact setting. Do not leave anything open to interpretation.`,
   ].filter(Boolean).join("\n");
 
@@ -142,6 +148,7 @@ async function generateCaption(
   tone: string,
   captionLength: "Short" | "Medium" | "Long",
   hashtagCount: number,
+  pillarContext?: string,
 ): Promise<{ caption: string; hashtags: string }> {
   const maxChars  = captionMaxChars(captionLength);
   const niche     = brand?.niche    || "business";
@@ -159,7 +166,10 @@ Rules:
 - Do NOT mention the video itself or that this is a video post
 - End with a natural call to action
 - Generate exactly ${hashtagCount} relevant hashtags (return as a single space-separated string, each starting with #)
-- Return JSON: { "caption": "...", "hashtags": "..." }`;
+- Return JSON: { "caption": "...", "hashtags": "..." }${pillarContext ? `
+
+NICHE CONTENT PILLAR GUIDANCE — apply these rules to make the caption specific to this business type:
+${pillarContext}` : ""}`;
 
   const userMessage = `Video topic: "${userTopic}"`;
 
@@ -203,6 +213,8 @@ export async function POST(req: Request) {
     hashtagCount   = 12,
     imageBase64,
     brandContext,
+    pillarContext,
+    pillarScene,
   } = body;
 
   if (!prompt?.trim()) {
@@ -223,10 +235,10 @@ export async function POST(req: Request) {
 
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
-  // Build video prompt + caption in parallel
+  // Build video prompt + caption in parallel, both enriched with niche pillar context
   const [enrichedPrompt, captionResult] = await Promise.all([
-    buildVideoPrompt(openai, prompt, brandContext, aspectRatio, mood),
-    generateCaption(openai, prompt, brandContext, tone, captionLength, hashtagCount),
+    buildVideoPrompt(openai, prompt, brandContext, aspectRatio, mood, pillarScene),
+    generateCaption(openai, prompt, brandContext, tone, captionLength, hashtagCount, pillarContext),
   ]);
 
   // Start Runway generation

@@ -3,7 +3,7 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { imageStyles, GENERATOR_STYLE_VALUES } from "../lib/imageStyleOptions";
-import { getTemplate, nicheKeyFromLabel } from "../lib/nicheTemplates";
+import { getTemplate, nicheKeyFromLabel, type NicheTemplate } from "../lib/nicheTemplates";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import { useToast } from "../_components/ToastProvider";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
@@ -282,6 +282,9 @@ export default function Page() {
     secondaryColor: "#ffffff",
   });
 
+  // Generated template for custom niches (loaded from localStorage, same key the calendar uses)
+  const [generatedTemplate, setGeneratedTemplate] = useState<NicheTemplate | null>(null);
+
   const [imageDescription, setImageDescription] = useState<string>("");
   const [hasBrandProfile, setHasBrandProfile] = useState(false);
   const [brandProfileName, setBrandProfileName] = useState<string>("");
@@ -339,6 +342,23 @@ export default function Page() {
       localStorage.setItem("ath_form", JSON.stringify(form));
     } catch {}
   }, [form]);
+
+  // Load AI-generated template for custom niches (same storage key the calendar uses)
+  useEffect(() => {
+    if (!form.niche || nicheKeyFromLabel(form.niche)) {
+      // Hardcoded niche or empty — clear any cached generated template
+      setGeneratedTemplate(null);
+      return;
+    }
+    try {
+      const slug = form.niche.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+      const stored = localStorage.getItem(`ath_generated_template_${slug}`);
+      if (stored) setGeneratedTemplate(JSON.parse(stored) as NicheTemplate);
+      else setGeneratedTemplate(null);
+    } catch {
+      setGeneratedTemplate(null);
+    }
+  }, [form.niche]);
 
   // Read URL params and apply active brand profile precedence
   useEffect(() => {
@@ -418,10 +438,10 @@ export default function Page() {
     generatePost();
   }, [autogenRequested, dayContext, form.niche, form.audience]);
 
-  // Resolve niche template: use nicheKeyFromLabel for the 3 hardcoded niches,
-  // fall back to null for custom niches (generic list shown instead).
+  // Resolve niche template: hardcoded for the 3 known niches, AI-generated for
+  // any custom niche (loaded from localStorage via the effect above).
   const nicheTemplateKey = nicheKeyFromLabel(form.niche);
-  const activeTemplate = nicheTemplateKey ? getTemplate(nicheTemplateKey) : null;
+  const activeTemplate = nicheTemplateKey ? getTemplate(nicheTemplateKey) : (generatedTemplate ?? null);
   const activePillars = activeTemplate ? activeTemplate.pillars : null;
   const activeWeeklyStructure = activeTemplate ? activeTemplate.weeklyStructure : null;
 

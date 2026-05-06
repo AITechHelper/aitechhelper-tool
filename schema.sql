@@ -134,3 +134,39 @@ CREATE INDEX IF NOT EXISTS idx_media_assets_user_id ON media_assets(user_id);
 -- ALTER TABLE media_assets ADD COLUMN IF NOT EXISTS asset_type TEXT NOT NULL DEFAULT 'image';
 -- ALTER TABLE media_assets ADD COLUMN IF NOT EXISTS video_url TEXT;
 -- ALTER TABLE media_assets ADD COLUMN IF NOT EXISTS aspect_ratio TEXT;
+
+-- Scheduled posts (user-scheduled content ready to review and publish)
+CREATE TABLE IF NOT EXISTS scheduled_posts (
+  id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  saved_post_id TEXT NOT NULL,
+  platform TEXT NOT NULL CHECK (platform IN ('instagram', 'facebook', 'both')),
+  scheduled_for TIMESTAMPTZ NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'published', 'skipped')),
+  caption_override TEXT,
+  hashtags_override TEXT,
+  published_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_scheduled_posts_user_id ON scheduled_posts(user_id);
+CREATE INDEX IF NOT EXISTS idx_scheduled_posts_scheduled_for ON scheduled_posts(scheduled_for);
+CREATE INDEX IF NOT EXISTS idx_scheduled_posts_status ON scheduled_posts(status);
+
+-- Migration: run this in your Neon console to add the table to an existing database:
+-- (copy the CREATE TABLE and CREATE INDEX statements above and run them directly)
+
+-- Device push notification tokens (one token per user per device platform)
+CREATE TABLE IF NOT EXISTS device_tokens (
+  id SERIAL PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  token TEXT NOT NULL,
+  platform TEXT NOT NULL CHECK (platform IN ('ios', 'android', 'web')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(user_id, token)
+);
+
+CREATE INDEX IF NOT EXISTS idx_device_tokens_user_id ON device_tokens(user_id);

@@ -396,7 +396,7 @@ function buildMonthPlan(year: number, month: number, nicheKey?: string, customTe
       hashtagPack = "heavy";
     } else {
       const workdayIndex = weekdayToWorkdayIndex(weekday);
-      if (workdayIndex !== null) {
+      if (workdayIndex !== null && template) {
         // Mon–Fri: drive from the niche template's weeklyStructure
         const pillar = getPillarForWorkdayIndex(template, workdayIndex);
         postType = pillar.label;
@@ -408,7 +408,7 @@ function buildMonthPlan(year: number, month: number, nicheKey?: string, customTe
         captionLength = pillar.captionLength.toLowerCase() as "short" | "medium" | "long";
         hashtagPack = pillar.hashtagPack;
       } else {
-        // Sat–Sun: fall back to existing weekday plan
+        // Sat–Sun, or weekday with no template yet (custom niche pending generation)
         const base = WEEKDAY_PLANS[weekday];
         postType = base.postType;
         detail = base.detail;
@@ -533,6 +533,15 @@ function CalendarPageInner() {
   const [planningGeneration, setPlanningGeneration] = useState(false);
   const [customConfigsMap, setCustomConfigsMap] = useState<Map<number, any>>(new Map());
 
+  // Scheduled posts
+  const [scheduledPostsMap, setScheduledPostsMap] = useState<Map<number, any>>(new Map());
+  const [schedulePickerOpen, setSchedulePickerOpen] = useState(false);
+  const [schedulePlatform, setSchedulePlatform] = useState<"instagram" | "facebook" | "both">("instagram");
+  const [scheduleDateTime, setScheduleDateTime] = useState("");
+  const [scheduleSaving, setScheduleSaving] = useState(false);
+  const [schedulePublishing, setSchedulePublishing] = useState(false);
+  const [drawerScheduledPost, setDrawerScheduledPost] = useState<any>(null);
+
   // Generate a niche template via OpenAI and persist to DB + localStorage
   async function generateNicheTemplate() {
     if (!nicheLabel || isGeneratingTemplate) return;
@@ -569,6 +578,22 @@ function CalendarPageInner() {
       setIsGeneratingTemplate(false);
     }
   }
+
+  // Load scheduled posts for current month
+  const loadScheduledPosts = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/scheduled-posts?year=${currentYear}&month=${currentMonth}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const map = new Map<number, any>();
+      (data.posts || []).forEach((sp: any) => {
+        const d = new Date(sp.scheduledFor);
+        const day = d.getDate();
+        if (!map.has(day) || sp.status === "pending") map.set(day, sp);
+      });
+      setScheduledPostsMap(map);
+    } catch {}
+  }, [currentYear, currentMonth]);
 
   // Load gallery data for current month
   const loadGalleryData = useCallback(() => {
@@ -637,6 +662,11 @@ function CalendarPageInner() {
     loadGalleryData();
   }, [loadGalleryData]);
 
+  // Load scheduled posts on mount and month change
+  useEffect(() => {
+    loadScheduledPosts();
+  }, [loadScheduledPosts]);
+
   // Load pending custom configs for this month from localStorage
   useEffect(() => {
     const monthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}`;
@@ -651,14 +681,17 @@ function CalendarPageInner() {
     setCustomConfigsMap(map);
   }, [currentYear, currentMonth]);
 
-  // Re-read gallery when returning from /post page
+  // Re-read gallery and schedules when returning from /post page
   useEffect(() => {
     const handleVisibility = () => {
-      if (document.visibilityState === "visible") loadGalleryData();
+      if (document.visibilityState === "visible") {
+        loadGalleryData();
+        loadScheduledPosts();
+      }
     };
     document.addEventListener("visibilitychange", handleVisibility);
     return () => document.removeEventListener("visibilitychange", handleVisibility);
-  }, [loadGalleryData]);
+  }, [loadGalleryData, loadScheduledPosts]);
 
   const plan = useMemo(
     () => buildMonthPlan(currentYear, currentMonth, nicheKey, generatedTemplate ?? undefined),
@@ -700,6 +733,9 @@ function CalendarPageInner() {
     setCopiedField(null);
     setIgPostStatus("idle");
     setFbPostStatus("idle");
+    setSchedulePickerOpen(false);
+    setScheduleDateTime("");
+    setDrawerScheduledPost(scheduledPostsMap.get(dayPlan.day) || null);
 
     const savedPost = dayPostsMap.get(dayPlan.day);
     if (savedPost) {
@@ -731,7 +767,73 @@ function CalendarPageInner() {
       setExtraDetails("");
       setUserThought("");
       setCopiedField(null);
+      setSchedulePickerOpen(false);
+      setScheduleDateTime("");
+      setDrawerScheduledPost(null);
     }, 300);
+  }
+
+  /* ---- Schedule handlers ---- */
+
+  async function handleSaveSchedule() {
+    if (!savedPostForDay || !scheduleDateTime) return;
+    setScheduleSaving(true);
+    try {
+      const res = await fetch("/api/scheduled-posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          savedPostId: savedPostForDay.id,
+          platform: schedulePlatform,
+          scheduledFor: new Date(scheduleDateTime).toISOString(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to schedule");
+      await loadScheduledPosts();
+      // Refresh drawer scheduled post
+      const res2 = await fetch(`/api/scheduled-posts?year=${currentYear}&month=${currentMonth}`);
+      if (res2.ok) {
+        const d2 = await res2.json();
+        const match = (d2.posts || []).find((sp: any) => sp.savedPostId === savedPostForDay.id);
+        setDrawerScheduledPost(match || null);
+      }
+      setSchedulePickerOpen(false);
+      addToast("Post scheduled!", "success");
+    } catch (err: any) {
+      addToast(err?.message || "Failed to schedule post", "error");
+    } finally {
+      setScheduleSaving(false);
+    }
+  }
+
+  async function handlePublishScheduled() {
+    if (!drawerScheduledPost) return;
+    setSchedulePublishing(true);
+    try {
+      const res = await fetch(`/api/scheduled-posts/${drawerScheduledPost.id}/publish`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Publish failed");
+      setDrawerScheduledPost({ ...drawerScheduledPost, status: "published", publishedAt: new Date().toISOString() });
+      await loadScheduledPosts();
+      addToast("Published successfully!", "success");
+    } catch (err: any) {
+      addToast(err?.message || "Publish failed", "error");
+    } finally {
+      setSchedulePublishing(false);
+    }
+  }
+
+  async function handleRemoveSchedule() {
+    if (!drawerScheduledPost) return;
+    try {
+      await fetch(`/api/scheduled-posts/${drawerScheduledPost.id}`, { method: "DELETE" });
+      setDrawerScheduledPost(null);
+      await loadScheduledPosts();
+      addToast("Schedule removed", "success");
+    } catch {
+      addToast("Failed to remove schedule", "error");
+    }
   }
 
   /* ---- Generate caption from a planned media post ---- */
@@ -1507,6 +1609,20 @@ function CalendarPageInner() {
                       fontSize: 9,
                     }}>✏️</div>
                   )}
+                  {scheduledPostsMap.has(p.day) && scheduledPostsMap.get(p.day)?.status === "pending" && (
+                    <div style={{
+                      position: "absolute", bottom: 5, right: 5,
+                      background: "linear-gradient(135deg, #7c3aed 0%, #2c6bed 100%)",
+                      borderRadius: 4, padding: "2px 5px",
+                      display: "flex", alignItems: "center", gap: 3,
+                      boxShadow: "0 1px 4px rgba(124,58,237,0.5)",
+                    }}>
+                      <svg width="7" height="7" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                      </svg>
+                      <span style={{ fontSize: 8, color: "#fff", fontWeight: 700, letterSpacing: 0.3 }}>SCHED</span>
+                    </div>
+                  )}
                   {hasPost && (
                     <div style={{
                       position: "absolute",
@@ -2189,6 +2305,145 @@ function CalendarPageInner() {
                       </div>
                     </div>
 
+                    {/* Schedule section */}
+                    {savedPostForDay && savedPostForDay.postType !== "Media: Planned" && (
+                      <div style={{ marginTop: 8 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 8 }}>
+                          Schedule
+                        </div>
+                        {drawerScheduledPost && drawerScheduledPost.status === "pending" ? (
+                          <div style={{ background: "linear-gradient(135deg, rgba(124,58,237,0.12) 0%, rgba(44,107,237,0.08) 100%)", border: "1px solid rgba(124,58,237,0.3)", borderRadius: 12, padding: 14 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                              <svg width="13" height="13" fill="none" stroke="#a78bfa" strokeWidth="2" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                              </svg>
+                              <span style={{ fontSize: 13, fontWeight: 700, color: "#a78bfa" }}>
+                                {new Date(drawerScheduledPost.scheduledFor).toLocaleDateString("en-US", { month: "short", day: "numeric" })} at {new Date(drawerScheduledPost.scheduledFor).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                              </span>
+                            </div>
+                            <div style={{ fontSize: 11, opacity: 0.55, marginBottom: 12 }}>
+                              {drawerScheduledPost.platform === "both" ? "Instagram + Facebook" : drawerScheduledPost.platform.charAt(0).toUpperCase() + drawerScheduledPost.platform.slice(1)}
+                            </div>
+                            <div style={{ display: "flex", gap: 8 }}>
+                              <button
+                                onClick={handlePublishScheduled}
+                                disabled={schedulePublishing}
+                                style={{
+                                  flex: 1, padding: "10px 12px", borderRadius: 10, border: "none",
+                                  background: schedulePublishing ? "rgba(255,255,255,0.08)" : "linear-gradient(135deg, #7c3aed 0%, #2c6bed 100%)",
+                                  color: schedulePublishing ? "rgba(255,255,255,0.4)" : "#fff",
+                                  fontSize: 13, fontWeight: 700, cursor: schedulePublishing ? "not-allowed" : "pointer",
+                                  fontFamily: "Verdana, Geneva, sans-serif",
+                                }}
+                              >
+                                {schedulePublishing ? "Publishing…" : "Publish Now"}
+                              </button>
+                              <button
+                                onClick={handleRemoveSchedule}
+                                style={{
+                                  padding: "10px 12px", borderRadius: 10,
+                                  border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)",
+                                  color: "rgba(255,255,255,0.45)", fontSize: 12, fontWeight: 600,
+                                  cursor: "pointer", fontFamily: "Verdana, Geneva, sans-serif",
+                                }}
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        ) : drawerScheduledPost && drawerScheduledPost.status === "published" ? (
+                          <div style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#22c55e", display: "flex", alignItems: "center", gap: 8 }}>
+                            <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                            Published {new Date(drawerScheduledPost.publishedAt || drawerScheduledPost.scheduledFor).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                          </div>
+                        ) : !schedulePickerOpen ? (
+                          <button
+                            onClick={() => {
+                              const d = new Date(currentYear, currentMonth, selectedDay?.day || 1, 9, 0);
+                              setScheduleDateTime(d.toISOString().slice(0, 16));
+                              setSchedulePlatform(instagram.connected && facebook.connected ? "both" : instagram.connected ? "instagram" : "facebook");
+                              setSchedulePickerOpen(true);
+                            }}
+                            style={{
+                              width: "100%", padding: "10px 14px", borderRadius: 10,
+                              border: "1px dashed rgba(124,58,237,0.4)", background: "rgba(124,58,237,0.07)",
+                              color: "#a78bfa", fontSize: 13, fontWeight: 600, cursor: "pointer",
+                              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                              fontFamily: "Verdana, Geneva, sans-serif",
+                            }}
+                            className="hover-btn"
+                          >
+                            <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                            Schedule this post
+                          </button>
+                        ) : (
+                          <div style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.25)", borderRadius: 12, padding: 14, display: "flex", flexDirection: "column" as const, gap: 12 }}>
+                            <div>
+                              <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 6 }}>Date & Time</div>
+                              <input
+                                type="datetime-local"
+                                value={scheduleDateTime}
+                                onChange={e => setScheduleDateTime(e.target.value)}
+                                style={{
+                                  width: "100%", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)",
+                                  borderRadius: 8, padding: "8px 10px", color: "#e6edf7", fontSize: 13,
+                                  fontFamily: "Verdana, Geneva, sans-serif", boxSizing: "border-box" as const,
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 6 }}>Platform</div>
+                              <div style={{ display: "flex", gap: 6 }}>
+                                {(["instagram", "facebook", "both"] as const).map(p => (
+                                  <button
+                                    key={p}
+                                    onClick={() => setSchedulePlatform(p)}
+                                    style={{
+                                      flex: 1, padding: "8px 4px", borderRadius: 8, fontSize: 11, fontWeight: 700,
+                                      cursor: "pointer", fontFamily: "Verdana, Geneva, sans-serif",
+                                      border: schedulePlatform === p ? "1px solid rgba(124,58,237,0.6)" : "1px solid rgba(255,255,255,0.1)",
+                                      background: schedulePlatform === p ? "rgba(124,58,237,0.2)" : "rgba(255,255,255,0.04)",
+                                      color: schedulePlatform === p ? "#a78bfa" : "rgba(255,255,255,0.5)",
+                                    }}
+                                  >
+                                    {p === "both" ? "Both" : p === "instagram" ? "Instagram" : "Facebook"}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                            <div style={{ display: "flex", gap: 8 }}>
+                              <button
+                                onClick={handleSaveSchedule}
+                                disabled={scheduleSaving || !scheduleDateTime}
+                                style={{
+                                  flex: 1, padding: "10px 12px", borderRadius: 10, border: "none",
+                                  background: scheduleSaving ? "rgba(255,255,255,0.08)" : "linear-gradient(135deg, #7c3aed 0%, #2c6bed 100%)",
+                                  color: scheduleSaving ? "rgba(255,255,255,0.4)" : "#fff",
+                                  fontSize: 13, fontWeight: 700, cursor: scheduleSaving || !scheduleDateTime ? "not-allowed" : "pointer",
+                                  fontFamily: "Verdana, Geneva, sans-serif",
+                                }}
+                              >
+                                {scheduleSaving ? "Saving…" : "Save Schedule"}
+                              </button>
+                              <button
+                                onClick={() => setSchedulePickerOpen(false)}
+                                style={{
+                                  padding: "10px 12px", borderRadius: 10,
+                                  border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)",
+                                  color: "rgba(255,255,255,0.4)", fontSize: 12, cursor: "pointer",
+                                  fontFamily: "Verdana, Geneva, sans-serif",
+                                }}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* Publish buttons */}
                     {(instagram.connected || facebook.connected) && drawerImage && (
                       <div style={{ display: "flex", flexDirection: "column" as const, gap: 8, marginTop: 4 }}>
@@ -2324,13 +2579,13 @@ function CalendarPageInner() {
                   </div>
 
                   {/* Post ideas for this day */}
-                  {selectedDay.pillarType && getTemplate(nicheKey).pillars[selectedDay.pillarType]?.postIdeas?.length > 0 && (
+                  {selectedDay.pillarType && (getTemplate(nicheKey)?.pillars[selectedDay.pillarType]?.postIdeas?.length ?? 0) > 0 && (
                     <div style={{ marginBottom: 20 }}>
                       <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 10 }}>
                         Post ideas for today
                       </div>
                       <div style={{ display: "flex", flexDirection: "column" as const, gap: 7 }}>
-                        {getTemplate(nicheKey).pillars[selectedDay.pillarType].postIdeas.slice(0, 4).map((idea, i) => (
+                        {getTemplate(nicheKey)?.pillars[selectedDay.pillarType]?.postIdeas?.slice(0, 4).map((idea, i) => (
                           <div
                             key={i}
                             style={{
@@ -2357,7 +2612,7 @@ function CalendarPageInner() {
                   )}
 
                   {/* Example caption hook preview */}
-                  {selectedDay.pillarType && (getTemplate(nicheKey).pillars[selectedDay.pillarType]?.captionHooks?.length ?? 0) > 0 && (
+                  {selectedDay.pillarType && (getTemplate(nicheKey)?.pillars[selectedDay.pillarType]?.captionHooks?.length ?? 0) > 0 && (
                     <div style={{ marginBottom: 20 }}>
                       <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 10 }}>
                         Example caption opener
@@ -2372,7 +2627,7 @@ function CalendarPageInner() {
                         fontStyle: "italic",
                         color: "rgba(167, 139, 250, 0.9)",
                       }}>
-                        "{getTemplate(nicheKey).pillars[selectedDay.pillarType!].captionHooks[0]}"
+                        "{getTemplate(nicheKey)?.pillars[selectedDay.pillarType!]?.captionHooks?.[0]}"
                       </div>
                       <div style={{ fontSize: 11, opacity: 0.35, marginTop: 6, textAlign: "center" as const }}>
                         Your actual caption will be unique and tailored to your brand

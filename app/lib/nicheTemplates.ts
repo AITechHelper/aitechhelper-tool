@@ -1205,11 +1205,12 @@ export const nicheTemplates: Record<string, NicheTemplate> = {
 /*  Engine functions                                                     */
 /* ------------------------------------------------------------------ */
 
-// V1: always returns the realtor template.
-// Future: accept the user's niche key from their brand profile.
-export function getTemplate(nicheKey?: string): NicheTemplate {
-  const key = nicheKey && nicheTemplates[nicheKey] ? nicheKey : "realtor";
-  return nicheTemplates[key];
+// Returns the hardcoded NicheTemplate for a known niche key, or null for
+// unknown / custom niches. Callers should fall back to a generated template
+// (stored in the brand profile DB or localStorage) when this returns null.
+export function getTemplate(nicheKey?: string): NicheTemplate | null {
+  if (!nicheKey || !nicheTemplates[nicheKey]) return null;
+  return nicheTemplates[nicheKey];
 }
 
 // Returns the content pillar for a given workday index (0=Mon … 4=Fri).
