@@ -69,7 +69,7 @@ export default function DashboardPage() {
   const [fbPublishedIds, setFbPublishedIds] = useState<Set<string>>(new Set());
   const [selectedPost, setSelectedPost] = useState<SavedPost | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
-  const [profileStep, setProfileStep] = useState<1 | 2>(1);
+  const [profileStep, setProfileStep] = useState<number>(1);
 
   // Load posts from DB
   useEffect(() => {
@@ -208,7 +208,7 @@ export default function DashboardPage() {
     setNewProfileSecondaryColor(profile.secondaryColor);
     setNewProfileLogo(profile.logoBase64 || "");
     setNewProfileWebsite(profile.website || "");
-    setProfileStep(2);
+    setProfileStep(1);
     setShowNewProfile(true);
   };
 
@@ -637,7 +637,7 @@ export default function DashboardPage() {
       inset: 0,
       background: "rgba(0,0,0,0.7)",
       display: "flex",
-      alignItems: "center",
+      alignItems: "flex-start",
       justifyContent: "center",
       zIndex: 200,
       padding: "16px",
@@ -648,11 +648,12 @@ export default function DashboardPage() {
     modalContent: {
       background: "#101a33",
       borderRadius: 16,
-      padding: 24,
+      padding: 20,
       width: "min(480px, calc(100vw - 32px))",
       maxWidth: "100%",
       maxHeight: "none",
-      marginBottom: 0,
+      marginTop: "auto",
+      marginBottom: "auto",
       flexShrink: 0,
       boxSizing: "border-box" as const,
     },
@@ -3139,638 +3140,241 @@ export default function DashboardPage() {
                   </div>
                 </div>
               )}
-              <div style={{ marginBottom: 20, textAlign: "center" as const }}>
+              <div style={{ marginBottom: 8, textAlign: "center" as const }}>
                 <div style={styles.modalTitle}>
-                  {editingProfile ? "Edit Brand Profile" : "First time configuration"}
-                </div>
-                <div style={{ fontSize: 14, color: "#8fa3bf", marginTop: 8 }}>
-                  {editingProfile ? "Update your brand details below." : "What should we call you?"}
+                  {editingProfile ? "Edit Brand Profile" : "Brand Setup"}
                 </div>
               </div>
 
-              {/* Step 1: Name only */}
-              {profileStep === 1 && !editingProfile ? (
+              {/* Step progress dots (steps 1-4 for new, 1-4 for editing) */}
+              {(() => {
+                const totalSteps = 4;
+                const stepLabels = ["Name", "About", "Tone", "Brand"];
+                return (
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 24 }}>
+                    {stepLabels.map((label, i) => {
+                      const stepNum = i + 1;
+                      const isActive = profileStep === stepNum;
+                      const isDone = profileStep > stepNum;
+                      return (
+                        <div key={label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <div style={{
+                            width: isActive ? 28 : 8,
+                            height: 8,
+                            borderRadius: 4,
+                            background: isDone ? "#22c55e" : isActive ? "#2c6bed" : "rgba(255,255,255,0.15)",
+                            transition: "all 0.3s ease",
+                          }} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+
+              {/* STEP 1: Brand Name */}
+              {profileStep === 1 && (
                 <div>
+                  <div style={{ marginBottom: 20, textAlign: "center" as const }}>
+                    <div style={{ fontSize: 22, marginBottom: 8 }}>✨</div>
+                    <div style={{ fontSize: 17, fontWeight: 700, color: "#e6edf7", marginBottom: 6 }}>
+                      {editingProfile ? "Brand name" : "What should we call you?"}
+                    </div>
+                    <div style={{ fontSize: 13, color: "#8fa3bf" }}>
+                      The name of your business or brand.
+                    </div>
+                  </div>
                   <input
-                    style={{
-                      ...styles.input,
-                      fontSize: 15,
-                      padding: "14px 16px",
-                      marginBottom: 16,
-                    }}
+                    style={{ ...styles.input, fontSize: 15, padding: "14px 16px", marginBottom: 16 }}
                     placeholder="e.g., The Martinez Group"
                     value={newProfileName}
                     onChange={(e) => setNewProfileName(e.target.value)}
                     autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && newProfileName.trim())
-                        setProfileStep(2);
-                    }}
+                    onKeyDown={(e) => { if (e.key === "Enter" && newProfileName.trim()) setProfileStep(2); }}
                   />
                   <button
                     style={{
                       width: "100%",
-                      background: newProfileName.trim()
-                        ? "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)"
-                        : "rgba(44, 107, 237, 0.2)",
-                      border: "none",
-                      borderRadius: 12,
-                      padding: "16px 20px",
-                      color: "#fff",
-                      fontSize: 15,
-                      fontWeight: 700,
+                      background: newProfileName.trim() ? "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)" : "rgba(44,107,237,0.2)",
+                      border: "none", borderRadius: 12, padding: "14px 20px",
+                      color: "#fff", fontSize: 15, fontWeight: 700,
                       cursor: newProfileName.trim() ? "pointer" : "default",
-                      transition: "all 0.2s ease",
-                      opacity: newProfileName.trim() ? 1 : 0.5,
-                      marginBottom: 20,
+                      opacity: newProfileName.trim() ? 1 : 0.5, marginBottom: 16,
                       fontFamily: "Verdana, Geneva, sans-serif",
                     }}
-                    onClick={() => {
-                      if (newProfileName.trim()) setProfileStep(2);
-                    }}
+                    onClick={() => { if (newProfileName.trim()) setProfileStep(2); }}
                   >
-                    Let&apos;s go →
+                    Next →
                   </button>
-                  <div style={{ textAlign: "center" as const }}>
-                    <button
-                      style={{
-                        background: "transparent",
-                        border: "none",
-                        opacity: 0.5,
-                        fontSize: 13,
-                        color: "#8fa3bf",
-                        cursor: "pointer",
-                        padding: "8px 12px",
-                        fontFamily: "Verdana, Geneva, sans-serif",
-                      }}
-                      onClick={() => {
-                        setShowNewProfile(false);
-                        setProfileStep(1);
-                        setNewProfileName("");
-                        setNewProfileNiche("");
-                        setNewProfileAudience("");
-                        setNewProfilePrimaryColor("#000000");
-                        setNewProfileSecondaryColor("#ffffff");
-                        setNewProfileLogo("");
-                        setNewProfileWebsite("");
-                        setEditingProfile(null);
-                      }}
-                    >
-                      I&apos;ll do this later
-                    </button>
-                    <div
-                      style={{ fontSize: 11, color: "#5a6a80", marginTop: 4 }}
-                    >
-                      You can always run first time configuration from the
-                      dashboard.
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                /* Step 2: Rest of the form */
-                <div>
-                  {/* Form Grid */}
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                      gap: 14,
-                      marginBottom: 24,
-                    }}
-                    className="profile-form-grid"
-                  >
-                    {/* Brand name — editing only (new profiles got it in step 1) */}
-                    {editingProfile && (
-                      <div style={{ gridColumn: "1 / -1" }}>
-                        <label
-                          style={{
-                            fontSize: 13,
-                            fontWeight: 600,
-                            color: "#e6edf7",
-                            marginBottom: 4,
-                            display: "block",
-                          }}
-                        >
-                          Brand name
-                        </label>
-                        <input
-                          style={{ ...styles.input, marginBottom: 0 }}
-                          placeholder="e.g., The Martinez Group"
-                          value={newProfileName}
-                          onChange={(e) => setNewProfileName(e.target.value)}
-                          autoFocus
-                        />
-                        <div
-                          style={{
-                            fontSize: 12,
-                            color: "#8fa3bf",
-                            marginTop: 4,
-                            lineHeight: 1.4,
-                          }}
-                        >
-                          The name of your business or brand. This helps
-                          personalize your posts.
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Market / City */}
-                    <div>
-                      <label
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: "#e6edf7",
-                          marginBottom: 4,
-                          display: "block",
+                  {!editingProfile && (
+                    <div style={{ textAlign: "center" as const }}>
+                      <button
+                        style={{ background: "transparent", border: "none", opacity: 0.5, fontSize: 13, color: "#8fa3bf", cursor: "pointer", padding: "8px 12px", fontFamily: "Verdana, Geneva, sans-serif" }}
+                        onClick={() => {
+                          setShowNewProfile(false); setProfileStep(1);
+                          setNewProfileName(""); setNewProfileNiche(""); setNewProfileAudience("");
+                          setNewProfilePrimaryColor("#000000"); setNewProfileSecondaryColor("#ffffff");
+                          setNewProfileLogo(""); setNewProfileWebsite(""); setEditingProfile(null);
                         }}
                       >
-                        Your niche
-                      </label>
+                        I&apos;ll do this later
+                      </button>
+                      <div style={{ fontSize: 11, color: "#5a6a80", marginTop: 4 }}>
+                        You can always set this up from the dashboard.
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* STEP 2: Niche + Audience */}
+              {profileStep === 2 && (
+                <div>
+                  <div style={{ marginBottom: 20, textAlign: "center" as const }}>
+                    <div style={{ fontSize: 22, marginBottom: 8 }}>🎯</div>
+                    <div style={{ fontSize: 17, fontWeight: 700, color: "#e6edf7", marginBottom: 6 }}>Tell us about your business</div>
+                    <div style={{ fontSize: 13, color: "#8fa3bf" }}>This shapes every post the AI creates for you.</div>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column" as const, gap: 16, marginBottom: 24 }}>
+                    <div>
+                      <label style={{ fontSize: 13, fontWeight: 600, color: "#e6edf7", marginBottom: 6, display: "block" }}>Your niche</label>
                       <input
-                        style={{ ...styles.input, marginBottom: 0 }}
+                        style={{ ...styles.input, marginBottom: 4 }}
                         value={newProfileNiche}
                         onChange={(e) => setNewProfileNiche(e.target.value)}
-                        placeholder='e.g. "Fitness Coach", "Egg Salesman", "Plumber"'
+                        placeholder='e.g. "Fitness Coach", "Plumber", "Realtor"'
+                        autoFocus
                       />
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: "#8fa3bf",
-                          marginTop: 4,
-                          lineHeight: 1.4,
-                        }}
-                      >
-                        Your industry or specialty. Type anything — AI will
-                        build your calendar around it.
-                      </div>
+                      <div style={{ fontSize: 12, color: "#8fa3bf" }}>Your industry or specialty — AI builds your calendar around this.</div>
                     </div>
-
-                    {/* Who they help */}
                     <div>
-                      <label
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: "#e6edf7",
-                          marginBottom: 4,
-                          display: "block",
-                        }}
-                      >
-                        Who you help most
-                      </label>
+                      <label style={{ fontSize: 13, fontWeight: 600, color: "#e6edf7", marginBottom: 6, display: "block" }}>Who you help most</label>
                       <input
-                        style={{ ...styles.input, marginBottom: 0 }}
+                        style={{ ...styles.input, marginBottom: 4 }}
                         placeholder="e.g., Young professionals, local homeowners"
                         value={newProfileAudience}
                         onChange={(e) => setNewProfileAudience(e.target.value)}
                       />
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: "#8fa3bf",
-                          marginTop: 4,
-                          lineHeight: 1.4,
-                        }}
-                      >
-                        Your typical clients. Shapes the tone and focus of every
-                        post.
-                      </div>
+                      <div style={{ fontSize: 12, color: "#8fa3bf" }}>Your typical clients. Shapes tone and focus of every post.</div>
                     </div>
                   </div>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <button style={{ ...styles.btn, flex: 1 }} onClick={() => setProfileStep(1)}>← Back</button>
+                    <button
+                      style={{ ...styles.btn, flex: 2, background: "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)", border: "none", color: "#fff", fontWeight: 700 }}
+                      onClick={() => setProfileStep(3)}
+                    >
+                      Next →
+                    </button>
+                  </div>
+                </div>
+              )}
 
-                  {/* Tone of Voice */}
-                  <div style={{ marginBottom: 24 }}>
-                    <label
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 600,
-                        marginBottom: 4,
-                        display: "block",
-                        opacity: 0.9,
-                      }}
+              {/* STEP 3: Tone of Voice */}
+              {profileStep === 3 && (
+                <div>
+                  <div style={{ marginBottom: 20, textAlign: "center" as const }}>
+                    <div style={{ fontSize: 22, marginBottom: 8 }}>🎙️</div>
+                    <div style={{ fontSize: 17, fontWeight: 700, color: "#e6edf7", marginBottom: 6 }}>How do you sound?</div>
+                    <div style={{ fontSize: 13, color: "#8fa3bf" }}>Sets the default voice for all your posts. You can override it per post anytime.</div>
+                  </div>
+                  <select
+                    value={newProfileTone}
+                    onChange={(e) => setNewProfileTone(e.target.value)}
+                    style={{ ...styles.input, marginBottom: 24, width: "100%", cursor: "pointer", appearance: "auto" as any }}
+                  >
+                    {["Confident","Friendly","Playful","Professional","Luxury","Minimal","Bold","Witty","Inspirational","Educational","Direct","Warm","Premium","Cozy","Energetic","Modern","Rustic","Casual","Hype (but not cringe)"].map((t) => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <button style={{ ...styles.btn, flex: 1 }} onClick={() => setProfileStep(2)}>← Back</button>
+                    <button
+                      style={{ ...styles.btn, flex: 2, background: "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)", border: "none", color: "#fff", fontWeight: 700 }}
+                      onClick={() => setProfileStep(4)}
                     >
-                      Tone of voice
-                    </label>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        color: "#8fa3bf",
-                        marginBottom: 10,
-                      }}
-                    >
-                      Sets the default voice for all your posts. You can
-                      override it per post anytime.
-                    </div>
-                    <select
-                      value={newProfileTone}
-                      onChange={(e) => setNewProfileTone(e.target.value)}
-                      style={{
-                        ...styles.input,
-                        marginBottom: 0,
-                        width: "100%",
-                        cursor: "pointer",
-                        appearance: "auto" as any,
-                      }}
-                    >
-                      {[
-                        "Confident",
-                        "Friendly",
-                        "Playful",
-                        "Professional",
-                        "Luxury",
-                        "Minimal",
-                        "Bold",
-                        "Witty",
-                        "Inspirational",
-                        "Educational",
-                        "Direct",
-                        "Warm",
-                        "Premium",
-                        "Cozy",
-                        "Energetic",
-                        "Modern",
-                        "Rustic",
-                        "Casual",
-                        "Hype (but not cringe)",
-                      ].map((t) => (
-                        <option key={t} value={t}>
-                          {t}
-                        </option>
-                      ))}
-                    </select>
+                      Next →
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 4: Brand Colors + Logo + Website */}
+              {profileStep === 4 && (
+                <div>
+                  <div style={{ marginBottom: 20, textAlign: "center" as const }}>
+                    <div style={{ fontSize: 22, marginBottom: 8 }}>🎨</div>
+                    <div style={{ fontSize: 17, fontWeight: 700, color: "#e6edf7", marginBottom: 6 }}>Brand details</div>
+                    <div style={{ fontSize: 13, color: "#8fa3bf" }}>Optional — skip if you want to set these up later.</div>
                   </div>
 
-                  {/* Brand Colors */}
-                  <div style={{ marginBottom: 24 }}>
-                    <div
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 600,
-                        marginBottom: 4,
-                        opacity: 0.9,
-                      }}
-                    >
-                      Brand Colors
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        color: "#8fa3bf",
-                        marginBottom: 12,
-                      }}
-                    >
-                      Optional. These colors will be used in your generated
-                      image backgrounds and overlays.
-                    </div>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                        gap: 14,
-                      }}
-                      className="profile-colors-grid"
-                    >
+                  {/* Colors */}
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#e6edf7", marginBottom: 12 }}>Brand Colors</div>
+                    <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
                       <div>
-                        <label
-                          style={{
-                            fontSize: 12,
-                            opacity: 0.7,
-                            marginBottom: 6,
-                            display: "block",
-                          }}
-                        >
-                          Primary Color{" "}
-                          <span style={{ fontSize: 11, color: "#8fa3bf" }}>
-                            (main brand color)
-                          </span>
+                        <label style={{ fontSize: 12, opacity: 0.7, marginBottom: 6, display: "block" }}>
+                          Primary <span style={{ color: "#8fa3bf" }}>(main brand color)</span>
                         </label>
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: 8,
-                            alignItems: "center",
-                          }}
-                        >
-                          <input
-                            type="color"
-                            value={newProfilePrimaryColor}
-                            onChange={(e) =>
-                              setNewProfilePrimaryColor(e.target.value)
-                            }
-                            style={{
-                              width: 40,
-                              height: 40,
-                              border: "1px solid rgba(255,255,255,0.12)",
-                              borderRadius: 6,
-                              background: "transparent",
-                              cursor: "pointer",
-                            }}
-                          />
-                          <input
-                            style={{
-                              ...styles.input,
-                              marginBottom: 0,
-                              flex: 1,
-                            }}
-                            placeholder="#000000"
-                            value={newProfilePrimaryColor}
-                            onChange={(e) =>
-                              setNewProfilePrimaryColor(e.target.value)
-                            }
-                          />
+                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                          <input type="color" value={newProfilePrimaryColor} onChange={(e) => setNewProfilePrimaryColor(e.target.value)} style={{ width: 40, height: 40, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, background: "transparent", cursor: "pointer", flexShrink: 0 }} />
+                          <input style={{ ...styles.input, marginBottom: 0, flex: 1 }} placeholder="#000000" value={newProfilePrimaryColor} onChange={(e) => setNewProfilePrimaryColor(e.target.value)} />
                         </div>
                       </div>
                       <div>
-                        <label
-                          style={{
-                            fontSize: 12,
-                            opacity: 0.7,
-                            marginBottom: 6,
-                            display: "block",
-                          }}
-                        >
-                          Secondary Color{" "}
-                          <span style={{ fontSize: 11, color: "#8fa3bf" }}>
-                            (accent or background)
-                          </span>
+                        <label style={{ fontSize: 12, opacity: 0.7, marginBottom: 6, display: "block" }}>
+                          Secondary <span style={{ color: "#8fa3bf" }}>(accent or background)</span>
                         </label>
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: 8,
-                            alignItems: "center",
-                          }}
-                        >
-                          <input
-                            type="color"
-                            value={newProfileSecondaryColor}
-                            onChange={(e) =>
-                              setNewProfileSecondaryColor(e.target.value)
-                            }
-                            style={{
-                              width: 40,
-                              height: 40,
-                              border: "1px solid rgba(255,255,255,0.12)",
-                              borderRadius: 6,
-                              background: "transparent",
-                              cursor: "pointer",
-                            }}
-                          />
-                          <input
-                            style={{
-                              ...styles.input,
-                              marginBottom: 0,
-                              flex: 1,
-                            }}
-                            placeholder="#ffffff"
-                            value={newProfileSecondaryColor}
-                            onChange={(e) =>
-                              setNewProfileSecondaryColor(e.target.value)
-                            }
-                          />
+                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                          <input type="color" value={newProfileSecondaryColor} onChange={(e) => setNewProfileSecondaryColor(e.target.value)} style={{ width: 40, height: 40, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, background: "transparent", cursor: "pointer", flexShrink: 0 }} />
+                          <input style={{ ...styles.input, marginBottom: 0, flex: 1 }} placeholder="#ffffff" value={newProfileSecondaryColor} onChange={(e) => setNewProfileSecondaryColor(e.target.value)} />
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Brand Logo */}
-                  <div style={{ marginBottom: 24 }}>
-                    <div
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 600,
-                        marginBottom: 4,
-                        opacity: 0.9,
-                      }}
-                    >
-                      Brand Logo
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        color: "#8fa3bf",
-                        marginBottom: 12,
-                      }}
-                    >
-                      Optional. Your logo will appear in the corner of every
-                      generated post image.
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 12,
-                        alignItems: "flex-start",
-                      }}
-                    >
+                  {/* Logo */}
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#e6edf7", marginBottom: 6 }}>Brand Logo</div>
+                    <div style={{ fontSize: 12, color: "#8fa3bf", marginBottom: 10 }}>Optional. Appears in the corner of generated images.</div>
+                    <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                       {newProfileLogo ? (
-                        <div style={{ position: "relative" as const }}>
-                          <img
-                            src={newProfileLogo}
-                            alt="Brand logo"
-                            style={{
-                              width: 72,
-                              height: 72,
-                              objectFit: "contain",
-                              borderRadius: 8,
-                              background: "transparent",
-                              border: `2px solid ${newProfileSecondaryColor}`,
-                              padding: 6,
-                              flexShrink: 0,
-                            }}
-                          />
-                          <button
-                            onClick={() => setNewProfileLogo("")}
-                            style={{
-                              position: "absolute" as const,
-                              top: -6,
-                              right: -6,
-                              width: 20,
-                              height: 20,
-                              borderRadius: "50%",
-                              background: "#ff4444",
-                              border: "none",
-                              color: "#fff",
-                              fontSize: 12,
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              lineHeight: 1,
-                              fontFamily: "Verdana, Geneva, sans-serif",
-                            }}
-                            title="Remove logo"
-                          >
-                            ×
-                          </button>
+                        <div style={{ position: "relative" as const, flexShrink: 0 }}>
+                          <img src={newProfileLogo} alt="Brand logo" style={{ width: 60, height: 60, objectFit: "contain", borderRadius: 8, border: `2px solid ${newProfileSecondaryColor}`, padding: 4 }} />
+                          <button onClick={() => setNewProfileLogo("")} style={{ position: "absolute" as const, top: -6, right: -6, width: 20, height: 20, borderRadius: "50%", background: "#ff4444", border: "none", color: "#fff", fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Verdana, Geneva, sans-serif" }}>×</button>
                         </div>
                       ) : (
-                        <div
-                          onClick={() => logoInputRef.current?.click()}
-                          style={{
-                            width: 72,
-                            height: 72,
-                            borderRadius: 8,
-                            border: "1.5px dashed rgba(255,255,255,0.25)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            cursor: "pointer",
-                            color: "#8fa3bf",
-                            fontSize: 28,
-                            flexShrink: 0,
-                            background: "rgba(255,255,255,0.03)",
-                          }}
-                          title="Upload logo"
-                        >
-                          +
-                        </div>
+                        <div onClick={() => logoInputRef.current?.click()} style={{ width: 60, height: 60, borderRadius: 8, border: "1.5px dashed rgba(255,255,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#8fa3bf", fontSize: 24, flexShrink: 0, background: "rgba(255,255,255,0.03)" }}>+</div>
                       )}
-                      <div style={{ flex: 1 }}>
-                        <button
-                          onClick={() => logoInputRef.current?.click()}
-                          style={{
-                            ...styles.btn,
-                            fontSize: 13,
-                            padding: "8px 16px",
-                            marginBottom: 6,
-                          }}
-                          className="hover-btn"
-                        >
-                          {newProfileLogo ? "Replace logo" : "Upload logo"}
-                        </button>
-                        <div
-                          style={{
-                            fontSize: 11,
-                            color: "#8fa3bf",
-                            lineHeight: 1.4,
-                          }}
-                        >
-                          PNG, JPG, or SVG. Square logos work best. Max 2MB.
-                        </div>
+                      <div>
+                        <button onClick={() => logoInputRef.current?.click()} style={{ ...styles.btn, fontSize: 13, padding: "8px 14px", marginBottom: 4 }}>{newProfileLogo ? "Replace logo" : "Upload logo"}</button>
+                        <div style={{ fontSize: 11, color: "#8fa3bf" }}>PNG, JPG, SVG. Max 2MB.</div>
                       </div>
                     </div>
-                    <input
-                      ref={logoInputRef}
-                      type="file"
-                      accept="image/png,image/jpeg,image/svg+xml,image/webp"
-                      style={{ display: "none" }}
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        if (file.size > 2 * 1024 * 1024) {
-                          addToast("Logo too large. Max 2MB.", "error");
-                          return;
-                        }
-                        const reader = new FileReader();
-                        reader.onload = async () => {
-                          const dataUrl = reader.result as string;
-                          const resized = await resizeLogoForStorage(dataUrl);
-                          setNewProfileLogo(resized);
-                        };
-                        reader.readAsDataURL(file);
-                        e.target.value = "";
-                      }}
-                    />
+                    <input ref={logoInputRef} type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" style={{ display: "none" }} onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 2 * 1024 * 1024) { addToast("Logo too large. Max 2MB.", "error"); return; }
+                      const reader = new FileReader();
+                      reader.onload = async () => { const dataUrl = reader.result as string; const resized = await resizeLogoForStorage(dataUrl); setNewProfileLogo(resized); };
+                      reader.readAsDataURL(file);
+                      e.target.value = "";
+                    }} />
                   </div>
 
-                  {/* Contact Info */}
+                  {/* Website */}
                   <div style={{ marginBottom: 24 }}>
-                    <div
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 600,
-                        marginBottom: 4,
-                        opacity: 0.9,
-                      }}
-                    >
-                      Contact Info
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        color: "#8fa3bf",
-                        marginBottom: 12,
-                      }}
-                    >
-                      Optional. Shown on promotional and announcement posts
-                      where it makes sense.
-                    </div>
-                    <div>
-                      <label
-                        style={{
-                          fontSize: 12,
-                          opacity: 0.7,
-                          marginBottom: 6,
-                          display: "block",
-                        }}
-                      >
-                        Website
-                      </label>
-                      <input
-                        style={{ ...styles.input, marginBottom: 0 }}
-                        placeholder="e.g., www.yourbusiness.com"
-                        value={newProfileWebsite}
-                        onChange={(e) => setNewProfileWebsite(e.target.value)}
-                      />
-                    </div>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: "#e6edf7", marginBottom: 6, display: "block" }}>Website <span style={{ fontSize: 12, color: "#8fa3bf", fontWeight: 400 }}>(optional)</span></label>
+                    <input style={{ ...styles.input, marginBottom: 0 }} placeholder="e.g., www.yourbusiness.com" value={newProfileWebsite} onChange={(e) => setNewProfileWebsite(e.target.value)} />
                   </div>
 
-                  <p
-                    style={{
-                      fontSize: 12,
-                      opacity: 0.6,
-                      marginBottom: 20,
-                      textAlign: "center" as const,
-                      fontStyle: "italic" as const,
-                    }}
-                  >
-                    You can edit or update your brand profile anytime.
-                  </p>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 12,
-                      justifyContent: "flex-end",
-                    }}
-                  >
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <button style={{ ...styles.btn, flex: 1 }} onClick={() => setProfileStep(3)}>← Back</button>
                     <button
-                      style={styles.btn}
-                      onClick={() => {
-                        if (editingProfile) {
-                          setShowNewProfile(false);
-                          setNewProfileName("");
-                          setNewProfileNiche("");
-                          setNewProfileAudience("");
-                          setNewProfilePrimaryColor("#000000");
-                          setNewProfileSecondaryColor("#ffffff");
-                          setNewProfileLogo("");
-                          setNewProfileWebsite("");
-                          setEditingProfile(null);
-                          setProfileStep(1);
-                        } else {
-                          setProfileStep(1);
-                        }
-                      }}
-                      className="hover-btn"
-                    >
-                      {editingProfile ? "Cancel" : "← Back"}
-                    </button>
-                    <button
-                      style={{
-                        ...styles.btn,
-                        background:
-                          "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)",
-                        border: "none",
-                        color: "#fff",
-                        padding: "10px 24px",
-                        fontSize: 14,
-                      }}
+                      style={{ ...styles.btn, flex: 2, background: "linear-gradient(135deg, #2c6bed 0%, #7c3aed 100%)", border: "none", color: "#fff", fontWeight: 700 }}
                       onClick={handleCreateProfile}
-                      className="hover-btn-primary"
                     >
-                      {editingProfile ? "Update Profile" : "Save Profile"}
+                      {editingProfile ? "Update Profile ✓" : "Save Profile ✓"}
                     </button>
                   </div>
                 </div>
