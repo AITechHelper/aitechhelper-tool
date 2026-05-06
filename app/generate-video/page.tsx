@@ -9,6 +9,7 @@ import { useToast } from "../_components/ToastProvider";
 import { useTokenBalance } from "../lib/useTokenBalance";
 import OutOfTokensModal from "../_components/OutOfTokensModal";
 import { saveToDevice } from "../lib/saveToDevice";
+import BackButton from "../_components/BackButton";
 
 type AspectRatio  = "9:16" | "1:1" | "16:9";
 type Mood         = "cinematic" | "bright-airy" | "high-energy" | "luxury";
@@ -368,10 +369,7 @@ export default function GenerateVideoPage() {
           )}
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <a href="/dashboard" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, padding: "8px 14px", color: "#e6edf7", cursor: "pointer", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6, textDecoration: "none" }}>
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            Dashboard
-          </a>
+          <BackButton href="/dashboard" />
         </div>
       </div>
 

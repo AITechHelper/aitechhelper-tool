@@ -3,6 +3,7 @@ import { useSignUp, useSignIn, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Capacitor, registerPlugin } from "@capacitor/core";
+import BackButton from "../../_components/BackButton";
 
 interface SignInWithApplePlugin {
   authorize(): Promise<{ response: { user: string; email: string; givenName: string; familyName: string; identityToken: string; authorizationCode: string } }>;
@@ -200,11 +201,15 @@ export default function SignUpPage() {
         minHeight: "100vh",
         background: "#0b1220",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         padding: "40px 20px",
       }}
     >
+      <div style={{ width: "100%", maxWidth: "400px", marginBottom: 16 }}>
+        <BackButton href="/get-started" />
+      </div>
       <div
         style={{
           width: "100%",
@@ -220,7 +225,7 @@ export default function SignUpPage() {
           <img
             src="/logo-icon.png"
             alt="AI Social Helper"
-            style={{ width: 48, height: 48, marginBottom: 12 }}
+            style={{ width: 48, height: 48, display: "block", margin: "0 auto 12px" }}
           />
           <h1 style={{ color: "#fff", fontSize: 22, fontWeight: 700, margin: 0 }}>
             {step === "verify_code" ? "Check your email" : "Create account"}
