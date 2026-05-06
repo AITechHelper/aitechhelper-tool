@@ -6,6 +6,8 @@ import ScrollToTopOnRouteChange from "./_components/ScrollToTopOnRouteChange";
 import Header from "./_components/Header";
 import Footer from "./_components/Footer";
 import { ToastProvider } from "./_components/ToastProvider";
+import NotificationsProvider from "./_components/NotificationsProvider";
+import UpgradeButton from "./_components/UpgradeButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,8 +42,10 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           <ToastProvider>
+            <NotificationsProvider />
             <ScrollToTopOnRouteChange />
             <Header />
+            <UpgradeButton />
             {children}
             <Footer />
           </ToastProvider>

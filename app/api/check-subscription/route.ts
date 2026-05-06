@@ -12,12 +12,7 @@ export async function GET() {
 
     let entitlement = await getUserEntitlement(userId);
 
-    // Brand new user — send them to onboarding to pick a plan
-    if (!entitlement) {
-      return NextResponse.json({ status: "new" });
-    }
-
-    // If subscription is inactive/cancelled, downgrade to free instead of blocking
+    // Brand new user or inactive — put them on free plan automatically
     if (!entitlement || entitlement.subscriptionStatus !== "active") {
       await upsertUserEntitlement({
         clerkUserId: userId,
