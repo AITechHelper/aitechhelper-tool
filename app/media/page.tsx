@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useToast } from "../_components/ToastProvider";
 import { resizePhotoForStorage } from "../lib/photoTreatments";
 import { saveImage } from "../lib/imageStorage";
+import { useTokenBalance } from "../lib/useTokenBalance";
+import OutOfTokensModal from "../_components/OutOfTokensModal";
 
 type MediaAsset = {
   id: string;
@@ -69,6 +71,8 @@ export default function MediaPage() {
   const { addToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const tokenBalance = useTokenBalance();
+  const [showTokenModal, setShowTokenModal] = useState(false);
   const [assets, setAssets] = useState<MediaAsset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -335,7 +339,10 @@ export default function MediaPage() {
                   <div style={s.cardName}>{asset.name ?? "Untitled"}</div>
                   <div style={s.cardDate}>{new Date(asset.createdAt).toLocaleDateString()}</div>
                   <div style={s.cardActions}>
-                    <button style={s.planBtn} onClick={() => openPlanModal(asset)}>
+                    <button style={s.planBtn} onClick={() => {
+                      if (tokenBalance.tokensRemaining <= 0) { setShowTokenModal(true); return; }
+                      openPlanModal(asset);
+                    }}>
                       Plan Post
                     </button>
                     <button
@@ -588,6 +595,12 @@ export default function MediaPage() {
           </div>
         </div>
       )}
+      <OutOfTokensModal
+        isOpen={showTokenModal}
+        onClose={() => setShowTokenModal(false)}
+        tokensUsed={tokenBalance.tokensUsed}
+        totalTokens={tokenBalance.totalMonthlyTokens}
+      />
     </div>
   );
 }
