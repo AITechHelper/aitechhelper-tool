@@ -1996,7 +1996,10 @@ export default function DashboardPage() {
                         cursor: "pointer",
                         transition: "all 0.15s ease",
                       }}
-                      onClick={() => router.push("/generator")}
+                      onClick={() => {
+                        if (tokensRemaining <= 0) { setShowTokenModal(true); return; }
+                        router.push("/generator");
+                      }}
                       className="hover-btn-primary"
                     >
                       Generate Your First Post
