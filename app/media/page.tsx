@@ -284,12 +284,15 @@ export default function MediaPage() {
             </svg>
             Dashboard
           </a>
-          <a href="/calendar" style={{ ...s.dashBtn, color: "#a78bfa", borderColor: "rgba(124,58,237,0.3)", background: "rgba(124,58,237,0.1)" }}>
+          <button
+            onClick={() => { if (tokenBalance.tokensRemaining <= 0) { setShowTokenModal(true); return; } window.location.href = "/calendar"; }}
+            style={{ ...s.dashBtn, color: "#a78bfa", borderColor: "rgba(124,58,237,0.3)", background: "rgba(124,58,237,0.1)", cursor: "pointer" }}
+          >
             <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             Calendar
-          </a>
+          </button>
           <button
             style={{ ...s.uploadBtn, opacity: (isUploading || assets.length >= 10) ? 0.6 : 1 }}
             onClick={() => {
