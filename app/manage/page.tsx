@@ -71,22 +71,8 @@ export default function ManagePage() {
 
   async function handleDeleteAccount() {
     setDeleting(true);
-    try {
-      const res = await fetch("/api/delete-account", { method: "DELETE" });
-      if (res.ok) {
-        await signOut();
-        router.replace("/");
-      } else {
-        const data = await res.json().catch(() => ({}));
-        alert(data.error || "Failed to delete account. Please try again.");
-        setDeleteStep(0);
-      }
-    } catch {
-      alert("Something went wrong. Please try again.");
-      setDeleteStep(0);
-    } finally {
-      setDeleting(false);
-    }
+    fetch("/api/delete-account", { method: "DELETE" });
+    await signOut({ redirectUrl: "/" });
   }
 
   const planKey = sub?.plan ?? "free";

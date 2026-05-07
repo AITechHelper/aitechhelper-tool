@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { SignOutButton, useUser } from "@clerk/nextjs";
+import { SignOutButton, useUser, useClerk } from "@clerk/nextjs";
 import { Capacitor } from "@capacitor/core";
 import { getImage, deleteImage } from "../lib/imageStorage";
 import { useTokenBalance } from "../lib/useTokenBalance";
@@ -34,6 +34,7 @@ type SavedPost = {
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useUser();
+  const { signOut } = useClerk();
   const tokenBalance = useTokenBalance();
   const [showTokenModal, setShowTokenModal] = useState(false);
   const { addToast } = useToast();
@@ -1052,18 +1053,8 @@ export default function DashboardPage() {
                         if (!confirm("Are you sure? This will delete everything immediately.")) return;
                         setDeletingAccount(true);
                         setMenuOpen(false);
-                        try {
-                          const res = await fetch("/api/delete-account", { method: "DELETE" });
-                          if (res.ok) {
-                            router.push("/");
-                          } else {
-                            alert("Failed to delete account. Please try again.");
-                            setDeletingAccount(false);
-                          }
-                        } catch {
-                          alert("Something went wrong. Please try again.");
-                          setDeletingAccount(false);
-                        }
+                        fetch("/api/delete-account", { method: "DELETE" });
+                        await signOut({ redirectUrl: "/" });
                       }}
                       style={{
                         width: "100%",
@@ -2521,20 +2512,8 @@ export default function DashboardPage() {
                 )
                   return;
                 setDeletingAccount(true);
-                try {
-                  const res = await fetch("/api/delete-account", {
-                    method: "DELETE",
-                  });
-                  if (res.ok) {
-                    window.location.href = "/";
-                  } else {
-                    alert("Failed to delete account. Please try again.");
-                    setDeletingAccount(false);
-                  }
-                } catch {
-                  alert("Something went wrong. Please try again.");
-                  setDeletingAccount(false);
-                }
+                fetch("/api/delete-account", { method: "DELETE" });
+                await signOut({ redirectUrl: "/" });
               }}
               style={{
                 width: "100%",
