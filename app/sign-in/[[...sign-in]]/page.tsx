@@ -1,6 +1,6 @@
 "use client";
 import { useSignIn, useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import BackButton from "../../_components/BackButton";
@@ -16,6 +16,8 @@ export default function SignInPage() {
   const { isLoaded, signIn, setActive } = useSignIn();
   const { isSignedIn } = useUser();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect_url") || "/dashboard";
   const [step, setStep] = useState<Step>("sign_in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,7 +33,7 @@ export default function SignInPage() {
   }, []);
 
   useEffect(() => {
-    if (isSignedIn) router.push("/dashboard");
+    if (isSignedIn) router.push(redirectTo);
   }, [isSignedIn, router]);
 
   const handleAppleSignIn = async () => {
@@ -45,7 +47,7 @@ export default function SignInPage() {
         await signIn.authenticateWithRedirect({
           strategy: "oauth_apple",
           redirectUrl: "/sign-in/sso-callback",
-          redirectUrlComplete: "/dashboard",
+          redirectUrlComplete: redirectTo,
         });
       } catch (err: any) {
         setError(err.errors?.[0]?.message || "Apple sign in failed.");
@@ -120,7 +122,7 @@ export default function SignInPage() {
       await signIn.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: "/sign-in/sso-callback",
-        redirectUrlComplete: "/dashboard",
+        redirectUrlComplete: redirectTo,
       });
     } catch (err: any) {
       setError(err.errors?.[0]?.message || "Google sign in failed.");
@@ -144,7 +146,7 @@ export default function SignInPage() {
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
         router.refresh();
-        router.push("/dashboard");
+        router.push(redirectTo);
       } else if ((result.status as string) === "needs_client_trust") {
         const emailFactor = result.supportedFirstFactors?.find(
           (f: any) => f.strategy === "email_code"
@@ -183,7 +185,7 @@ export default function SignInPage() {
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
         router.refresh();
-        router.push("/dashboard");
+        router.push(redirectTo);
       } else {
         setError(
           `Verification incomplete (${result.status}). Please try again.`
