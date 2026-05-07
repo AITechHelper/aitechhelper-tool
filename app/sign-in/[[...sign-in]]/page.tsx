@@ -56,8 +56,11 @@ export default function SignInPage() {
 
     // Native iOS: use the native Apple Sign In sheet (no external browser).
     // SignInWithApplePlugin is registered directly in the Xcode project (Swift).
+    const nativeTimeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Sign in timed out. Please try again.")), 30000)
+    );
     try {
-      const result = await SignInWithAppleNative.authorize();
+      const result = await Promise.race([SignInWithAppleNative.authorize(), nativeTimeout]) as Awaited<ReturnType<typeof SignInWithAppleNative.authorize>>;
 
       // Exchange the native Apple token for a Clerk sign-in ticket
       const res = await fetch("/api/auth/apple-native", {

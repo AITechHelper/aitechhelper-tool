@@ -6,6 +6,7 @@ import { SignOutButton, useUser } from "@clerk/nextjs";
 import { Capacitor } from "@capacitor/core";
 import { getImage, deleteImage } from "../lib/imageStorage";
 import { useTokenBalance } from "../lib/useTokenBalance";
+import OutOfTokensModal from "../_components/OutOfTokensModal";
 import { useToast } from "../_components/ToastProvider";
 import { useBrandProfiles, type BrandProfile } from "../lib/useBrandProfiles";
 import { useInstagram } from "../lib/useInstagram";
@@ -34,6 +35,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { user } = useUser();
   const tokenBalance = useTokenBalance();
+  const [showTokenModal, setShowTokenModal] = useState(false);
   const { addToast } = useToast();
   const brandProfiles = useBrandProfiles();
   const { profiles, activeProfileId } = brandProfiles;
@@ -160,7 +162,7 @@ export default function DashboardPage() {
     setMenuOpen(false);
     if (Capacitor.isNativePlatform()) {
       // On native, always open manage page on the website in Safari
-      window.open("https://www.aisocialhelper.com/subscribe", "_system");
+      window.open("https://www.aisocialhelper.com/manage", "_system");
       setBillingLoading(false);
       return;
     }
@@ -1013,7 +1015,7 @@ export default function DashboardPage() {
                         (e.currentTarget.style.background = "transparent")
                       }
                     >
-                      {billingLoading ? "Loading..." : "Manage Billing"}
+                      {billingLoading ? "Loading..." : "Manage Account"}
                     </button>
 
                     <SignOutButton redirectUrl="/">
@@ -2027,11 +2029,8 @@ export default function DashboardPage() {
                 }}
                 className="primary-action-card hover-card"
                 onClick={() => {
-                  if (
-                    !tokenBalance.isLoading &&
-                    tokenBalance.tokensRemaining === 0
-                  ) {
-                    openUrl("https://www.aisocialhelper.com/subscribe");
+                  if (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) {
+                    setShowTokenModal(true);
                     return;
                   }
                   setNavLoading("generator");
@@ -2159,6 +2158,10 @@ export default function DashboardPage() {
                 }}
                 className="primary-action-card hover-card"
                 onClick={() => {
+                  if (!tokenBalance.isLoading && tokenBalance.tokensRemaining < 2) {
+                    setShowTokenModal(true);
+                    return;
+                  }
                   setNavLoading("video");
                   router.push("/generate-video");
                 }}
@@ -2278,11 +2281,8 @@ export default function DashboardPage() {
                 }}
                 className="primary-action-card hover-card"
                 onClick={() => {
-                  if (
-                    !tokenBalance.isLoading &&
-                    tokenBalance.tokensRemaining === 0
-                  ) {
-                    openUrl("https://www.aisocialhelper.com/subscribe");
+                  if (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) {
+                    setShowTokenModal(true);
                     return;
                   }
                   setNavLoading("calendar");
@@ -2450,7 +2450,7 @@ export default function DashboardPage() {
               gap: 12,
             }}
           >
-            {/* Manage Billing */}
+            {/* Manage Account */}
             <button
               onClick={handleBilling}
               disabled={billingLoading}
@@ -2471,8 +2471,8 @@ export default function DashboardPage() {
                 fontFamily: "Verdana, Geneva, sans-serif",
               }}
             >
-              <span style={{ fontSize: 16 }}>💳</span>
-              {billingLoading ? "Loading…" : "Manage Billing & Subscription"}
+              <span style={{ fontSize: 16 }}>⚙️</span>
+              {billingLoading ? "Loading…" : "Manage Account"}
             </button>
 
             {/* Sign Out */}
@@ -3488,6 +3488,13 @@ export default function DashboardPage() {
         }
       `}</style>
       </div>
+
+      <OutOfTokensModal
+        isOpen={showTokenModal}
+        onClose={() => setShowTokenModal(false)}
+        tokensUsed={tokenBalance.tokensUsed}
+        totalTokens={tokenBalance.totalMonthlyTokens}
+      />
     </div>
   );
 }

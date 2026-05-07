@@ -25,7 +25,11 @@ export default function UpgradeButton() {
 
   const hidden = HIDE_ON_PATHS.some((p) => pathname?.startsWith(p));
 
-  if (!isNative || hidden || plan !== "free") return null;
+  // Per Apple guideline 3.1.1, native iOS apps may not link users to external
+  // purchase pages. Subscriptions must be managed via the website directly.
+  if (isNative || hidden) return null;
+
+  if (plan !== "free") return null;
 
   return (
     <button

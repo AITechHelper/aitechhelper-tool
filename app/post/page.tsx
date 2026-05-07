@@ -145,6 +145,7 @@ type FormState = {
   tone: string;
   captionLength: "Short" | "Medium" | "Long";
   hashtagCount: number;
+  callToAction: string;
   imageStyle: string;
   primaryColor: string;
   secondaryColor: string;
@@ -180,6 +181,7 @@ export default function PostPage() {
     tone: "Confident",
     captionLength: "Medium",
     hashtagCount: 12,
+    callToAction: "",
     imageStyle: "lifestyle_photo",
     primaryColor: "#000000",
     secondaryColor: "#ffffff",
@@ -314,6 +316,7 @@ export default function PostPage() {
         | FormState["captionLength"]
         | null;
       const hashtagCount = params.get("hashtagCount");
+      const callToAction = params.get("callToAction");
       const imageStyle = params.get("imageStyle");
       const primaryColor = params.get("primaryColor");
       const secondaryColor = params.get("secondaryColor");
@@ -327,6 +330,7 @@ export default function PostPage() {
         ...(specificRequest ? { specificRequest } : {}),
         ...(captionLength ? { captionLength } : {}),
         ...(hashtagCount ? { hashtagCount: Number(hashtagCount) } : {}),
+        ...(callToAction ? { callToAction } : {}),
         ...(imageStyle ? { imageStyle } : {}),
         ...(primaryColor ? { primaryColor } : {}),
         ...(secondaryColor ? { secondaryColor } : {}),
@@ -473,11 +477,11 @@ export default function PostPage() {
     if (!post?.imageBase64) { setFormattedImage(null); return; }
     if (selectedFormat === "square") { setFormattedImage(post.imageBase64); return; }
     let cancelled = false;
-    convertToInstagramFormat(post.imageBase64, selectedFormat).then((result) => {
+    convertToInstagramFormat(post.imageBase64, selectedFormat, form.primaryColor, form.secondaryColor).then((result) => {
       if (!cancelled) setFormattedImage(result);
     });
     return () => { cancelled = true; };
-  }, [post?.imageBase64, selectedFormat]);
+  }, [post?.imageBase64, selectedFormat, form.primaryColor, form.secondaryColor]);
 
   const activeImage = formattedImage ?? post?.imageBase64 ?? null;
 
@@ -520,7 +524,7 @@ export default function PostPage() {
       ...form,
       dayContext,
       goal: form.postType,
-      callToAction: "Comment, Share, Like, Follow, DM us",
+      callToAction: form.callToAction || "",
       referenceImageDataUrl: uploadRef?.dataUrl || null,
       referenceImageName: uploadRef?.name || null,
       referenceImageMime: uploadRef?.mime || null,

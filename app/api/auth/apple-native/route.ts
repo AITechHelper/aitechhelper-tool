@@ -1,5 +1,6 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { upsertUserEntitlement } from "@/app/lib/db";
 
 export async function POST(req: Request) {
   let identityToken: string;
@@ -87,6 +88,8 @@ export async function POST(req: Request) {
         });
         console.log("Created user:", newUser.id);
         clerkUserId = newUser.id;
+        // Auto-enroll new users in the free plan
+        await upsertUserEntitlement({ clerkUserId: newUser.id, subscriptionStatus: "active", plan: "free" }).catch(() => {});
       } catch (e: any) {
         console.error("createUser failed:", JSON.stringify(e?.errors || e?.message));
         throw e;

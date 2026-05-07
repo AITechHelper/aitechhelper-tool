@@ -16,34 +16,21 @@ const PLANS: Array<{
   badge: string | null;
 }> = [
   {
-    id: "free",
-    name: "Free",
-    price: 0,
-    tokens: 2,
+    id: "premium",
+    name: "Premium",
+    price: 39,
+    tokens: 120,
     features: [
-      "2 AI-generated posts",
-      "All post types for your niche",
-      "Brand profile support",
-      "AI image generation",
-      "Smart captions & hashtags",
-    ],
-    highlighted: false,
-    badge: "Start Here",
-  },
-  {
-    id: "basic",
-    name: "Basic",
-    price: 9,
-    tokens: 30,
-    features: [
-      "30 AI-generated posts per month",
+      "120 AI-generated posts per month",
       "Full 5-pillar weekly plan covered",
       "Brand profile support",
       "AI image generation",
       "Smart captions & hashtags",
+      "Priority generation speed",
+      "Early access to new features",
     ],
-    highlighted: false,
-    badge: null,
+    highlighted: true,
+    badge: "Best Value",
   },
   {
     id: "pro",
@@ -58,22 +45,20 @@ const PLANS: Array<{
       "Smart captions & hashtags",
       "Priority generation speed",
     ],
-    highlighted: true,
+    highlighted: false,
     badge: "Most Popular",
   },
   {
-    id: "premium",
-    name: "Premium",
-    price: 39,
-    tokens: 120,
+    id: "basic",
+    name: "Basic",
+    price: 9,
+    tokens: 30,
     features: [
-      "120 AI-generated posts per month",
+      "30 AI-generated posts per month",
       "Full 5-pillar weekly plan covered",
       "Brand profile support",
       "AI image generation",
       "Smart captions & hashtags",
-      "Priority generation speed",
-      "Early access to new features",
     ],
     highlighted: false,
     badge: null,
@@ -373,7 +358,7 @@ function SubscribeContent() {
       )}
 
       <div style={styles.cardsRow} className="tier-cards-row">
-        {PLANS.filter((p) => p.id !== "free").map((plan) => {
+        {PLANS.map((plan) => {
           const isHighlighted = plan.highlighted;
           const isLoading = loadingPlan === plan.id;
           const isDisabled = loadingPlan !== null;
@@ -448,60 +433,6 @@ function SubscribeContent() {
         })}
       </div>
 
-      {hasPlan === false && (
-        <div
-          style={{
-            marginTop: 40,
-            padding: "20px 32px",
-            background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: 16,
-            display: "flex",
-            alignItems: "center",
-            gap: 24,
-            flexWrap: "wrap" as const,
-            justifyContent: "center",
-            maxWidth: 560,
-            width: "100%",
-          }}
-        >
-          <div>
-            <div
-              style={{
-                fontSize: 15,
-                fontWeight: 700,
-                color: "#e6edf7",
-                marginBottom: 4,
-              }}
-            >
-              Not ready to commit? Start free.
-            </div>
-            <div style={{ fontSize: 13, color: "#5a6a80" }}>
-              2 tokens to try it out — no credit card needed.
-            </div>
-          </div>
-          <button
-            style={{
-              padding: "10px 24px",
-              borderRadius: 10,
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: loadingPlan ? "not-allowed" : "pointer",
-              fontFamily: "Verdana, Geneva, sans-serif",
-              background: "rgba(22,163,74,0.12)",
-              border: "1px solid rgba(22,163,74,0.35)",
-              color: "#4ade80",
-              opacity: loadingPlan ? 0.6 : 1,
-              transition: "all 0.2s ease",
-              whiteSpace: "nowrap" as const,
-            }}
-            onClick={() => handleSubscribe("free")}
-            disabled={loadingPlan !== null}
-          >
-            {loadingPlan === "free" ? "Activating..." : "Start Free →"}
-          </button>
-        </div>
-      )}
 
       <div style={styles.footer}>
         <p style={styles.footerText}>

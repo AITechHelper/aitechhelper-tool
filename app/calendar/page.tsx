@@ -1741,28 +1741,6 @@ function CalendarPageInner() {
             </div>
           )}
 
-          {isGeneratingTemplate && (
-            <div style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              padding: "36px 20px",
-              background: "rgba(124,58,237,0.05)",
-              border: "1px solid rgba(124,58,237,0.2)",
-              borderRadius: 16,
-              marginBottom: 16,
-              gap: 12,
-              textAlign: "center",
-            }}>
-              <div style={{ fontSize: 28 }}>⚙️</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#a78bfa" }}>
-                Building your {nicheLabel} strategy…
-              </div>
-              <div style={{ fontSize: 12, opacity: 0.6, color: "#e6edf7" }}>
-                Crafting 5 content pillars for your niche
-              </div>
-            </div>
-          )}
           {(needsGeneratedTemplate && !generatedTemplate) ? null : plan.map((dayPlan) => {
               const dayOfWeek = WEEKDAYS[dayPlan.date.getDay()];
               const monthName = MONTHS[dayPlan.date.getMonth()];
@@ -2537,250 +2515,127 @@ function CalendarPageInner() {
                 )  /* end inner ternary (regular generated view) */
               ) : (
                 /* ======== PLAN / GENERATE VIEW ======== */
-                <div style={{ display: "flex", gap: 20 }}>
-                  {/* ---- LEFT COLUMN ---- */}
-                  <div style={{ flex: "0 0 50%", display: "flex", flexDirection: "column", gap: 14 }}>
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 16 }}>
+
+                  {/* What you'll get — compact icon row */}
+                  <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                    {[
+                      { icon: "🖼️", label: "AI Image" },
+                      { icon: "✍️", label: "Caption" },
+                      { icon: "#️⃣", label: "Hashtags" },
+                    ].map(({ icon, label }) => (
+                      <div key={label} style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: 600, color: "#c5d0e0" }}>
+                        <span>{icon}</span> {label}
+                      </div>
+                    ))}
+                  </div>
+
                   {/* Post type explanation */}
-                  <div
-                    style={{
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      borderRadius: 12,
-                      padding: 16,
-                      marginBottom: 20,
-                    }}
-                  >
-                    <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 8 }}>
-                      What this means for your post
+                  <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "12px 14px" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.45, marginBottom: 6 }}>
+                      About this post type
                     </div>
-                    <p style={{ fontSize: 14, lineHeight: 1.6, margin: 0, opacity: 0.9 }}>
+                    <p style={{ fontSize: 13, lineHeight: 1.55, margin: 0, opacity: 0.85 }}>
                       {selectedDay.postType === "Market Authority" && (
-                        <>AI will position you as the <strong>local market expert</strong>. Expect confident, data-informed content that gives buyers and sellers a genuine reason to trust your insight over anyone else's.</>
+                        <>AI will position you as the <strong>local market expert</strong> with confident, data-informed content.</>
                       )}
                       {selectedDay.postType === "Home Feature Spotlight" && (
-                        <>AI will write <strong>aspirational, feature-focused content</strong> that makes buyers picture themselves in the home — no listing language, just the feeling of living in a space they love.</>
+                        <>AI will write <strong>aspirational, feature-focused content</strong> that makes buyers picture themselves in the home.</>
                       )}
                       {selectedDay.postType === "Educational" && (
-                        <>AI will share <strong>genuinely useful tips</strong> that teach buyers or sellers something they didn't know. Builds trust by making you the resource they turn to before making any real estate decision.</>
+                        <>AI will share <strong>genuinely useful tips</strong> that build trust by making you the go-to resource.</>
                       )}
                       {selectedDay.postType === "Social Proof" && (
-                        <>AI will craft a <strong>credibility-building post</strong> around client results, wins, or testimonials. The goal is to let real outcomes speak — warm, genuine, and compelling.</>
+                        <>AI will craft a <strong>credibility-building post</strong> around client results, wins, or testimonials.</>
                       )}
                       {selectedDay.postType === "Community" && (
-                        <>AI will write a <strong>personal, authentic post</strong> about the neighborhood, a local spot, or what makes this community special. Zero sales pitch — pure connection and local pride.</>
+                        <>AI will write a <strong>personal, authentic post</strong> about the neighborhood or local community.</>
                       )}
                       {selectedDay.postType === "Seasonal" && (
-                        <>AI will tap into the <strong>holiday or seasonal moment</strong> with timely, festive content that connects your brand to what your audience is already thinking about.</>
+                        <>AI will tap into the <strong>holiday or seasonal moment</strong> with timely, on-brand content.</>
                       )}
                       {!["Market Authority","Active Listing","Educational","Social Proof","Community","Seasonal"].includes(selectedDay.postType) && (
-                        <>AI will generate a <strong>well-crafted, on-brand post</strong> tailored to your profile. Add extra details below to make it more specific to your current goals.</>
+                        <>AI will generate a <strong>well-crafted, on-brand post</strong> tailored to your profile.</>
                       )}
                     </p>
                   </div>
 
-                  {/* Post ideas for this day */}
+                  {/* Post ideas */}
                   {selectedDay.pillarType && (getTemplate(nicheKey)?.pillars[selectedDay.pillarType]?.postIdeas?.length ?? 0) > 0 && (
-                    <div style={{ marginBottom: 20 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 10 }}>
-                        Post ideas for today
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.45, marginBottom: 8 }}>
+                        Post ideas — tap to use
                       </div>
-                      <div style={{ display: "flex", flexDirection: "column" as const, gap: 7 }}>
-                        {getTemplate(nicheKey)?.pillars[selectedDay.pillarType]?.postIdeas?.slice(0, 4).map((idea, i) => (
+                      <div style={{ display: "flex", flexDirection: "column" as const, gap: 6 }}>
+                        {getTemplate(nicheKey)?.pillars[selectedDay.pillarType]?.postIdeas?.slice(0, 3).map((idea, i) => (
                           <div
                             key={i}
-                            style={{
-                              background: "rgba(44, 107, 237, 0.07)",
-                              border: "1px solid rgba(44, 107, 237, 0.18)",
-                              borderRadius: 8,
-                              padding: "9px 13px",
-                              fontSize: 13,
-                              lineHeight: 1.5,
-                              color: "rgba(230, 237, 247, 0.85)",
-                              cursor: "pointer",
-                            }}
+                            style={{ background: "rgba(44,107,237,0.07)", border: "1px solid rgba(44,107,237,0.18)", borderRadius: 8, padding: "8px 12px", fontSize: 13, lineHeight: 1.45, color: "rgba(230,237,247,0.85)", cursor: "pointer" }}
                             onClick={() => setExtraDetails(idea)}
-                            title="Click to use as extra details"
                           >
                             {idea}
                           </div>
                         ))}
                       </div>
-                      <div style={{ fontSize: 11, opacity: 0.35, marginTop: 6, textAlign: "center" as const }}>
-                        Tap any idea to use it as your post angle
-                      </div>
                     </div>
                   )}
 
-                  {/* Example caption hook preview */}
+                  {/* Example caption hook */}
                   {selectedDay.pillarType && (getTemplate(nicheKey)?.pillars[selectedDay.pillarType]?.captionHooks?.length ?? 0) > 0 && (
-                    <div style={{ marginBottom: 20 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 10 }}>
-                        Example caption opener
-                      </div>
-                      <div style={{
-                        background: "rgba(124, 58, 237, 0.09)",
-                        border: "1px solid rgba(124, 58, 237, 0.22)",
-                        borderRadius: 10,
-                        padding: "12px 14px",
-                        fontSize: 13,
-                        lineHeight: 1.6,
-                        fontStyle: "italic",
-                        color: "rgba(167, 139, 250, 0.9)",
-                      }}>
-                        "{getTemplate(nicheKey)?.pillars[selectedDay.pillarType!]?.captionHooks?.[0]}"
-                      </div>
-                      <div style={{ fontSize: 11, opacity: 0.35, marginTop: 6, textAlign: "center" as const }}>
-                        Your actual caption will be unique and tailored to your brand
-                      </div>
+                    <div style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.2)", borderRadius: 10, padding: "10px 14px", fontSize: 13, lineHeight: 1.55, fontStyle: "italic", color: "rgba(167,139,250,0.9)" }}>
+                      "{getTemplate(nicheKey)?.pillars[selectedDay.pillarType!]?.captionHooks?.[0]}"
                     </div>
                   )}
-                  </div>{/* end left column */}
 
-                  {/* ---- RIGHT COLUMN ---- */}
-                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
-                  {/* What you'll get */}
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 10 }}>
-                      What you'll get
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column" as const, gap: 7 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ width: 30, height: 30, borderRadius: 8, background: "linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, flexShrink: 0 }}>
-                          🖼️
-                        </div>
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: 13 }}>Custom AI Image</div>
-                          <div style={{ fontSize: 11, opacity: 0.6 }}>Designed to match your brand colors</div>
-                        </div>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ width: 30, height: 30, borderRadius: 8, background: "linear-gradient(135deg, rgba(44, 107, 237, 0.2) 0%, rgba(44, 107, 237, 0.1) 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, flexShrink: 0 }}>
-                          ✍️
-                        </div>
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: 13 }}>Engaging Caption</div>
-                          <div style={{ fontSize: 11, opacity: 0.6 }}>Written in your brand voice</div>
-                        </div>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ width: 30, height: 30, borderRadius: 8, background: "linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, flexShrink: 0 }}>
-                          #️⃣
-                        </div>
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: 13 }}>Relevant Hashtags</div>
-                          <div style={{ fontSize: 11, opacity: 0.6 }}>Optimized for your niche</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Brand profile indicator */}
-                  <div
-                    style={{
-                      background: "linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%)",
-                      border: "1px solid rgba(16, 185, 129, 0.3)",
-                      borderRadius: 12,
-                      padding: 12,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                    }}
-                  >
-                    <div style={{ fontSize: 22 }}>✅</div>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: 14, color: "#6ee7b7" }}>
-                        Using "{activeBrandProfile?.profileName}" Profile
-                      </div>
-                      <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
-                        Your brand settings will be applied automatically
-                      </div>
+                  {/* Brand profile chip */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)", borderRadius: 10, padding: "8px 12px" }}>
+                    <span style={{ fontSize: 16 }}>✅</span>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#6ee7b7" }}>
+                      Using &ldquo;{activeBrandProfile?.profileName}&rdquo; profile
                     </div>
                   </div>
 
                   {/* Optional inputs */}
-                  <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
-                    {/* Field 1: Topic detail */}
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 6 }}>
-                        Add a detail <span style={{ fontWeight: 400, opacity: 0.6, textTransform: "none" as const, letterSpacing: 0 }}>(optional)</span>
-                      </div>
-                      <textarea
-                        value={extraDetails}
-                        onChange={(e) => setExtraDetails(e.target.value)}
-                        placeholder={
-                          selectedDay.postType === "Market Authority"
-                            ? "E.g. Interest rates just dropped 0.25%..."
-                            : selectedDay.postType === "Home Feature Spotlight"
-                            ? "E.g. modern kitchen, big backyard, home office..."
-                            : selectedDay.postType === "Educational"
-                            ? "E.g. pre-approval vs pre-qualification..."
-                            : selectedDay.postType === "Social Proof"
-                            ? "E.g. sold price, days on market, specific win..."
-                            : selectedDay.postType === "Community"
-                            ? "E.g. coffee shop name, neighborhood, local event..."
-                            : selectedDay.postType === "Workout Tip"
-                            ? "E.g. legs workout, squat form, core training..."
-                            : selectedDay.postType === "Nutrition Advice"
-                            ? "E.g. protein intake, meal prep, hydration..."
-                            : selectedDay.postType === "Menu Feature"
-                            ? "E.g. burgers, tacos, pasta, weekend special..."
-                            : "E.g. specific topic, feature, or angle to focus on..."
-                        }
-                        style={{
-                          width: "100%",
-                          minHeight: 56,
-                          background: "rgba(255,255,255,0.06)",
-                          border: "1px solid rgba(255,255,255,0.12)",
-                          borderRadius: 10,
-                          padding: 12,
-                          color: "#e6edf7",
-                          fontFamily: "Verdana, Geneva, sans-serif",
-                          fontSize: 13,
-                          resize: "none",
-                          outline: "none",
-                          boxSizing: "border-box",
-                          lineHeight: 1.5,
-                        }}
-                      />
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.45, marginBottom: 6 }}>
+                      Add a detail <span style={{ fontWeight: 400, opacity: 0.6, textTransform: "none" as const, letterSpacing: 0 }}>(optional)</span>
                     </div>
-                    {/* Field 2: Personal thought */}
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.5, marginBottom: 6 }}>
-                        Add your own thought <span style={{ fontWeight: 400, opacity: 0.6, textTransform: "none" as const, letterSpacing: 0 }}>(optional)</span>
-                      </div>
-                      <textarea
-                        value={userThought}
-                        onChange={(e) => setUserThought(e.target.value)}
-                        placeholder="E.g. Just helped a first-time buyer close last week — most emotional closing I've had..."
-                        style={{
-                          width: "100%",
-                          minHeight: 56,
-                          background: "rgba(255,255,255,0.06)",
-                          border: "1px solid rgba(255,255,255,0.12)",
-                          borderRadius: 10,
-                          padding: 12,
-                          color: "#e6edf7",
-                          fontFamily: "Verdana, Geneva, sans-serif",
-                          fontSize: 13,
-                          resize: "none",
-                          outline: "none",
-                          boxSizing: "border-box",
-                          lineHeight: 1.5,
-                        }}
-                      />
-                      <div style={{ fontSize: 11, opacity: 0.35, marginTop: 5 }}>
-                        AI will weave this into the caption naturally
-                      </div>
+                    <textarea
+                      value={extraDetails}
+                      onChange={(e) => setExtraDetails(e.target.value)}
+                      placeholder={
+                        selectedDay.postType === "Market Authority" ? "E.g. Interest rates just dropped 0.25%..."
+                        : selectedDay.postType === "Home Feature Spotlight" ? "E.g. modern kitchen, big backyard, home office..."
+                        : selectedDay.postType === "Educational" ? "E.g. pre-approval vs pre-qualification..."
+                        : selectedDay.postType === "Social Proof" ? "E.g. sold price, days on market, specific win..."
+                        : selectedDay.postType === "Community" ? "E.g. coffee shop name, neighborhood, local event..."
+                        : selectedDay.postType === "Workout Tip" ? "E.g. legs workout, squat form, core training..."
+                        : selectedDay.postType === "Nutrition Advice" ? "E.g. protein intake, meal prep, hydration..."
+                        : selectedDay.postType === "Menu Feature" ? "E.g. burgers, tacos, pasta, weekend special..."
+                        : "E.g. specific topic, feature, or angle to focus on..."
+                      }
+                      style={{ width: "100%", minHeight: 52, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: 12, color: "#e6edf7", fontFamily: "Verdana, Geneva, sans-serif", fontSize: 13, resize: "none", outline: "none", boxSizing: "border-box", lineHeight: 1.5 }}
+                    />
+                  </div>
+
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, opacity: 0.45, marginBottom: 6 }}>
+                      Your own thought <span style={{ fontWeight: 400, opacity: 0.6, textTransform: "none" as const, letterSpacing: 0 }}>(optional)</span>
                     </div>
+                    <textarea
+                      value={userThought}
+                      onChange={(e) => setUserThought(e.target.value)}
+                      placeholder="E.g. Just helped a first-time buyer close last week..."
+                      style={{ width: "100%", minHeight: 52, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: 12, color: "#e6edf7", fontFamily: "Verdana, Geneva, sans-serif", fontSize: 13, resize: "none", outline: "none", boxSizing: "border-box", lineHeight: 1.5 }}
+                    />
+                    <div style={{ fontSize: 11, opacity: 0.3, marginTop: 4 }}>AI will weave this into the caption naturally</div>
                   </div>
 
                   {/* Token count */}
-                  <div style={{ fontSize: 12, textAlign: "center" as const, opacity: 0.5, marginTop: "auto", paddingTop: 8 }}>
-                    {tokenBalance.isLoading
-                      ? "Loading tokens..."
-                      : `${tokenBalance.tokensRemaining} tokens remaining this month`}
+                  <div style={{ fontSize: 12, textAlign: "center" as const, opacity: 0.4 }}>
+                    {tokenBalance.isLoading ? "Loading tokens..." : `${tokenBalance.tokensRemaining} token${tokenBalance.tokensRemaining === 1 ? "" : "s"} remaining this month`}
                   </div>
-                  </div>{/* end right column */}
+
                 </div>
               )}
             </div>

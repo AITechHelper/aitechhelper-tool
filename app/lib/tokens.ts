@@ -27,8 +27,15 @@ async function getAllowanceForUser(userId: string): Promise<{ allowance: number;
     WHERE clerk_user_id = ${userId}
   `;
 
-  // null plan means the user has never selected any plan (no row in user_entitlements)
-  if (!rows[0]) return { allowance: FREE_ALLOWANCE, plan: null };
+  // No entitlement row — auto-enroll in free plan on first access
+  if (!rows[0]) {
+    await sql`
+      INSERT INTO user_entitlements (clerk_user_id, subscription_status, plan, updated_at)
+      VALUES (${userId}, 'active', 'free', NOW())
+      ON CONFLICT (clerk_user_id) DO NOTHING
+    `;
+    return { allowance: FREE_ALLOWANCE, plan: "free" };
+  }
 
   const row = rows[0] as { subscriptionStatus: string; plan: string | null };
 

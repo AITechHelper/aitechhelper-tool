@@ -18,6 +18,7 @@ type FormState = {
   tone: string;
   captionLength: "Short" | "Medium" | "Long";
   hashtagCount: number;
+  callToAction: string;
   imageStyle: string;
   primaryColor: string;
   secondaryColor: string;
@@ -278,6 +279,7 @@ export default function Page() {
     tone: "Confident",
     captionLength: "Medium",
     hashtagCount: 12,
+    callToAction: "",
     imageStyle: "lifestyle_photo",
     primaryColor: "#000000",
     secondaryColor: "#ffffff",
@@ -523,6 +525,7 @@ export default function Page() {
       sp.set("tone", form.tone);
       sp.set("captionLength", form.captionLength);
       sp.set("hashtagCount", String(form.hashtagCount));
+      if (form.callToAction) sp.set("callToAction", form.callToAction);
       sp.set("imageStyle", form.imageStyle);
       sp.set("primaryColor", form.primaryColor);
       sp.set("secondaryColor", form.secondaryColor);
@@ -1596,6 +1599,22 @@ export default function Page() {
                   <div style={styles.sliderValue}>{form.hashtagCount} hashtags ({getHashtagLabel(form.hashtagCount)})</div>
                 </div>
               </div>
+              {/* Call to Action */}
+              <div style={styles.field}>
+                <div style={styles.label}>Call to Action</div>
+                <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 8 }}>
+                  {["Let AI choose", "DM us", "Visit our website", "Give us a call", "Send us a message", "Comment below", "Save this", "Follow for more", "Link in bio", "Book a free call"].map((cta) => {
+                    const val = cta === "Let AI choose" ? "" : cta;
+                    const sel = form.callToAction === val;
+                    return (
+                      <button key={cta} onClick={() => updateForm("callToAction", val)} style={{ background: sel ? "rgba(44,107,237,0.18)" : "rgba(255,255,255,0.04)", border: sel ? "1.5px solid #2c6bed" : "1px solid rgba(255,255,255,0.1)", borderRadius: 999, padding: "7px 16px", fontSize: 13, fontWeight: sel ? 700 : 500, color: sel ? "#7eb3ff" : "#b0bec5", cursor: "pointer", transition: "all 0.15s ease" }}>
+                        {cta}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 16, marginTop: 4 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.55, marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: 0.5 }}>Brand Colors</div>
                 <div style={styles.row2} className="ath-row2">
@@ -1823,11 +1842,13 @@ export default function Page() {
                   >
                     {isLoading
                       ? "Generating…"
-                      : !tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0
-                        ? "Token limit reached"
-                        : canGenerate
-                          ? "Generate"
-                          : "Fill in Niche & Audience"}
+                      : tokenBalance.isLoading
+                        ? "Generate"
+                        : tokenBalance.tokensRemaining <= 0
+                          ? "Out of Tokens"
+                          : canGenerate
+                            ? `Generate (${tokenBalance.tokensRemaining} token${tokenBalance.tokensRemaining === 1 ? "" : "s"} left)`
+                            : "Fill in Niche & Audience"}
                     <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>

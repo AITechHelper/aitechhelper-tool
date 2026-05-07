@@ -68,6 +68,7 @@ export default function GenerateVideoPage() {
   const [tone,          setTone]          = useState("Confident");
   const [captionLength, setCaptionLength] = useState<CaptionLen>("Medium");
   const [hashtagCount,  setHashtagCount]  = useState(12);
+  const [callToAction,  setCallToAction]  = useState("");
 
   // Result state
   const [videoState,     setVideoState]     = useState<VideoState>("idle");
@@ -145,6 +146,7 @@ export default function GenerateVideoPage() {
           tone,
           captionLength,
           hashtagCount,
+          callToAction,
           brandContext: {
             niche:          niche,
             audience:       audience,
@@ -585,6 +587,22 @@ export default function GenerateVideoPage() {
                     </div>
                   </div>
 
+                  {/* Call to Action */}
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, opacity: 0.6, textTransform: "uppercase" as const, letterSpacing: "0.07em" }}>Call to Action</div>
+                    <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 8 }}>
+                      {["Let AI choose", "DM us", "Visit our website", "Give us a call", "Send us a message", "Comment below", "Save this", "Follow for more", "Link in bio", "Book a free call"].map((cta) => {
+                        const val = cta === "Let AI choose" ? "" : cta;
+                        const sel = callToAction === val;
+                        return (
+                          <button key={cta} onClick={() => setCallToAction(val)} style={{ background: sel ? "rgba(16,185,129,0.18)" : "rgba(255,255,255,0.04)", border: sel ? "1.5px solid #10b981" : "1px solid rgba(255,255,255,0.1)", borderRadius: 999, padding: "7px 16px", fontSize: 13, fontWeight: sel ? 700 : 500, color: sel ? "#34d399" : "#b0bec5", cursor: "pointer", transition: "all 0.15s ease" }}>
+                            {cta}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   <div style={stepNav}>
                     <button style={backBtn} onClick={goBack}>
                       <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -596,7 +614,13 @@ export default function GenerateVideoPage() {
                       disabled={!canGenerate}
                       style={{ ...nextBtn, ...(!canGenerate ? nextBtnDisabled : {}) }}
                     >
-                      Generate Video (2 tokens)
+                      {tokenBalance.isLoading
+                        ? "Generate Video (2 tokens)"
+                        : tokenBalance.tokensRemaining === 0
+                          ? "Out of Tokens"
+                          : tokenBalance.tokensRemaining < 2
+                            ? `Not Enough Tokens (${tokenBalance.tokensRemaining}/2)`
+                            : `Generate Video (2 tokens)`}
                       <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </button>
                   </div>

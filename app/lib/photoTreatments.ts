@@ -422,11 +422,31 @@ export async function applyBrandingWithPhotoAndText(
 
 export type InstagramFormat = "square" | "portrait" | "landscape" | "stories";
 
+// Picks a background fill color from the brand's primary/secondary colors.
+// Darkens the primary color slightly so the centered image always stands out.
+function brandFillColor(primaryColor: string, secondaryColor: string): string {
+  const cleaned = primaryColor.replace("#", "");
+  const r = Math.round(parseInt(cleaned.slice(0, 2), 16) * 0.55);
+  const g = Math.round(parseInt(cleaned.slice(2, 4), 16) * 0.55);
+  const b = Math.round(parseInt(cleaned.slice(4, 6), 16) * 0.55);
+  // If primary is too dark (near black), fall back to a darkened secondary
+  if (r + g + b < 30) {
+    const c2 = secondaryColor.replace("#", "");
+    const r2 = Math.round(parseInt(c2.slice(0, 2), 16) * 0.45);
+    const g2 = Math.round(parseInt(c2.slice(2, 4), 16) * 0.45);
+    const b2 = Math.round(parseInt(c2.slice(4, 6), 16) * 0.45);
+    return `rgb(${r2},${g2},${b2})`;
+  }
+  return `rgb(${r},${g},${b})`;
+}
+
 // Converts an existing image to an Instagram-compatible aspect ratio using canvas.
 // No API calls — runs entirely client-side. Free to use on any already-generated image.
 export async function convertToInstagramFormat(
   imageBase64: string,
-  format: InstagramFormat
+  format: InstagramFormat,
+  primaryColor = "#000000",
+  secondaryColor = "#ffffff"
 ): Promise<string> {
   if (format === "square") return imageBase64;
 
@@ -447,15 +467,9 @@ export async function convertToInstagramFormat(
   canvas.height = canvasH;
   const ctx = canvas.getContext("2d")!;
 
-  // Blurred background (cover fill)
-  const bgScale = Math.max(canvasW / srcW, canvasH / srcH);
-  const bgW = srcW * bgScale;
-  const bgH = srcH * bgScale;
-  const bgX = (canvasW - bgW) / 2;
-  const bgY = (canvasH - bgH) / 2;
-  ctx.filter = "blur(24px) brightness(0.6)";
-  ctx.drawImage(img, bgX, bgY, bgW, bgH);
-  ctx.filter = "none";
+  // Brand-colored background fill
+  ctx.fillStyle = brandFillColor(primaryColor, secondaryColor);
+  ctx.fillRect(0, 0, canvasW, canvasH);
 
   // Original image centered (contain fit)
   const fgScale = Math.min(canvasW / srcW, canvasH / srcH);

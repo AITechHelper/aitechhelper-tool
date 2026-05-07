@@ -871,7 +871,7 @@ You generate a high-quality social post package.
 Hard rules:
 - Return ONLY valid JSON. No markdown. No extra keys.
 - No emojis.
-- Caption MUST be <= ${maxCaptionChars} characters.
+- Caption MUST be <= ${maxCaptionChars} characters. Aim for ~${Math.round(maxCaptionChars * 0.88)} characters so you always finish on a complete sentence — never cut off mid-thought.
 - Caption must NOT describe the image ("in the photo", "picture this", etc).
 - Caption MUST match the post type and tone.
 - If SpecificRequest is provided, caption MUST include it clearly and directly (do not change the offer wording).
@@ -896,9 +896,11 @@ CAPTION STRUCTURE (CRITICAL):
 2. BODY: ${captionStructure.structureHint}
 
 3. CTA: End with a strong call-to-action.
-   - Best CTAs for this post type: ${captionStructure.ctaOptions.join(", ")}
+${body.callToAction && !["Comment, Share, Like, Follow, DM us"].includes(body.callToAction)
+  ? `   - The user has chosen this specific CTA: "${body.callToAction}". Use it naturally at the end — work it into the flow of the caption so it feels earned, not bolted on.`
+  : `   - Best CTAs for this post type: ${captionStructure.ctaOptions.join(", ")}
    - Pick ONE that fits naturally. Make it feel organic, not forced.
-   - The CTA should match the post's intent (don't use "Save this" for a promo post).
+   - The CTA should match the post's intent (don't use "Save this" for a promo post).`}
 
 - The field "scene_plan" must be visual-only instructions and MUST obey the ImageStyle rules:
   - ${styleSpec.allowText ? "Text in image is allowed." : "NO text in image."}
@@ -974,8 +976,10 @@ ${imageDescription ? `\nIMAGE SCENE DIRECTION — when generating scene_plan, ba
     let hashtags = String(parsed.hashtags || "").trim();
     let scenePlan = String(parsed.scene_plan || "").trim();
 
-    if (caption.length > maxCaptionChars)
-      caption = caption.slice(0, maxCaptionChars).trim();
+    if (caption.length > maxCaptionChars) {
+      // Trim to last complete word to avoid cutting mid-word or mid-sentence
+      caption = caption.slice(0, maxCaptionChars).replace(/\s+\S*$/, "").trim();
+    }
 
     // CTA is now generated dynamically by the AI based on post type
     // No forced CTA appending - the AI picks the best contextual CTA
