@@ -291,8 +291,20 @@ export default function ManagePage() {
               <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>
                 Are you sure?
               </div>
+              <div style={{
+                background: "rgba(251,191,36,0.1)",
+                border: "1px solid rgba(251,191,36,0.35)",
+                borderRadius: 10,
+                padding: "10px 14px",
+                marginBottom: 12,
+                fontSize: 13,
+                color: "#fbbf24",
+                lineHeight: 1.6,
+              }}>
+                ⚠️ If you have an active subscription, please cancel it first using the <strong>Manage Billing</strong> button above to avoid future charges.
+              </div>
               <div style={{ fontSize: 13, opacity: 0.65, marginBottom: 20, lineHeight: 1.6 }}>
-                All your brand profiles, generated posts, scheduled content, and account data will be permanently deleted. Your subscription will also be cancelled.
+                All your brand profiles, generated posts, scheduled content, and account data will be permanently deleted. This cannot be undone.
               </div>
               <div style={{ display: "flex", gap: 10 }}>
                 <button

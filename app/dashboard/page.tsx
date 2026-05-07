@@ -1049,8 +1049,8 @@ export default function DashboardPage() {
 
                     <button
                       onClick={async () => {
-                        if (!confirm("Permanently delete your account and all data? This cannot be undone.")) return;
-                        if (!confirm("Are you sure? This will delete everything immediately.")) return;
+                        if (!confirm("Permanently delete your account and all data? This cannot be undone.\n\n⚠️ If you have an active subscription, please cancel it first in Account Settings to avoid future charges.")) return;
+                        if (!confirm("Are you absolutely sure? All your posts, profiles, and data will be deleted immediately.")) return;
                         setDeletingAccount(true);
                         setMenuOpen(false);
                         fetch("/api/delete-account", { method: "DELETE" });
@@ -2501,13 +2501,13 @@ export default function DashboardPage() {
               onClick={async () => {
                 if (
                   !confirm(
-                    "Permanently delete your account and all data? This cannot be undone."
+                    "Permanently delete your account and all data? This cannot be undone.\n\n⚠️ If you have an active subscription, please cancel it first in Account Settings to avoid future charges."
                   )
                 )
                   return;
                 if (
                   !confirm(
-                    "Are you absolutely sure? Everything will be deleted immediately."
+                    "Are you absolutely sure? All your posts, profiles, and data will be deleted immediately."
                   )
                 )
                   return;
