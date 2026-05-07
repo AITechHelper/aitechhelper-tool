@@ -7,13 +7,13 @@ function sql(strings: TemplateStringsArray, ...values: any[]): Promise<any[]> {
 }
 
 const PLAN_ALLOWANCES: Record<string, number> = {
-  free: 2,
+  free: 10,
   basic: 30,
   pro: 60,
   premium: 120,
 };
 
-const FREE_ALLOWANCE = PLAN_ALLOWANCES.free; // 3
+const FREE_ALLOWANCE = PLAN_ALLOWANCES.free;
 
 function getMonthKey(): string {
   const now = new Date();
