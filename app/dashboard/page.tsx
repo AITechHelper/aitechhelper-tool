@@ -61,6 +61,7 @@ export default function DashboardPage() {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [postImages, setPostImages] = useState<Record<string, string>>({});
   const [billingLoading, setBillingLoading] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const [navLoading, setNavLoading] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -1049,15 +1050,19 @@ export default function DashboardPage() {
                       onClick={async () => {
                         if (!confirm("Permanently delete your account and all data? This cannot be undone.")) return;
                         if (!confirm("Are you sure? This will delete everything immediately.")) return;
+                        setDeletingAccount(true);
+                        setMenuOpen(false);
                         try {
                           const res = await fetch("/api/delete-account", { method: "DELETE" });
                           if (res.ok) {
                             router.push("/");
                           } else {
                             alert("Failed to delete account. Please try again.");
+                            setDeletingAccount(false);
                           }
                         } catch {
                           alert("Something went wrong. Please try again.");
+                          setDeletingAccount(false);
                         }
                       }}
                       style={{
@@ -2515,6 +2520,7 @@ export default function DashboardPage() {
                   )
                 )
                   return;
+                setDeletingAccount(true);
                 try {
                   const res = await fetch("/api/delete-account", {
                     method: "DELETE",
@@ -2523,9 +2529,11 @@ export default function DashboardPage() {
                     window.location.href = "/";
                   } else {
                     alert("Failed to delete account. Please try again.");
+                    setDeletingAccount(false);
                   }
                 } catch {
                   alert("Something went wrong. Please try again.");
+                  setDeletingAccount(false);
                 }
               }}
               style={{
@@ -3495,6 +3503,39 @@ export default function DashboardPage() {
         tokensUsed={tokenBalance.tokensUsed}
         totalTokens={tokenBalance.totalMonthlyTokens}
       />
+
+      {deletingAccount && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.85)",
+            zIndex: 99999,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 16,
+          }}
+        >
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              border: "3px solid rgba(255,255,255,0.15)",
+              borderTop: "3px solid #ef4444",
+              borderRadius: "50%",
+              animation: "spin 0.8s linear infinite",
+            }}
+          />
+          <p style={{ color: "#e6edf7", fontSize: 16, fontWeight: 600, margin: 0, fontFamily: "Verdana, Geneva, sans-serif" }}>
+            Deleting account…
+          </p>
+          <p style={{ color: "rgba(230,237,247,0.45)", fontSize: 13, margin: 0, fontFamily: "Verdana, Geneva, sans-serif" }}>
+            Please wait, do not close the app
+          </p>
+        </div>
+      )}
     </div>
   );
 }

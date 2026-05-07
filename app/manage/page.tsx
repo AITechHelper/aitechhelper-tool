@@ -351,6 +351,39 @@ export default function ManagePage() {
         </div>
 
       </div>
+
+      {deleting && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.85)",
+            zIndex: 99999,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 16,
+          }}
+        >
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              border: "3px solid rgba(255,255,255,0.15)",
+              borderTop: "3px solid #ef4444",
+              borderRadius: "50%",
+              animation: "spin 0.8s linear infinite",
+            }}
+          />
+          <p style={{ color: "#e6edf7", fontSize: 16, fontWeight: 600, margin: 0, fontFamily: "Verdana, Geneva, sans-serif" }}>
+            Deleting account…
+          </p>
+          <p style={{ color: "rgba(230,237,247,0.45)", fontSize: 13, margin: 0, fontFamily: "Verdana, Geneva, sans-serif" }}>
+            Please wait, do not close the app
+          </p>
+        </div>
+      )}
     </div>
   );
 }
