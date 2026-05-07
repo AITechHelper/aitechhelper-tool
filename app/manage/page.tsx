@@ -23,12 +23,6 @@ const PLAN_LABELS: Record<string, string> = {
   premium: "Premium",
 };
 
-const PLAN_TOKENS: Record<string, number> = {
-  free: 2,
-  basic: 30,
-  pro: 60,
-  premium: 120,
-};
 
 export default function ManagePage() {
   const router = useRouter();
@@ -78,7 +72,7 @@ export default function ManagePage() {
   const planKey = sub?.plan ?? "free";
   const planLabel = PLAN_LABELS[planKey] ?? planKey;
   const isPaid = planKey !== "free" && planKey !== null;
-  const totalTokens = PLAN_TOKENS[planKey] ?? 2;
+  const totalTokens = tokens?.totalTokens ?? 0;
   const tokensUsed = tokens?.tokensUsed ?? 0;
   const tokenPct = totalTokens > 0 ? Math.min((tokensUsed / totalTokens) * 100, 100) : 0;
 
@@ -102,7 +96,7 @@ export default function ManagePage() {
       {/* Header */}
       <div style={{ width: "100%", maxWidth: 520, marginBottom: 40 }}>
         <button
-          onClick={() => router.back()}
+          onClick={() => router.push("/dashboard")}
           style={{
             background: "none",
             border: "none",
