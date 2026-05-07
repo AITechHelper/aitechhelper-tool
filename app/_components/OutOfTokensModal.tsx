@@ -171,7 +171,12 @@ export default function OutOfTokensModal({
             </p>
             <p style={{ fontSize: 13, opacity: 0.5, margin: "0 0 24px", lineHeight: 1.6 }}>
               To get more posts, visit{" "}
-              <strong style={{ color: "#7eb3ff", opacity: 1 }}>aisocialhelper.com</strong>{" "}
+              <strong
+                style={{ color: "#7eb3ff", opacity: 1, cursor: "pointer", textDecoration: "underline" }}
+                onClick={() => window.open("https://www.aisocialhelper.com/manage", "_system")}
+              >
+                aisocialhelper.com
+              </strong>{" "}
               in your browser to manage your subscription.
             </p>
             <button
