@@ -223,8 +223,8 @@ export default function LandingPage() {
             gap: 12,
           }}
         >
-          <img src="/logo-icon.png" alt="AI Social Helper" style={{ width: 48, height: 48, objectFit: "contain" }} />
-          <span className="nav-brand-text" style={{ fontSize: 18, fontWeight: 800 }}>AI Social Helper</span>
+          <img src="/logo-icon.png" alt="AI Social Media Helper" style={{ width: 48, height: 48, objectFit: "contain" }} />
+          <span className="nav-brand-text" style={{ fontSize: 18, fontWeight: 800 }}>AI Social Media Helper</span>
         </div>
         <div className="nav-right" style={{ display: "flex", gap: 12, alignItems: "center" }}>
           {isSignedIn ? (
@@ -627,9 +627,9 @@ export default function LandingPage() {
                   borderBottom: "1px solid rgba(255,255,255,0.1)",
                 }}
               >
-                <img src="/logo-icon.png" alt="AI Social Helper" style={{ width: 40, height: 40, objectFit: "contain" }} />
+                <img src="/logo-icon.png" alt="AI Social Media Helper" style={{ width: 40, height: 40, objectFit: "contain" }} />
                 <span style={{ fontSize: 14, fontWeight: 700, opacity: 0.9 }}>
-                  AI Social Helper
+                  AI Social Media Helper
                 </span>
                 <div
                   style={{
@@ -996,7 +996,7 @@ export default function LandingPage() {
                   maxWidth: 460,
                 }}
               >
-                No more guessing what to post. AI Social Helper generates a
+                No more guessing what to post. AI Social Media Helper generates a
                 complete 5-day content plan built around how top professionals grow on
                 social — authority, showcase, education, social proof,
                 and community. Here&apos;s an example for real estate agents:
@@ -1380,7 +1380,7 @@ export default function LandingPage() {
           >
             <img
               src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1280&h=420&fit=crop&q=80"
-              alt="Contractor using AI Social Helper"
+              alt="Contractor using AI Social Media Helper"
               style={{
                 width: "100%",
                 height: "100%",
@@ -1435,7 +1435,7 @@ export default function LandingPage() {
                 }}
               >
                 You didn&apos;t start your business to spend your nights
-                writing captions. AI Social Helper gives you a full week
+                writing captions. AI Social Media Helper gives you a full week
                 of content in minutes — so you can get back to
                 doing what you love.
               </p>
@@ -1457,7 +1457,7 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>
-                    AI Social Helper
+                    AI Social Media Helper
                   </div>
                   <div style={{ fontSize: 12, opacity: 0.6, color: "#e6edf7" }}>
                     AI social media for your niche

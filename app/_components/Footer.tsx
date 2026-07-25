@@ -18,11 +18,11 @@ export default function Footer() {
           marginBottom: 16,
         }}
       >
-        <img src="/logo-icon.png" alt="AI Social Helper" style={{ width: 40, height: 40, objectFit: "contain" }} />
-        <span style={{ fontSize: 16, fontWeight: 700, color: "#e6edf7" }}>AI Social Helper</span>
+        <img src="/logo-icon.png" alt="AI Social Media Helper" style={{ width: 40, height: 40, objectFit: "contain" }} />
+        <span style={{ fontSize: 16, fontWeight: 700, color: "#e6edf7" }}>AI Social Media Helper</span>
       </div>
       <p style={{ fontSize: 13, opacity: 0.75, marginBottom: 4, color: "#e6edf7" }}>
-        AISocialHelper is a product of{" "}
+        AI Social Media Helper is a product of{" "}
         <a href="https://aitechhelper.com" target="_blank" rel="noopener noreferrer" style={{ color: "#7eb3ff", textDecoration: "underline" }}>
           AI Tech Helper LLC
         </a>

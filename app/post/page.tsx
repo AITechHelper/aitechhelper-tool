@@ -1025,7 +1025,7 @@ export default function PostPage() {
         <div>
           <h1 style={styles.title}>{post ? "Your Post" : "Generating"}</h1>
           <p style={styles.subtitle}>
-            {post ? <span style={{ fontSize: 18 }}>✨</span> : <img src="/logo-icon.png" alt="AI Social Helper" style={{ width: 28, height: 28, objectFit: "contain" }} />}
+            {post ? <span style={{ fontSize: 18 }}>✨</span> : <img src="/logo-icon.png" alt="AI Social Media Helper" style={{ width: 28, height: 28, objectFit: "contain" }} />}
             {post
               ? "Edit your caption and copy to clipboard"
               : "Your post is being created. You can refine once after it finishes."}

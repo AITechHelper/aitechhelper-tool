@@ -1128,7 +1128,7 @@ export default function Page() {
               gap: 8,
             }}
           >
-            <img src="/logo-icon.png" alt="AI Social Helper" style={{ width: 28, height: 28, objectFit: "contain" }} />
+            <img src="/logo-icon.png" alt="AI Social Media Helper" style={{ width: 28, height: 28, objectFit: "contain" }} />
             AI-powered image + caption + hashtags
           </p>
           {form.niche && (

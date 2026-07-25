@@ -239,7 +239,7 @@ export default function SignUpPage() {
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <img
             src="/logo-icon.png"
-            alt="AI Social Helper"
+            alt="AI Social Media Helper"
             style={{ width: 48, height: 48, display: "block", margin: "0 auto 12px" }}
           />
           <h1 style={{ color: "#fff", fontSize: 22, fontWeight: 700, margin: 0 }}>
@@ -248,7 +248,7 @@ export default function SignUpPage() {
           <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 14, marginTop: 6 }}>
             {step === "verify_code"
               ? `We sent a verification code to ${email}`
-              : "Get started with AI Social Helper"}
+              : "Get started with AI Social Media Helper"}
           </p>
         </div>
 

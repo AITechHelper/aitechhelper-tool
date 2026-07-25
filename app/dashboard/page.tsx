@@ -835,7 +835,7 @@ export default function DashboardPage() {
               wordBreak: "break-word",
             }}
           >
-            AI Social Helper
+            AI Social Media Helper
           </h1>
 
           <p
@@ -2047,7 +2047,7 @@ export default function DashboardPage() {
                   <img
                     className="ath-card-icon"
                     src="/logo-icon.png"
-                    alt="AI Social Helper"
+                    alt="AI Social Media Helper"
                     style={{
                       width: 64,
                       height: 64,

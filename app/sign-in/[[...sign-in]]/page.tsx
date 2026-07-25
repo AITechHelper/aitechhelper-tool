@@ -261,7 +261,7 @@ export default function SignInPage() {
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <img
             src="/logo-icon.png"
-            alt="AI Social Helper"
+            alt="AI Social Media Helper"
             style={{ width: 48, height: 48, marginBottom: 12, display: "block", margin: "0 auto 12px" }}
           />
           <h1 style={{ color: "#fff", fontSize: 22, fontWeight: 700, margin: 0 }}>
@@ -276,7 +276,7 @@ export default function SignInPage() {
           >
             {step === "verify_code"
               ? `We sent a verification code to ${email}`
-              : "Welcome back to AI Social Helper"}
+              : "Welcome back to AI Social Media Helper"}
           </p>
         </div>
 
