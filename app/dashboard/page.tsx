@@ -1997,7 +1997,7 @@ export default function DashboardPage() {
                         transition: "all 0.15s ease",
                       }}
                       onClick={() => {
-                        if (tokensRemaining <= 0) { setShowTokenModal(true); return; }
+                        if (!tokenBalance.isLoading && tokenBalance.tokensRemaining <= 0) { setShowTokenModal(true); return; }
                         router.push("/generator");
                       }}
                       className="hover-btn-primary"
